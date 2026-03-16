@@ -7,7 +7,31 @@ public sealed class LocalTemplatesSubmoduleReader
     public string? ReadCatalog()
     {
         var catalogPath = TryGetCatalogPath();
-        return catalogPath is null ? null : File.ReadAllText(catalogPath);
+        if (catalogPath is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return File.ReadAllText(catalogPath);
+        }
+        catch (FileNotFoundException)
+        {
+            return null;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return null;
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     public string? TryGetCatalogPath()

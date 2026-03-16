@@ -3,7 +3,15 @@ namespace NFramework.NFW.Application.Features.Templates;
 public sealed class GitHubTemplatesReleaseClient
 {
     private const string RawRepositoryBaseUrl = "https://raw.githubusercontent.com/n-framework/nfw-templates";
-    private static readonly HttpClient HttpClient = new();
+    private const int RequestTimeoutSeconds = 10;
+
+    private readonly HttpClient _httpClient;
+
+    public GitHubTemplatesReleaseClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+        _httpClient.Timeout = TimeSpan.FromSeconds(RequestTimeoutSeconds);
+    }
 
     public async Task<string> FetchCatalogAsync(string cliVersion, CancellationToken cancellationToken)
     {
@@ -12,7 +20,7 @@ public sealed class GitHubTemplatesReleaseClient
 
         try
         {
-            using var response = await HttpClient.GetAsync(catalogUrl, cancellationToken);
+            using var response = await _httpClient.GetAsync(catalogUrl, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 throw new TemplateCatalogException(

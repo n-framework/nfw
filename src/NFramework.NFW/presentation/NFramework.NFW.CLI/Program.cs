@@ -13,6 +13,10 @@ namespace NFramework.NFW.CLI;
 
 public static class Program
 {
+    private const int MaxConsoleWidth = 80;
+    private const int MaxSuggestionCount = 3;
+    private const int SuggestionThreshold = 3;
+
     private static readonly string[] KnownCommands = ["templates"];
 
     public static int Main(string[] rawArgs)
@@ -51,7 +55,14 @@ public static class Program
         var versionProvider = serviceProvider.GetRequiredService<IVersionProvider>();
 
         diagnosticLogger.Write("Loading configuration from nfw.yaml and environment.");
-        var configuration = configurationLoader.Load();
+        var configurationResult = configurationLoader.Load();
+        if (configurationResult.IsFailure)
+        {
+            Console.Error.WriteLine($"Configuration error: {configurationResult.Error}");
+            return ExitCodes.RuntimeFailure;
+        }
+
+        var configuration = configurationResult.Value!;
         var missingConfigurationKeys = requiredConfigurationValidator.Validate(configuration);
         if (missingConfigurationKeys.Count > 0)
         {
@@ -170,14 +181,18 @@ public static class Program
 
         try
         {
-            if (Console.WindowWidth > 80)
+            if (Console.WindowWidth > MaxConsoleWidth)
             {
-                Console.WindowWidth = 80;
+                Console.WindowWidth = MaxConsoleWidth;
             }
         }
-        catch
+        catch (PlatformNotSupportedException)
         {
-            // Some terminals disallow width writes; ignore and continue.
+            // Terminal does not support width operations; continue.
+        }
+        catch (IOException)
+        {
+            // Console output may be redirected; continue.
         }
     }
 
@@ -207,11 +222,14 @@ public static class Program
     {
         return KnownCommands
             .Select(candidate => new { Candidate = candidate, Score = CalculateDistance(command, candidate) })
-            .Where(item => item.Candidate.StartsWith(command, StringComparison.OrdinalIgnoreCase) || item.Score <= 3)
+            .Where(item =>
+                item.Candidate.StartsWith(command, StringComparison.OrdinalIgnoreCase)
+                || item.Score <= SuggestionThreshold
+            )
             .OrderBy(item => item.Score)
             .ThenBy(item => item.Candidate, StringComparer.OrdinalIgnoreCase)
             .Select(item => item.Candidate)
-            .Take(3)
+            .Take(MaxSuggestionCount)
             .ToArray();
     }
 

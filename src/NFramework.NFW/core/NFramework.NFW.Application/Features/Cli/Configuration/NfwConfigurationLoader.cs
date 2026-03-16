@@ -1,4 +1,5 @@
 using System.Collections;
+using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
 namespace NFramework.NFW.Application.Features.Cli.Configuration;
@@ -8,26 +9,25 @@ public sealed class NfwConfigurationLoader : INfwConfigurationLoader
     private const string ConfigFileName = "nfw.yaml";
     private const string EnvironmentPrefix = "NFW_";
 
-    private readonly IDeserializer _deserializer;
-
-    public NfwConfigurationLoader()
-    {
-        _deserializer = new DeserializerBuilder().Build();
-    }
-
-    public NfwConfiguration Load()
+    public Result<NfwConfiguration> Load()
     {
         var configFilePath = Path.Combine(Directory.GetCurrentDirectory(), ConfigFileName);
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var sources = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        LoadFromYamlFile(configFilePath, values, sources);
+        var loadResult = LoadFromYamlFile(configFilePath, values, sources);
+        if (loadResult.IsFailure)
+        {
+            return loadResult;
+        }
+
         ApplyEnvironmentOverrides(values, sources);
 
-        return new NfwConfiguration(configFilePath, values, sources);
+        var configuration = new NfwConfiguration(configFilePath, values, sources);
+        return Result<NfwConfiguration>.Success(configuration);
     }
 
-    private void LoadFromYamlFile(
+    private static Result<NfwConfiguration> LoadFromYamlFile(
         string configFilePath,
         IDictionary<string, string> values,
         IDictionary<string, string> sources
@@ -35,18 +35,38 @@ public sealed class NfwConfigurationLoader : INfwConfigurationLoader
     {
         if (!File.Exists(configFilePath))
         {
-            return;
+            return Result<NfwConfiguration>.Success(default!); // File is optional
         }
 
         try
         {
             var yamlContent = File.ReadAllText(configFilePath);
-            var parsedYaml = _deserializer.Deserialize<object?>(yamlContent);
+            var deserializer = new DeserializerBuilder().Build();
+            var parsedYaml = deserializer.Deserialize<object?>(yamlContent);
             Flatten("", parsedYaml, values, sources);
+            return Result<NfwConfiguration>.Success(default!);
+        }
+        catch (FileNotFoundException exception)
+        {
+            return Result<NfwConfiguration>.Failure($"Configuration file not found: {configFilePath}", exception);
+        }
+        catch (IOException exception)
+        {
+            return Result<NfwConfiguration>.Failure($"Unable to read configuration file: {configFilePath}", exception);
+        }
+        catch (YamlException exception)
+        {
+            return Result<NfwConfiguration>.Failure(
+                $"Configuration file has invalid YAML syntax: {ConfigFileName}",
+                exception
+            );
         }
         catch (Exception exception)
         {
-            Console.Error.WriteLine($"Configuration parse error in '{ConfigFileName}': {exception.Message}");
+            return Result<NfwConfiguration>.Failure(
+                $"Unexpected error loading configuration: {exception.Message}",
+                exception
+            );
         }
     }
 

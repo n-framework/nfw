@@ -11,13 +11,13 @@ public static class ApplicationServiceRegistration
     public static IServiceCollection AddNfwApplication(this IServiceCollection services)
     {
         services.AddSingleton<INfwConfigurationLoader, NfwConfigurationLoader>();
-        services.AddSingleton<RequiredConfigurationValidator>();
+        services.AddSingleton<RequiredConfigurationValidator>(_ => new RequiredConfigurationValidator());
         services.AddSingleton<DiagnosticLogger>();
         services.AddSingleton<IVersionProvider, VersionProvider>();
 
         services.AddSingleton<TemplateCatalogParser>();
         services.AddSingleton<LocalTemplatesSubmoduleReader>();
-        services.AddSingleton<GitHubTemplatesReleaseClient>();
+        services.AddHttpClient<GitHubTemplatesReleaseClient>();
         services.AddSingleton<TemplateCatalogSourceResolver>();
         services.AddSingleton<TemplatesService>();
 

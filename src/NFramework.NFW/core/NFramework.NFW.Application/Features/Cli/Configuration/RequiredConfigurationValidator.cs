@@ -2,10 +2,15 @@ namespace NFramework.NFW.Application.Features.Cli.Configuration;
 
 public sealed class RequiredConfigurationValidator
 {
-    private static readonly string[] RequiredKeys = [];
+    private readonly string[] _requiredKeys;
+
+    public RequiredConfigurationValidator(params string[] requiredKeys)
+    {
+        _requiredKeys = requiredKeys?.ToArray() ?? Array.Empty<string>();
+    }
 
     public IReadOnlyList<string> Validate(NfwConfiguration configuration)
     {
-        return RequiredKeys.Where(requiredKey => !configuration.Values.ContainsKey(requiredKey)).ToArray();
+        return _requiredKeys.Where(requiredKey => !configuration.Values.ContainsKey(requiredKey)).ToArray();
     }
 }
