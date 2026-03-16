@@ -4,7 +4,7 @@ public sealed class LocalTemplatesSubmoduleReader
 {
     private const string CatalogFileName = "catalog.yaml";
 
-    public string? ReadCatalog()
+    public static string? ReadCatalog()
     {
         var catalogPath = TryGetCatalogPath();
         if (catalogPath is null)
