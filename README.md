@@ -1,66 +1,49 @@
 # nfw CLI
 
-![GitHub stars](https://img.shields.io/github/stars/n-framework/nfw?style=social)
-![GitHub forks](https://img.shields.io/github/forks/n-framework/nfw?style=social)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+The `nfw` CLI is the command-line entry point for the n-framework toolchain.
 
-The official command-line interface for [NFramework](https://github.com/n-framework/n-framework) — a compile-time-first application framework for building clean architecture microservices.
+## Developer Workflow
 
----
-
-`nfw` streamlines the creation and management of NFramework workspaces and services. Generate production-ready scaffolding, enforce architecture boundaries, and validate your codebase.
-
-**Features:**
-
-- Instant scaffolding — Create workspaces and services in seconds
-- Code generation — Generate entities, commands, queries with full CRUD flows
-- Architecture validation — Detect and report boundary violations
-- Multi-language support — .NET (full), Go & Rust (structure)
-- CI-ready — All commands work non-interactively for automation
-
----
-
-## 🚀 Quick Start
-
-### Installation
-
-**Installation scripts (coming soon)**
-
-### Create Your First Workspace
+Run commands from `src/nfw`:
 
 ```bash
-# List available templates
-nfw templates
-
-# Create a new workspace
-nfw new MyMicroservices
-
-# Navigate to workspace
-cd MyMicroservices
-
-# Add a .NET service
-nfw add service Orders --lang dotnet
-
-# Add an entity with CRUD
-nfw add entity Product --props Name:string,Price:decimal,Stock:int
-
-# Validate architecture
-nfw check
-
-# Build and run
-dotnet build
-dotnet run --project src/Orders/Api
+make build
+make test
+make format
+make analyze
 ```
 
----
+The workflow uses one-step build and test commands to keep local and CI usage
+consistent.
 
-## 📚 Documentation
+## Templates Source Behavior
 
-- [Full PRD](docs/PRD.md) — Product requirements
-- [NFramework Docs](https://docs.nframework.com) — Framework documentation
+- Debug builds use `packages/n-framework-nfw-templates` when the submodule exists.
+- If the debug submodule is missing, debug builds fall back to release behavior.
+- Release builds fetch templates from `github.com/n-framework/nfw-templates`
+  at tag `v{cliVersion}`.
 
----
+Template source is not user-configurable in the CLI skeleton phase.
 
-## ⚖️ License
+## Configuration
 
-This project is licensed under the [MIT License](LICENSE).
+- Optional config file: `nfw.yaml` in the current working directory.
+- Environment variables with `NFW_` prefix override file keys.
+- Invalid YAML prints an error and the CLI continues with defaults.
+
+## Exit Codes
+
+- `0` success, including help output.
+- `1` runtime failure.
+- `2` usage error (unknown command/flag, invalid args).
+- `130` interrupted by SIGINT.
+
+## Publish
+
+Single-file publish examples:
+
+```bash
+dotnet publish src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj -c Release -r linux-x64 -p:PublishSingleFile=true
+dotnet publish src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj -c Release -r osx-x64 -p:PublishSingleFile=true
+dotnet publish src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj -c Release -r win-x64 -p:PublishSingleFile=true
+```
