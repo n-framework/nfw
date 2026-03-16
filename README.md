@@ -18,7 +18,7 @@ consistent.
 
 ## Templates Source Behavior
 
-- Debug builds use `packages/n-framework-nfw-templates` when the submodule exists.
+- Debug builds use `packages/nfw-templates` when the submodule exists.
 - If the debug submodule is missing, debug builds fall back to release behavior.
 - Release builds fetch templates from `github.com/n-framework/nfw-templates`
   at tag `v{cliVersion}`.

@@ -34,7 +34,7 @@ public sealed class LocalTemplatesSubmoduleReader
         }
     }
 
-    public string? TryGetCatalogPath()
+    public static string? TryGetCatalogPath()
     {
         foreach (var root in EnumerateCurrentAndParents(Directory.GetCurrentDirectory()))
         {
@@ -53,8 +53,8 @@ public sealed class LocalTemplatesSubmoduleReader
 
     private static IEnumerable<string> RelativeCatalogPaths =>
         [
-            Path.Combine("src", "nfw", "packages", "n-framework-nfw-templates", CatalogFileName),
-            Path.Combine("packages", "n-framework-nfw-templates", CatalogFileName),
+            Path.Combine("src", "nfw", "packages", "nfw-templates", CatalogFileName),
+            Path.Combine("packages", "nfw-templates", CatalogFileName),
         ];
 
     private static IEnumerable<string> EnumerateCurrentAndParents(string startDirectory)
