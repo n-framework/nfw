@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/packages/" />
+  <Folder Name="/packages/core-codegen/" />
+  <Folder Name="/packages/core-codegen/src/" />
+  <Folder Name="/packages/core-codegen/src/NFramework.NFW.Core.CodeGen/">
+    <Project Path="packages/core-codegen/src/NFramework.NFW.Core.CodeGen/NFramework.NFW.Core.CodeGen.csproj" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/NFramework.NFW/" />
+  <Folder Name="/src/NFramework.NFW/core/">
+    <Project Path="src/NFramework.NFW/core/NFramework.NFW.Application/NFramework.NFW.Application.csproj" />
+    <Project Path="src/NFramework.NFW/core/NFramework.NFW.Domain/NFramework.NFW.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/NFramework.NFW/presentation/">
+    <Project Path="src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NFramework.NFW.CLI.Tests/NFramework.NFW.CLI.Tests.csproj" />
+  </Folder>
+</Solution>
