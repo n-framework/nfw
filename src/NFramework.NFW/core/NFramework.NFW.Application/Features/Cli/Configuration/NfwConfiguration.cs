@@ -1,23 +1,16 @@
 namespace NFramework.NFW.Application.Features.Cli.Configuration;
 
-public sealed class NfwConfiguration
+public sealed class NfwConfiguration(
+    string filePath,
+    IReadOnlyDictionary<string, string> values,
+    IReadOnlyDictionary<string, string> sources
+)
 {
-    public NfwConfiguration(
-        string filePath,
-        IReadOnlyDictionary<string, string> values,
-        IReadOnlyDictionary<string, string> sources
-    )
-    {
-        FilePath = filePath;
-        Values = values;
-        Sources = sources;
-    }
+    public string FilePath { get; } = filePath;
 
-    public string FilePath { get; }
+    public IReadOnlyDictionary<string, string> Values { get; } = values;
 
-    public IReadOnlyDictionary<string, string> Values { get; }
-
-    public IReadOnlyDictionary<string, string> Sources { get; }
+    public IReadOnlyDictionary<string, string> Sources { get; } = sources;
 
     public static NfwConfiguration Empty(string filePath)
     {

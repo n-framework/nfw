@@ -11,10 +11,20 @@
     <Project Path="src/NFramework.NFW/core/NFramework.NFW.Application/NFramework.NFW.Application.csproj" />
     <Project Path="src/NFramework.NFW/core/NFramework.NFW.Domain/NFramework.NFW.Domain.csproj" />
   </Folder>
+  <Folder Name="/src/NFramework.NFW/infrastructure/">
+    <Project Path="src/NFramework.NFW/infrastructure/NFramework.NFW.Infrastructure.FileSystem/NFramework.NFW.Infrastructure.FileSystem.csproj" />
+    <Project Path="src/NFramework.NFW/infrastructure/NFramework.NFW.Infrastructure.GitHub/NFramework.NFW.Infrastructure.GitHub.csproj" />
+  </Folder>
   <Folder Name="/src/NFramework.NFW/presentation/">
     <Project Path="src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/NFramework.NFW.CLI.Tests/NFramework.NFW.CLI.Tests.csproj" />
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/unit/" />
+  <Folder Name="/tests/unit/NFramework.NFW/" />
+  <Folder Name="/tests/unit/NFramework.NFW/infrastructure/">
+    <Project Path="tests/unit/NFramework.NFW/infrastructure/NFramework.NFW.Infrastructure.FileSystem/NFramework.NFW.Infrastructure.FileSystem.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/unit/NFramework.NFW/presentation/">
+    <Project Path="tests/unit/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.Tests.csproj" />
   </Folder>
 </Solution>

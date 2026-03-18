@@ -14,5 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="../../core/NFramework.NFW.Application/NFramework.NFW.Application.csproj" />
     <ProjectReference Include="../../core/NFramework.NFW.Domain/NFramework.NFW.Domain.csproj" />
+    <ProjectReference Include="../../infrastructure/NFramework.NFW.Infrastructure.FileSystem/NFramework.NFW.Infrastructure.FileSystem.csproj" />
+    <ProjectReference Include="../../infrastructure/NFramework.NFW.Infrastructure.GitHub/NFramework.NFW.Infrastructure.GitHub.csproj" />
   </ItemGroup>
 </Project>

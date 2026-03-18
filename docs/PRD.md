@@ -57,7 +57,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 #### Core Commands
 
 - `nfw templates` — List available starter templates
-- `nfw new <workspace-name> [--template <id>]` — Create new workspace
+- `nfw new [workspace-name] [--template <id>] [--no-input]` — Create new workspace
 - `nfw add service <name> --lang <dotnet|go|rust>` — Add service scaffold
 - `nfw add entity <name> --props <properties>` — Generate entity with CRUD flow
 - `nfw add command <name> <feature>` — Generate command handler
@@ -110,13 +110,15 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 ### FR-3: Workspace Creation
 
-- `nfw new <workspace-name>` must create a valid NFramework workspace
-- `--template <id>` must select a specific template without prompting
+- `nfw new [workspace-name]` must create a valid NFramework workspace
+- In an interactive terminal, missing required `nfw new` inputs must be collected through prompts before generation starts
+- `--template <id>` must select a specific template without prompting for template choice
+- `--no-input` must disable all interactive questions and require every remaining required input to be supplied explicitly
 - The workspace must include: solution file, directory structure, configuration files, documentation
 - The workspace must be immediately buildable with a single documented command
 - The command must validate workspace name against naming conventions
 - The command must fail if the target directory already exists (unless `--force` is specified)
-- Default template selection must be deterministic and documented
+- Template resolution and interactive prompt behavior must be deterministic and documented
 
 ### FR-4: Service Addition (.NET)
 
@@ -231,7 +233,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 nfw templates [--lang <language>] [--category <category>]
     List available starter templates
 
-nfw new <workspace-name> [--template <id>] [--force]
+nfw new [workspace-name] [--template <id>] [--no-input] [--force]
     Create a new NFramework workspace
 
 nfw add service <name> --lang <dotnet|go|rust> [--force]
@@ -266,7 +268,7 @@ nfw --help
 
 - `--force` — Overwrite existing files (use with caution)
 - `--verbose` — Enable detailed diagnostic output
-- `--interactive` / `--no-interactive` — Control prompt behavior
+- `--no-input` — Disable interactive prompts and require explicit input values
 - `--dry-run` — Show what would be generated without writing files
 
 ## 10. Exit Codes

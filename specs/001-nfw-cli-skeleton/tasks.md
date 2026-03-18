@@ -10,11 +10,11 @@
 
 **Goal**: Establish the solution/project scaffolding and developer workflow so implementation work is straightforward and repeatable.
 
-- [x] T001 Create project directory skeleton under `src/nfw/src/NFramework.NFW/` and `src/nfw/tests/NFramework.NFW.CLI.Tests/`
+- [x] T001 Create project directory skeleton under `src/nfw/src/NFramework.NFW/` and `src/nfw/tests/unit/NFramework.NFW/presentation/NFramework.NFW.CLI/`
 - [x] T002 [P] Create `src/nfw/src/NFramework.NFW/core/NFramework.NFW.Application/NFramework.NFW.Application.csproj` targeting .NET 11
 - [x] T003 [P] Create `src/nfw/src/NFramework.NFW/core/NFramework.NFW.Domain/NFramework.NFW.Domain.csproj` targeting .NET 11
 - [x] T004 [P] Create `src/nfw/src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj` targeting .NET 11 with Spectre.Console.Cli + YAML + DI refs
-- [x] T005 [P] Create `src/nfw/tests/NFramework.NFW.CLI.Tests/NFramework.NFW.CLI.Tests.csproj` targeting .NET 11 (xUnit)
+- [x] T005 [P] Create `src/nfw/tests/unit/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.Tests.csproj` targeting .NET 11 (xUnit)
 - [x] T006 Add git submodules in `src/nfw/.gitmodules` for `src/nfw/packages/n-framework-core-codegen` and `src/nfw/packages/n-framework-nfw-templates`
 - [x] T007 Update `src/nfw/NFramework.Nfw.slnx` to include all created projects and the codegen project at `src/nfw/packages/n-framework-core-codegen/src/NFramework.NFW.Core.CodeGen/NFramework.NFW.Core.CodeGen.csproj`
 - [x] T008 Add dotnet tool manifest at `src/nfw/.config/dotnet-tools.json` (csharpier + roslynator)

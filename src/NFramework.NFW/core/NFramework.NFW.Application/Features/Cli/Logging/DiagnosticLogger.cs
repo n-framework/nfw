@@ -50,7 +50,7 @@ public sealed class DiagnosticLogger
             return;
         }
 
-        var prefix = level switch
+        string prefix = level switch
         {
             LogLevel.Debug => "[verbose]",
             LogLevel.Info => "[info]",

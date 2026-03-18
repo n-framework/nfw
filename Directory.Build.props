@@ -4,5 +4,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>preview</LangVersion>
+
+    <!-- Enable .NET analyzers with code style rules during build -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <_SkipUpgradeNetAnalyzersDotnetSdk>false</_SkipUpgradeNetAnalyzersDotnetSdk>
   </PropertyGroup>
 </Project>

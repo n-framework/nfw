@@ -21,7 +21,7 @@ public sealed record VersionInfo(string SemanticVersion, string? BuildMetadata)
             throw new ArgumentException("Semantic version cannot be empty or whitespace.", nameof(semanticVersion));
         }
 
-        var normalized = semanticVersion.Trim();
+        string normalized = semanticVersion.Trim();
         if (!SemanticVersionRegex.IsMatch(normalized))
         {
             throw new ArgumentException($"'{normalized}' is not a valid semantic version.", nameof(semanticVersion));

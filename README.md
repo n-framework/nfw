@@ -16,6 +16,13 @@ make analyze
 The workflow uses one-step build and test commands to keep local and CI usage
 consistent.
 
+From the repository root, the equivalent wrapper commands are:
+
+```bash
+./scripts/build.sh
+./scripts/test.sh
+```
+
 ## Templates Source Behavior
 
 - Debug builds use `packages/nfw-templates` when the submodule exists.
@@ -24,6 +31,41 @@ consistent.
   at tag `v{cliVersion}`.
 
 Template source is not user-configurable in the CLI skeleton phase.
+
+## Template Catalog
+
+`nfw templates` lists stable template identifiers that are safe to reuse in
+automation:
+
+- `blank` - Blank Workspace
+- `minimal` - Minimal API
+
+The command renders identifier, display name, and description in catalog order.
+
+## Workspace Creation
+
+`nfw new` now accepts an optional positional workspace name. When it is missing
+and the terminal is interactive, the CLI prompts for it.
+
+Use an explicit identifier when running in CI or any non-interactive context:
+
+```bash
+dotnet run --project src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj -- new sample-explicit --template blank
+```
+
+Disable all interactive questions explicitly with `--no-input`:
+
+```bash
+dotnet run --project src/NFramework.NFW/presentation/NFramework.NFW.CLI/NFramework.NFW.CLI.csproj -- new --no-input sample-explicit --template blank
+```
+
+If the terminal is interactive and `--template` is omitted, `nfw new` prompts
+for a selection from the same catalog metadata shown by `nfw templates`. If the
+workspace name is also omitted, the CLI prompts for that first.
+
+If the terminal is non-interactive, or if `--no-input` is passed, the command
+fails with a usage error before creating files whenever required inputs are
+missing.
 
 ## Configuration
 

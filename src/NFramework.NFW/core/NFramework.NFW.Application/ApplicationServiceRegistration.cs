@@ -1,8 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using NFramework.NFW.Application.Features.Cli.Configuration;
 using NFramework.NFW.Application.Features.Cli.Logging;
-using NFramework.NFW.Application.Features.Templates;
+using NFramework.NFW.Application.Features.ProjectManagement.Commands.New;
+using NFramework.NFW.Application.Features.TemplateManagement.Queries.ListTemplates;
+using NFramework.NFW.Application.Features.TemplateManagement.Services;
 using NFramework.NFW.Application.Features.Versioning;
+using NFramework.NFW.Application.Features.Versioning.Abstractions;
 
 namespace NFramework.NFW.Application;
 
@@ -10,16 +13,15 @@ public static class ApplicationServiceRegistration
 {
     public static IServiceCollection AddNfwApplication(this IServiceCollection services)
     {
-        services.AddSingleton<INfwConfigurationLoader, NfwConfigurationLoader>();
-        services.AddSingleton<RequiredConfigurationValidator>(_ => new RequiredConfigurationValidator());
-        services.AddSingleton<DiagnosticLogger>();
-        services.AddSingleton<IVersionProvider, VersionProvider>();
+        _ = services.AddSingleton<RequiredConfigurationValidator>(_ => new RequiredConfigurationValidator());
+        _ = services.AddSingleton<DiagnosticLogger>();
+        _ = services.AddSingleton<IVersionProvider, VersionProvider>();
 
-        services.AddSingleton<TemplateCatalogParser>();
-        services.AddSingleton<LocalTemplatesSubmoduleReader>();
-        services.AddHttpClient<GitHubTemplatesReleaseClient>();
-        services.AddSingleton<TemplateCatalogSourceResolver>();
-        services.AddSingleton<TemplatesService>();
+        _ = services.AddSingleton<TemplateCatalogParser>();
+        _ = services.AddSingleton<TemplateCatalogSourceResolver>();
+        _ = services.AddSingleton<TemplatesService>();
+        _ = services.AddSingleton<ListTemplatesQueryHandler>();
+        _ = services.AddSingleton<CreateWorkspaceCommandHandler>();
 
         return services;
     }

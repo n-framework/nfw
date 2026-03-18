@@ -1,13 +1,8 @@
 namespace NFramework.NFW.Application.Features.Cli.Configuration;
 
-public sealed class RequiredConfigurationValidator
+public sealed class RequiredConfigurationValidator(params string[] requiredKeys)
 {
-    private readonly string[] _requiredKeys;
-
-    public RequiredConfigurationValidator(params string[] requiredKeys)
-    {
-        _requiredKeys = requiredKeys?.ToArray() ?? Array.Empty<string>();
-    }
+    private readonly string[] _requiredKeys = requiredKeys?.ToArray() ?? Array.Empty<string>();
 
     public IReadOnlyList<string> Validate(NfwConfiguration configuration)
     {

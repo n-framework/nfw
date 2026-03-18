@@ -3,14 +3,9 @@ using Spectre.Console.Cli;
 
 namespace NFramework.NFW.CLI.IoC;
 
-public sealed class TypeRegistrar : ITypeRegistrar
+public sealed class TypeRegistrar(IServiceCollection services) : ITypeRegistrar
 {
-    private readonly IServiceCollection _services;
-
-    public TypeRegistrar(IServiceCollection services)
-    {
-        _services = services;
-    }
+    private readonly IServiceCollection _services = services;
 
     public ITypeResolver Build()
     {
@@ -19,16 +14,16 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
     public void Register(Type service, Type implementation)
     {
-        _services.AddSingleton(service, implementation);
+        _ = _services.AddSingleton(service, implementation);
     }
 
     public void RegisterInstance(Type service, object implementation)
     {
-        _services.AddSingleton(service, implementation);
+        _ = _services.AddSingleton(service, implementation);
     }
 
     public void RegisterLazy(Type service, Func<object> factory)
     {
-        _services.AddSingleton(service, _ => factory());
+        _ = _services.AddSingleton(service, _ => factory());
     }
 }
