@@ -1,3 +1,7 @@
 [submodule "packages/core-cli"]
 	path = packages/core-cli
 	url = git@github.com:n-framework/core-cli.git
+
+[submodule "packages/nfw-templates"]
+	path = packages/nfw-templates
+	url = git@github.com:n-framework/nfw-templates.git
