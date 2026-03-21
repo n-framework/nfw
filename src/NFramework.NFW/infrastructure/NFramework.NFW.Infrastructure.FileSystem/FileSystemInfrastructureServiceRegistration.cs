@@ -8,7 +8,7 @@ using NFramework.NFW.Infrastructure.FileSystem.Features.TemplateManagement.Servi
 
 namespace NFramework.NFW.Infrastructure.FileSystem;
 
-public static class FileSystemInfrastructureServiceRegistration
+internal static class FileSystemInfrastructureServiceRegistration
 {
     public static IServiceCollection AddNfwFileSystemInfrastructure(this IServiceCollection services)
     {

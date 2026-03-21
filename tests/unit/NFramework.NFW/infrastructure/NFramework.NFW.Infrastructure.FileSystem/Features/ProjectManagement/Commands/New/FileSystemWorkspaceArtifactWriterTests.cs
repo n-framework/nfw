@@ -1,4 +1,5 @@
 using Moq;
+using NFramework.Core.Template.Abstractions;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New.Abstractions;
 using NFramework.NFW.Application.Features.TemplateManagement.TemplateRendering.Abstractions;
