@@ -48,7 +48,7 @@ public class TemplatesCliCommandTests
     public async Task ExecuteAsync_WithEmptyCatalog_WritesNoTemplatesMessage()
     {
         StringWriter output = new();
-        TemplatesCliCommand command = new(CreateListTemplatesQueryHandler("templates: []"), CreateConsole(output));
+        TemplatesCliCommand command = new(CreateListTemplatesQueryHandler("templates: []"), (Core.CLI.Abstractions.ITerminalSession)CreateConsole(output));
 
         int exitCode = await command.ExecuteAsync(null!, new TemplatesCliCommandSettings(), CancellationToken.None);
 

@@ -13,13 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../../packages/core-cli/src/NFramework.Core.CLI.Abstractions/NFramework.Core.CLI.Abstractions.csproj" />
-    <ProjectReference Include="../../../../packages/core-cli/src/NFramework.Core.CLI.SpectreConsoleUI/NFramework.Core.CLI.SpectreConsoleUI.csproj" />
+    <ProjectReference Include="../../../../packages/n-framework-core-cli/src/NFramework.Core.CLI.Abstractions/NFramework.Core.CLI.Abstractions.csproj" />
+    <ProjectReference Include="../../../../packages/n-framework-core-cli/src/NFramework.Core.CLI.SpectreConsoleUI/NFramework.Core.CLI.SpectreConsoleUI.csproj" />
     <ProjectReference Include="../../core/NFramework.NFW.Application/NFramework.NFW.Application.csproj" />
     <ProjectReference Include="../../core/NFramework.NFW.Domain/NFramework.NFW.Domain.csproj" />
     <ProjectReference Include="../../infrastructure/NFramework.NFW.Infrastructure.FileSystem/NFramework.NFW.Infrastructure.FileSystem.csproj" />
     <ProjectReference Include="../../infrastructure/NFramework.NFW.Infrastructure.GitHub/NFramework.NFW.Infrastructure.GitHub.csproj" />
-    <ProjectReference Include="../../../../packages/core-template/src/NFramework.Core.Template.Abstractions/NFramework.Core.Template.Abstractions.csproj" />
-    <ProjectReference Include="../../../../packages/core-template/src/NFramework.Core.Template.Scriban/NFramework.Core.Template.Scriban.csproj" />
+    <ProjectReference Include="../../../../packages/n-framework-core-template/src/NFramework.Core.Template.Abstractions/NFramework.Core.Template.Abstractions.csproj" />
+    <ProjectReference Include="../../../../packages/n-framework-core-template/src/NFramework.Core.Template.Scriban/NFramework.Core.Template.Scriban.csproj" />
   </ItemGroup>
 </Project>

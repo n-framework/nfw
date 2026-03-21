@@ -10,6 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../NFramework.NFW.Domain/NFramework.NFW.Domain.csproj" />
-    <ProjectReference Include="../../../../packages/core-template/src/NFramework.Core.Template.Abstractions/NFramework.Core.Template.Abstractions.csproj" />
+    <ProjectReference Include="../../../../packages/n-framework-core-template/src/NFramework.Core.Template.Abstractions/NFramework.Core.Template.Abstractions.csproj" />
   </ItemGroup>
 </Project>
