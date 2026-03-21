@@ -1,15 +1,15 @@
-using Spectre.Console.Cli;
+using NFramework.Core.CLI.Abstractions;
 
 namespace NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
 
-public sealed class NewCliCommandSettings : CommandSettings
+public sealed class NewCliCommandSettings
 {
-    [CommandArgument(0, "[workspace-name]")]
+    [CliArgument(0, "[workspace-name]")]
     public string? WorkspaceName { get; init; }
 
-    [CommandOption("--template <IDENTIFIER>")]
+    [CliOption("--template <IDENTIFIER>")]
     public string? TemplateIdentifier { get; init; }
 
-    [CommandOption("--no-input")]
+    [CliOption("--no-input")]
     public bool NoInput { get; init; }
 }

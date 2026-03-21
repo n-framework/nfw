@@ -30,8 +30,7 @@ public class NewCliCommandInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            terminalSession,
-            CreateConsole(output)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(null!, new NewCliCommandSettings(), CancellationToken.None);
@@ -56,8 +55,7 @@ public class NewCliCommandInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            terminalSession,
-            CreateConsole(output)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -87,8 +85,7 @@ public class NewCliCommandInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            terminalSession,
-            CreateConsole(output)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(null!, new NewCliCommandSettings(), CancellationToken.None);
@@ -113,8 +110,7 @@ public class NewCliCommandInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            terminalSession,
-            CreateConsole(output)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -143,8 +139,7 @@ public class NewCliCommandInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            terminalSession,
-            CreateConsole(output)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -252,9 +247,10 @@ public class NewCliCommandInteractiveTests
             return false;
         }
 
-        public void CreateWorkspace(WorkspaceArtifacts artifacts)
+        public Task CreateWorkspace(WorkspaceArtifacts artifacts, CancellationToken cancellationToken = default)
         {
             CreatedWorkspace = artifacts;
+            return Task.CompletedTask;
         }
     }
 
@@ -270,7 +266,7 @@ public class NewCliCommandInteractiveTests
         bool isInteractive,
         TerminalTextInputResult? workspaceNameResult = null,
         TerminalTemplateSelectionResult? templateSelectionResult = null
-    ) : ITerminalSession
+    ) : INfwTerminalSession
     {
         private readonly TerminalTemplateSelectionResult _templateSelectionResult =
             templateSelectionResult ?? TerminalTemplateSelectionResult.Cancelled();
@@ -297,5 +293,9 @@ public class NewCliCommandInteractiveTests
             TemplatePromptCount += 1;
             return Task.FromResult(_templateSelectionResult);
         }
+
+        public void WriteLine(string message) { }
+
+        public void WriteErrorLine(string message) { }
     }
 }

@@ -2,7 +2,11 @@ using NFramework.NFW.Application.Features.TemplateManagement.Queries.ListTemplat
 
 namespace NFramework.NFW.CLI.Features.ProjectManagement.Commands.New.Abstractions;
 
-public interface ITerminalSession
+/// <summary>
+/// NFW-specific terminal session that extends core-cli's generic ITerminalSession
+/// with domain-specific prompt methods for workspace creation.
+/// </summary>
+public interface INfwTerminalSession
 {
     bool IsInteractive { get; }
 
@@ -12,6 +16,9 @@ public interface ITerminalSession
         IReadOnlyList<ListedTemplate> templates,
         CancellationToken cancellationToken
     );
+
+    void WriteLine(string message);
+    void WriteErrorLine(string message);
 }
 
 public sealed class TerminalTextInputResult

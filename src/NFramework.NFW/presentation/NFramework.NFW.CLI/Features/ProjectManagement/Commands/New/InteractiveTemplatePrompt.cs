@@ -1,58 +1,22 @@
 using NFramework.NFW.Application.Features.TemplateManagement.Queries.ListTemplates;
 using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New.Abstractions;
-using Spectre.Console;
 
 namespace NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
 
-public sealed class InteractiveTemplatePrompt(IAnsiConsole console)
+public sealed class InteractiveTemplatePrompt(INfwTerminalSession terminalSession)
 {
-    private readonly IAnsiConsole _console = console;
+    private readonly INfwTerminalSession _terminalSession = terminalSession;
 
-    public TerminalTemplateSelectionResult PromptForTemplateSelection(IReadOnlyList<ListedTemplate> templates)
+    public async Task<TerminalTemplateSelectionResult> PromptForTemplateSelectionAsync(
+        IReadOnlyList<ListedTemplate> templates,
+        CancellationToken cancellationToken
+    )
     {
-        SelectionPrompt<ListedTemplate> prompt = new SelectionPrompt<ListedTemplate>()
-            .Title("Select a template")
-            .UseConverter(template => $"{template.Identifier} | {template.DisplayName} | {template.Description}")
-            .AddChoices(templates);
-
-        try
-        {
-            ListedTemplate selectedTemplate = _console.Prompt(prompt);
-            return TerminalTemplateSelectionResult.Selected(selectedTemplate.Identifier);
-        }
-        catch (OperationCanceledException)
-        {
-            return TerminalTemplateSelectionResult.Cancelled();
-        }
-        catch (InvalidOperationException)
-        {
-            return TerminalTemplateSelectionResult.Cancelled();
-        }
+        return await _terminalSession.PromptForTemplateSelectionAsync(templates, cancellationToken);
     }
 
-    public TerminalTextInputResult PromptForWorkspaceName()
+    public async Task<TerminalTextInputResult> PromptForWorkspaceNameAsync(CancellationToken cancellationToken)
     {
-        TextPrompt<string> prompt = new TextPrompt<string>("Workspace name:")
-            .PromptStyle("green")
-            .Validate(
-                (string workspaceName) =>
-                    string.IsNullOrWhiteSpace(workspaceName)
-                        ? ValidationResult.Error("[red]Workspace name is required.[/]")
-                        : ValidationResult.Success()
-            );
-
-        try
-        {
-            string workspaceName = _console.Prompt(prompt);
-            return TerminalTextInputResult.Submitted(workspaceName);
-        }
-        catch (OperationCanceledException)
-        {
-            return TerminalTextInputResult.Cancelled();
-        }
-        catch (InvalidOperationException)
-        {
-            return TerminalTextInputResult.Cancelled();
-        }
+        return await _terminalSession.PromptForWorkspaceNameAsync(cancellationToken);
     }
 }

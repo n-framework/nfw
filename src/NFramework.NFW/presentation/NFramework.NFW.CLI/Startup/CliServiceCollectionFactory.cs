@@ -1,11 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
+using NFramework.Core.CLI.Abstractions;
+using NFramework.Core.CLI.SpectreConsoleUI.DependencyInjection;
 using NFramework.NFW.Application;
 using NFramework.NFW.Application.Features.Cli.Logging;
 using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
 using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New.Abstractions;
 using NFramework.NFW.Infrastructure.FileSystem;
+using NFramework.NFW.Infrastructure.FileSystem.DependencyInjection;
 using NFramework.NFW.Infrastructure.GitHub;
-using Spectre.Console;
 
 namespace NFramework.NFW.CLI.Startup;
 
@@ -14,12 +16,24 @@ internal static class CliServiceCollectionFactory
     public static CliServices Create(ParsedArguments parsedArguments)
     {
         ServiceCollection services = new();
+
+        // Framework layers
         _ = services.AddNfwApplication();
         _ = services.AddNfwFileSystemInfrastructure();
         _ = services.AddNfwGitHubInfrastructure();
-        _ = services.AddSingleton<IAnsiConsole>(_ => AnsiConsole.Console);
-        _ = services.AddSingleton<InteractiveTemplatePrompt>();
-        _ = services.AddSingleton<ITerminalSession, CliTerminalSession>();
+
+        // Core-cli Spectre.Console UI (includes ITerminalSession, IAnsiConsole)
+        _ = services.AddCoreCliSpectreConsoleUi();
+
+        // NFW-specific terminal adapter (wraps core-cli's ITerminalSession)
+        _ = services.AddSingleton<INfwTerminalSession, NfwTerminalSessionAdapter>();
+
+        // Scriban template rendering
+        _ = services.AddScribanTemplateRendering();
+
+        // Register the orchestrator and application
+        _ = services.AddSingleton<NfwCliApplicationOrchestrator>();
+        _ = services.AddSingleton<ICliApplication, NfwCliApplication>();
 
         DiagnosticLogger diagnosticLogger = new();
         if (parsedArguments.VerboseEnabled)

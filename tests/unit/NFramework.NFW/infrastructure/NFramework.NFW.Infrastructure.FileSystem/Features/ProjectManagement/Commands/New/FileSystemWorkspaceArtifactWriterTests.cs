@@ -1,5 +1,7 @@
+using Moq;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New.Abstractions;
+using NFramework.NFW.Application.Features.TemplateManagement.TemplateRendering.Abstractions;
 using NFramework.NFW.Infrastructure.FileSystem.Features.ProjectManagement.Commands.New;
 using Xunit;
 
@@ -9,13 +11,19 @@ namespace NFramework.NFW.Infrastructure.FileSystem.Tests.Features.ProjectManagem
 public sealed class FileSystemWorkspaceArtifactWriterTests
 {
     [Fact]
-    public void CreateWorkspace_WritesExpectedFiles()
+    public async Task CreateWorkspace_WritesExpectedFiles()
     {
         using TemporaryWorkingDirectory workingDirectory = TemporaryWorkingDirectory.Create();
-        FileSystemWorkspaceArtifactWriter writer = new();
+        Mock<ITemplateRenderer> templateRendererMock = new();
+        Mock<IWorkspaceTemplateProvider> templateProviderMock = new();
+        _ = templateProviderMock
+            .Setup(p => p.GetTemplateFilesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        FileSystemWorkspaceArtifactWriter writer = new(templateRendererMock.Object, templateProviderMock.Object);
         string workspacePath = writer.GetWorkspacePath("sample");
 
-        writer.CreateWorkspace(
+        await writer.CreateWorkspace(
             new WorkspaceArtifacts(workspacePath, "sample", "blank", "Blank Workspace", "Minimal starter")
         );
 

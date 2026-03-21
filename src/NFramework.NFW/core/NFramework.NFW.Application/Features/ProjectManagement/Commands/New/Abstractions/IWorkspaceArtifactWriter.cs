@@ -6,7 +6,7 @@ public interface IWorkspaceArtifactWriter
 
     bool WorkspaceExists(string workspacePath);
 
-    void CreateWorkspace(WorkspaceArtifacts artifacts);
+    Task CreateWorkspace(WorkspaceArtifacts artifacts, CancellationToken cancellationToken = default);
 }
 
 public sealed record WorkspaceArtifacts(

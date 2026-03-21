@@ -1,10 +1,4 @@
 <Solution>
-  <Folder Name="/packages/" />
-  <Folder Name="/packages/core-codegen/" />
-  <Folder Name="/packages/core-codegen/src/" />
-  <Folder Name="/packages/core-codegen/src/NFramework.NFW.Core.CodeGen/">
-    <Project Path="packages/core-codegen/src/NFramework.NFW.Core.CodeGen/NFramework.NFW.Core.CodeGen.csproj" />
-  </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/NFramework.NFW/" />
   <Folder Name="/src/NFramework.NFW/core/">

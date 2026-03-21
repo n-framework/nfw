@@ -67,14 +67,15 @@ public sealed class CreateWorkspaceCommandHandler(
             }
 
             TemplateDescriptor selectedTemplate = selectionResult.SelectedTemplate!;
-            _workspaceArtifactWriter.CreateWorkspace(
+            await _workspaceArtifactWriter.CreateWorkspace(
                 new WorkspaceArtifacts(
                     workspacePath,
                     workspaceName,
                     selectedTemplate.Identifier,
                     selectedTemplate.DisplayName,
                     selectedTemplate.Description
-                )
+                ),
+                cancellationToken
             );
 
             return CreateWorkspaceCommandResult.Success(

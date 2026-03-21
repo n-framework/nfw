@@ -29,7 +29,7 @@ public class TemplatesCliCommandTests
                     description: API starter
                 """
             ),
-            CreateConsole(output)
+            (Core.CLI.Abstractions.ITerminalSession)CreateConsole(output)
         );
 
         int exitCode = await command.ExecuteAsync(null!, new TemplatesCliCommandSettings(), CancellationToken.None);

@@ -1,18 +1,20 @@
+using NFramework.Core.CLI.Abstractions;
 using NFramework.NFW.Application.Features.Cli;
 using NFramework.NFW.Application.Features.TemplateManagement.Queries.ListTemplates;
-using Spectre.Console;
-using Spectre.Console.Cli;
 
 namespace NFramework.NFW.CLI.Features.ProjectManagement.Commands.ListTemplates;
 
-public sealed class TemplatesCliCommand(ListTemplatesQueryHandler listTemplatesQueryHandler, IAnsiConsole console)
-    : AsyncCommand<TemplatesCliCommandSettings>
+[CliCommand("templates", "List available templates")]
+public sealed class TemplatesCliCommand(
+    ListTemplatesQueryHandler listTemplatesQueryHandler,
+    ITerminalSession terminalSession
+) : IAsyncCliCommand<TemplatesCliCommandSettings>
 {
     private readonly ListTemplatesQueryHandler _listTemplatesQueryHandler = listTemplatesQueryHandler;
-    private readonly IAnsiConsole _console = console;
+    private readonly ITerminalSession _terminalSession = terminalSession;
 
-    public override async Task<int> ExecuteAsync(
-        CommandContext context,
+    public async Task<int> ExecuteAsync(
+        CliCommandContext context,
         TemplatesCliCommandSettings settings,
         CancellationToken cancellationToken
     )
@@ -23,26 +25,23 @@ public sealed class TemplatesCliCommand(ListTemplatesQueryHandler listTemplatesQ
         );
         if (!result.IsSuccess)
         {
-            Console.Error.WriteLine(result.Failure!.Message);
+            _terminalSession.WriteErrorLine(result.Failure!.Message);
             return result.Failure.ExitCode;
         }
 
         IReadOnlyList<ListedTemplate> templates = result.Templates!;
         if (templates.Count == 0)
         {
-            _console.MarkupLine("No templates available.");
+            _terminalSession.WriteLine("No templates available.");
             return ExitCodes.Success;
         }
 
-        Table table = new Table().Border(TableBorder.Rounded);
-        _ = table.AddColumn("Identifier");
-        _ = table.AddColumn("Name");
-        _ = table.AddColumn("Description");
+        TerminalTable table = new TerminalTable(
+            ["Identifier", "Name", "Description"],
+            templates.Select(t => new TerminalTableRow([t.Identifier, t.DisplayName, t.Description])).ToList()
+        );
 
-        foreach (ListedTemplate template in templates)
-            _ = table.AddRow(template.Identifier, template.DisplayName, template.Description);
-
-        _console.Write(table);
+        _terminalSession.RenderTable(table);
         return ExitCodes.Success;
     }
 }

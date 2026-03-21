@@ -106,9 +106,10 @@ public class CreateWorkspaceCommandHandlerTests
             return false;
         }
 
-        public void CreateWorkspace(WorkspaceArtifacts artifacts)
+        public Task CreateWorkspace(WorkspaceArtifacts artifacts, CancellationToken cancellationToken = default)
         {
             CreatedWorkspace = artifacts;
+            return Task.CompletedTask;
         }
     }
 

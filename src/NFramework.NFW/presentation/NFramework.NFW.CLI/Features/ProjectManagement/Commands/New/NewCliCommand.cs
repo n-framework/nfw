@@ -1,26 +1,24 @@
+using NFramework.Core.CLI.Abstractions;
 using NFramework.NFW.Application.Features.Cli;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New;
 using NFramework.NFW.Application.Features.TemplateManagement.Queries.ListTemplates;
 using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New.Abstractions;
-using Spectre.Console;
-using Spectre.Console.Cli;
 
 namespace NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
 
+[CliCommand("new", "Create a new workspace from a template")]
 public sealed class NewCliCommand(
     ListTemplatesQueryHandler listTemplatesQueryHandler,
     CreateWorkspaceCommandHandler createWorkspaceCommandHandler,
-    ITerminalSession terminalSession,
-    IAnsiConsole console
-) : AsyncCommand<NewCliCommandSettings>
+    INfwTerminalSession terminalSession
+) : IAsyncCliCommand<NewCliCommandSettings>
 {
     private readonly ListTemplatesQueryHandler _listTemplatesQueryHandler = listTemplatesQueryHandler;
     private readonly CreateWorkspaceCommandHandler _createWorkspaceCommandHandler = createWorkspaceCommandHandler;
-    private readonly ITerminalSession _terminalSession = terminalSession;
-    private readonly IAnsiConsole _console = console;
+    private readonly INfwTerminalSession _terminalSession = terminalSession;
 
-    public override async Task<int> ExecuteAsync(
-        CommandContext context,
+    public async Task<int> ExecuteAsync(
+        CliCommandContext context,
         NewCliCommandSettings settings,
         CancellationToken cancellationToken
     )
@@ -34,7 +32,7 @@ public sealed class NewCliCommand(
         );
         if (!workspaceNameResult.IsSuccess)
         {
-            Console.Error.WriteLine(workspaceNameResult.ErrorMessage);
+            _terminalSession.WriteErrorLine(workspaceNameResult.ErrorMessage!);
             return workspaceNameResult.ExitCode;
         }
 
@@ -45,7 +43,7 @@ public sealed class NewCliCommand(
         );
         if (!templateIdentifierResult.IsSuccess)
         {
-            Console.Error.WriteLine(templateIdentifierResult.ErrorMessage);
+            _terminalSession.WriteErrorLine(templateIdentifierResult.ErrorMessage!);
             return templateIdentifierResult.ExitCode;
         }
 
@@ -56,12 +54,12 @@ public sealed class NewCliCommand(
         );
         if (!result.IsSuccess)
         {
-            Console.Error.WriteLine(result.Failure!.Message);
+            _terminalSession.WriteErrorLine(result.Failure!.Message);
             return result.Failure.ExitCode;
         }
 
         CreatedWorkspace createdWorkspace = result.Workspace!;
-        _console.WriteLine(
+        _terminalSession.WriteLine(
             $"Created workspace '{createdWorkspace.WorkspaceName}' from template '{createdWorkspace.TemplateIdentifier}' ({templateIdentifierResult.SelectionSource})."
         );
         return ExitCodes.Success;
@@ -84,7 +82,9 @@ public sealed class NewCliCommand(
             return WorkspaceNameResolutionResult.Failure(message);
         }
 
-        TerminalTextInputResult promptResult = await _terminalSession.PromptForWorkspaceNameAsync(cancellationToken);
+        Abstractions.TerminalTextInputResult promptResult = await _terminalSession
+            .PromptForWorkspaceNameAsync(cancellationToken)
+            .ConfigureAwait(false);
         if (promptResult.WasCancelled || string.IsNullOrWhiteSpace(promptResult.Value))
             return WorkspaceNameResolutionResult.Cancelled();
 

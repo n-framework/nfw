@@ -25,8 +25,7 @@ public class NewCliCommandNonInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false),
-            CreateConsole(output)
+            new FakeTerminalSession(isInteractive: false)
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -51,8 +50,7 @@ public class NewCliCommandNonInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false),
-            CreateConsole(output)
+            new FakeTerminalSession(isInteractive: false)
         );
 
         int exitCode = await command.ExecuteAsync(null!, new NewCliCommandSettings(), CancellationToken.None);
@@ -72,8 +70,7 @@ public class NewCliCommandNonInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false),
-            CreateConsole(output)
+            new FakeTerminalSession(isInteractive: false)
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -96,8 +93,7 @@ public class NewCliCommandNonInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: true),
-            CreateConsole(output)
+            new FakeTerminalSession(isInteractive: false)
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -121,8 +117,7 @@ public class NewCliCommandNonInteractiveTests
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false),
-            CreateConsole(output)
+            new FakeTerminalSession(isInteractive: false)
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -225,9 +220,10 @@ public class NewCliCommandNonInteractiveTests
             return false;
         }
 
-        public void CreateWorkspace(WorkspaceArtifacts artifacts)
+        public Task CreateWorkspace(WorkspaceArtifacts artifacts, CancellationToken cancellationToken = default)
         {
             CreatedWorkspace = artifacts;
+            return Task.CompletedTask;
         }
     }
 
@@ -239,7 +235,7 @@ public class NewCliCommandNonInteractiveTests
         }
     }
 
-    private sealed class FakeTerminalSession(bool isInteractive) : ITerminalSession
+    private sealed class FakeTerminalSession(bool isInteractive) : INfwTerminalSession
     {
         public bool IsInteractive { get; } = isInteractive;
 
@@ -255,5 +251,9 @@ public class NewCliCommandNonInteractiveTests
         {
             throw new InvalidOperationException("Prompting should not occur in non-interactive tests.");
         }
+
+        public void WriteLine(string message) { }
+
+        public void WriteErrorLine(string message) { }
     }
 }
