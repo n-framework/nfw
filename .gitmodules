@@ -1,6 +1,3 @@
-[submodule "packages/core-codegen"]
-	path = packages/core-codegen
-	url = git@github.com:n-framework/core-codegen.git
-[submodule "packages/nfw-templates"]
-	path = packages/nfw-templates
-	url = git@github.com:n-framework/nfw-templates.git
+[submodule "packages/core-cli"]
+	path = packages/core-cli
+	url = git@github.com:n-framework/core-cli.git
