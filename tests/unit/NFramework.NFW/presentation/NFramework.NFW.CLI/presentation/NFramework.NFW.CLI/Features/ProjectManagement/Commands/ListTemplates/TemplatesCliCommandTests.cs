@@ -1,3 +1,4 @@
+using NFramework.Core.CLI.Abstractions;
 using NFramework.NFW.Application.Features.Cli.Logging;
 using NFramework.NFW.Application.Features.TemplateManagement.Queries.ListTemplates;
 using NFramework.NFW.Application.Features.TemplateManagement.Services;
@@ -17,6 +18,7 @@ public class TemplatesCliCommandTests
     public async Task ExecuteAsync_RendersIdentifierDisplayNameAndDescriptionInCatalogOrder()
     {
         StringWriter output = new();
+        FakeTerminalSession terminalSession = new(output);
         TemplatesCliCommand command = new(
             CreateListTemplatesQueryHandler(
                 """
@@ -29,7 +31,7 @@ public class TemplatesCliCommandTests
                     description: API starter
                 """
             ),
-            (Core.CLI.Abstractions.ITerminalSession)CreateConsole(output)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(null!, new TemplatesCliCommandSettings(), CancellationToken.None);
@@ -48,7 +50,8 @@ public class TemplatesCliCommandTests
     public async Task ExecuteAsync_WithEmptyCatalog_WritesNoTemplatesMessage()
     {
         StringWriter output = new();
-        TemplatesCliCommand command = new(CreateListTemplatesQueryHandler("templates: []"), (Core.CLI.Abstractions.ITerminalSession)CreateConsole(output));
+        FakeTerminalSession terminalSession = new(output);
+        TemplatesCliCommand command = new(CreateListTemplatesQueryHandler("templates: []"), terminalSession);
 
         int exitCode = await command.ExecuteAsync(null!, new TemplatesCliCommandSettings(), CancellationToken.None);
 
@@ -68,18 +71,6 @@ public class TemplatesCliCommandTests
             ),
             new FakeVersionProvider(),
             new DiagnosticLogger()
-        );
-    }
-
-    private static IAnsiConsole CreateConsole(StringWriter output)
-    {
-        return AnsiConsole.Create(
-            new AnsiConsoleSettings
-            {
-                Ansi = AnsiSupport.No,
-                ColorSystem = ColorSystemSupport.NoColors,
-                Out = new AnsiConsoleOutput(output),
-            }
         );
     }
 
@@ -104,5 +95,55 @@ public class TemplatesCliCommandTests
         {
             return VersionInfo.Create("1.2.3");
         }
+    }
+
+    private sealed class FakeTerminalSession(StringWriter output) : ITerminalSession
+    {
+        public bool IsInteractive => false;
+
+        public Task<TerminalTextInputResult> PromptForTextAsync(
+            TerminalTextPrompt prompt,
+            CancellationToken cancellationToken
+        )
+        {
+            throw new InvalidOperationException("Prompting should not occur in templates tests.");
+        }
+
+        public Task<TerminalSelectionResult> PromptForSelectionAsync(
+            TerminalSelectionPrompt prompt,
+            CancellationToken cancellationToken
+        )
+        {
+            throw new InvalidOperationException("Prompting should not occur in templates tests.");
+        }
+
+        public void RenderTable(TerminalTable table)
+        {
+            IAnsiConsole console = AnsiConsole.Create(
+                new AnsiConsoleSettings
+                {
+                    Ansi = AnsiSupport.No,
+                    ColorSystem = ColorSystemSupport.NoColors,
+                    Out = new AnsiConsoleOutput(output),
+                }
+            );
+
+            Spectre.Console.Table spectreTable = new();
+            foreach (string column in table.Columns)
+            {
+                _ = spectreTable.AddColumn(column);
+            }
+
+            foreach (TerminalTableRow row in table.Rows)
+            {
+                _ = spectreTable.AddRow(row.Cells.ToArray());
+            }
+
+            console.Live(spectreTable).Start(_ => { });
+        }
+
+        public void WriteLine(string message) => output.WriteLine(message);
+
+        public void WriteErrorLine(string message) => output.WriteLine(message);
     }
 }

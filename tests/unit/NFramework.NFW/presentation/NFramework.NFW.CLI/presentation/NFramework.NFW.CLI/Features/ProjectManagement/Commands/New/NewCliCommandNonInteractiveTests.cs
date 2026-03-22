@@ -1,3 +1,4 @@
+using NFramework.Core.CLI.Abstractions;
 using NFramework.NFW.Application.Features.Cli.Logging;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New.Abstractions;
@@ -6,7 +7,6 @@ using NFramework.NFW.Application.Features.TemplateManagement.Services;
 using NFramework.NFW.Application.Features.TemplateManagement.Services.Abstractions;
 using NFramework.NFW.Application.Features.Versioning.Abstractions;
 using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
-using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New.Abstractions;
 using NFramework.NFW.Domain.Features.Version;
 using Spectre.Console;
 using Xunit;
@@ -22,10 +22,11 @@ public class NewCliCommandNonInteractiveTests
         using ConsoleErrorScope stderr = new ConsoleErrorScope();
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
+        FakeTerminalSession terminalSession = new(output);
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -47,10 +48,11 @@ public class NewCliCommandNonInteractiveTests
         using ConsoleErrorScope stderr = new ConsoleErrorScope();
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
+        FakeTerminalSession terminalSession = new(output);
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(null!, new NewCliCommandSettings(), CancellationToken.None);
@@ -67,10 +69,11 @@ public class NewCliCommandNonInteractiveTests
         using ConsoleErrorScope stderr = new ConsoleErrorScope();
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
+        FakeTerminalSession terminalSession = new(output);
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -90,10 +93,11 @@ public class NewCliCommandNonInteractiveTests
         using ConsoleErrorScope stderr = new ConsoleErrorScope();
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
+        FakeTerminalSession terminalSession = new(output, isInteractive: true);
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -114,10 +118,11 @@ public class NewCliCommandNonInteractiveTests
         using ConsoleErrorScope stderr = new ConsoleErrorScope();
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
+        FakeTerminalSession terminalSession = new(output);
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
             CreateCreateWorkspaceCommandHandler(workspaceWriter),
-            new FakeTerminalSession(isInteractive: false)
+            terminalSession
         );
 
         int exitCode = await command.ExecuteAsync(
@@ -235,25 +240,30 @@ public class NewCliCommandNonInteractiveTests
         }
     }
 
-    private sealed class FakeTerminalSession(bool isInteractive) : INfwTerminalSession
+    private sealed class FakeTerminalSession(StringWriter output, bool isInteractive = false) : ITerminalSession
     {
         public bool IsInteractive { get; } = isInteractive;
 
-        public Task<TerminalTextInputResult> PromptForWorkspaceNameAsync(CancellationToken cancellationToken)
-        {
-            throw new InvalidOperationException("Prompting should not occur in non-interactive tests.");
-        }
-
-        public Task<TerminalTemplateSelectionResult> PromptForTemplateSelectionAsync(
-            IReadOnlyList<ListedTemplate> templates,
+        public Task<TerminalTextInputResult> PromptForTextAsync(
+            TerminalTextPrompt prompt,
             CancellationToken cancellationToken
         )
         {
             throw new InvalidOperationException("Prompting should not occur in non-interactive tests.");
         }
 
-        public void WriteLine(string message) { }
+        public Task<TerminalSelectionResult> PromptForSelectionAsync(
+            TerminalSelectionPrompt prompt,
+            CancellationToken cancellationToken
+        )
+        {
+            throw new InvalidOperationException("Prompting should not occur in non-interactive tests.");
+        }
 
-        public void WriteErrorLine(string message) { }
+        public void RenderTable(TerminalTable table) { }
+
+        public void WriteLine(string message) => output.WriteLine(message);
+
+        public void WriteErrorLine(string message) => Console.Error.WriteLine(message);
     }
 }

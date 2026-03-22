@@ -2,7 +2,6 @@ using NFramework.Core.CLI.Abstractions;
 using NFramework.NFW.Application.Features.Cli;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New;
 using NFramework.NFW.Application.Features.TemplateManagement.Queries.ListTemplates;
-using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New.Abstractions;
 
 namespace NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
 
@@ -10,12 +9,12 @@ namespace NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
 public sealed class NewCliCommand(
     ListTemplatesQueryHandler listTemplatesQueryHandler,
     CreateWorkspaceCommandHandler createWorkspaceCommandHandler,
-    INfwTerminalSession terminalSession
+    ITerminalSession terminalSession
 ) : IAsyncCliCommand<NewCliCommandSettings>
 {
     private readonly ListTemplatesQueryHandler _listTemplatesQueryHandler = listTemplatesQueryHandler;
     private readonly CreateWorkspaceCommandHandler _createWorkspaceCommandHandler = createWorkspaceCommandHandler;
-    private readonly INfwTerminalSession _terminalSession = terminalSession;
+    private readonly ITerminalSession _terminalSession = terminalSession;
 
     public async Task<int> ExecuteAsync(
         CliCommandContext context,
@@ -25,7 +24,7 @@ public sealed class NewCliCommand(
     {
         bool promptsAllowed = _terminalSession.IsInteractive && !settings.NoInput;
 
-        WorkspaceNameResolutionResult workspaceNameResult = await resolveWorkspaceNameAsync(
+        WorkspaceNameResolutionResult workspaceNameResult = await ResolveWorkspaceNameAsync(
             settings.WorkspaceName,
             promptsAllowed,
             cancellationToken
@@ -36,7 +35,7 @@ public sealed class NewCliCommand(
             return workspaceNameResult.ExitCode;
         }
 
-        TemplateIdentifierResolutionResult templateIdentifierResult = await resolveTemplateIdentifierAsync(
+        TemplateIdentifierResolutionResult templateIdentifierResult = await ResolveTemplateIdentifierAsync(
             settings.TemplateIdentifier,
             promptsAllowed,
             cancellationToken
@@ -65,7 +64,7 @@ public sealed class NewCliCommand(
         return ExitCodes.Success;
     }
 
-    private async Task<WorkspaceNameResolutionResult> resolveWorkspaceNameAsync(
+    private async Task<WorkspaceNameResolutionResult> ResolveWorkspaceNameAsync(
         string? workspaceName,
         bool promptsAllowed,
         CancellationToken cancellationToken
@@ -82,16 +81,18 @@ public sealed class NewCliCommand(
             return WorkspaceNameResolutionResult.Failure(message);
         }
 
-        Abstractions.TerminalTextInputResult promptResult = await _terminalSession
-            .PromptForWorkspaceNameAsync(cancellationToken)
-            .ConfigureAwait(false);
+        TerminalTextPrompt prompt = new("Workspace name:", "Workspace name is required.");
+        TerminalTextInputResult promptResult = await _terminalSession.PromptForTextAsync(
+            prompt,
+            cancellationToken
+        );
         if (promptResult.WasCancelled || string.IsNullOrWhiteSpace(promptResult.Value))
             return WorkspaceNameResolutionResult.Cancelled();
 
         return WorkspaceNameResolutionResult.Success(promptResult.Value);
     }
 
-    private async Task<TemplateIdentifierResolutionResult> resolveTemplateIdentifierAsync(
+    private async Task<TemplateIdentifierResolutionResult> ResolveTemplateIdentifierAsync(
         string? templateIdentifier,
         bool promptsAllowed,
         CancellationToken cancellationToken
@@ -125,14 +126,22 @@ public sealed class NewCliCommand(
                 ExitCodes.RuntimeFailure
             );
 
-        TerminalTemplateSelectionResult promptResult = await _terminalSession.PromptForTemplateSelectionAsync(
-            templates,
+        TerminalSelectionOption[] options = templates
+            .Select(t => new TerminalSelectionOption(
+                t.Identifier,
+                $"{t.Identifier} | {t.DisplayName} | {t.Description}"
+            ))
+            .ToArray();
+
+        TerminalSelectionPrompt prompt = new("Select a template", options);
+        TerminalSelectionResult promptResult = await _terminalSession.PromptForSelectionAsync(
+            prompt,
             cancellationToken
         );
-        if (promptResult.WasCancelled || string.IsNullOrWhiteSpace(promptResult.TemplateIdentifier))
+        if (promptResult.WasCancelled || string.IsNullOrWhiteSpace(promptResult.SelectedValue))
             return TemplateIdentifierResolutionResult.Cancelled();
 
-        return TemplateIdentifierResolutionResult.Interactive(promptResult.TemplateIdentifier);
+        return TemplateIdentifierResolutionResult.Interactive(promptResult.SelectedValue!);
     }
 
     private sealed class WorkspaceNameResolutionResult

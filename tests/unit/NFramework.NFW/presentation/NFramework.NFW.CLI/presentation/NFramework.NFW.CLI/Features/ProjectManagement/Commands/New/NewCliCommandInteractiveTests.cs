@@ -1,3 +1,4 @@
+using NFramework.Core.CLI.Abstractions;
 using NFramework.NFW.Application.Features.Cli.Logging;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New;
 using NFramework.NFW.Application.Features.ProjectManagement.Commands.New.Abstractions;
@@ -6,7 +7,6 @@ using NFramework.NFW.Application.Features.TemplateManagement.Services;
 using NFramework.NFW.Application.Features.TemplateManagement.Services.Abstractions;
 using NFramework.NFW.Application.Features.Versioning.Abstractions;
 using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New;
-using NFramework.NFW.CLI.Features.ProjectManagement.Commands.New.Abstractions;
 using NFramework.NFW.Domain.Features.Version;
 using Spectre.Console;
 using Xunit;
@@ -23,9 +23,10 @@ public class NewCliCommandInteractiveTests
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
         FakeTerminalSession terminalSession = new(
+            output,
             isInteractive: true,
             workspaceNameResult: TerminalTextInputResult.Submitted("prompted-workspace"),
-            templateSelectionResult: TerminalTemplateSelectionResult.Selected("blank")
+            templateSelectionResult: TerminalSelectionResult.Selected("blank")
         );
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
@@ -48,9 +49,10 @@ public class NewCliCommandInteractiveTests
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
         FakeTerminalSession terminalSession = new(
+            output,
             isInteractive: true,
             workspaceNameResult: TerminalTextInputResult.Submitted("ignored-workspace"),
-            templateSelectionResult: TerminalTemplateSelectionResult.Selected("blank")
+            templateSelectionResult: TerminalSelectionResult.Selected("blank")
         );
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
@@ -78,9 +80,10 @@ public class NewCliCommandInteractiveTests
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
         FakeTerminalSession terminalSession = new(
+            output,
             isInteractive: true,
             workspaceNameResult: TerminalTextInputResult.Cancelled(),
-            templateSelectionResult: TerminalTemplateSelectionResult.Selected("blank")
+            templateSelectionResult: TerminalSelectionResult.Selected("blank")
         );
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
@@ -104,8 +107,9 @@ public class NewCliCommandInteractiveTests
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
         FakeTerminalSession terminalSession = new(
+            output,
             isInteractive: true,
-            templateSelectionResult: TerminalTemplateSelectionResult.Selected("minimal")
+            templateSelectionResult: TerminalSelectionResult.Selected("minimal")
         );
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
@@ -133,8 +137,9 @@ public class NewCliCommandInteractiveTests
         StringWriter output = new();
         FakeWorkspaceArtifactWriter workspaceWriter = new();
         FakeTerminalSession terminalSession = new(
+            output,
             isInteractive: true,
-            templateSelectionResult: TerminalTemplateSelectionResult.Cancelled()
+            templateSelectionResult: TerminalSelectionResult.Cancelled()
         );
         NewCliCommand command = new(
             CreateListTemplatesQueryHandler(),
@@ -263,13 +268,14 @@ public class NewCliCommandInteractiveTests
     }
 
     private sealed class FakeTerminalSession(
+        StringWriter output,
         bool isInteractive,
         TerminalTextInputResult? workspaceNameResult = null,
-        TerminalTemplateSelectionResult? templateSelectionResult = null
-    ) : INfwTerminalSession
+        TerminalSelectionResult? templateSelectionResult = null
+    ) : ITerminalSession
     {
-        private readonly TerminalTemplateSelectionResult _templateSelectionResult =
-            templateSelectionResult ?? TerminalTemplateSelectionResult.Cancelled();
+        private readonly TerminalSelectionResult _templateSelectionResult =
+            templateSelectionResult ?? TerminalSelectionResult.Cancelled();
         private readonly TerminalTextInputResult _workspaceNameResult =
             workspaceNameResult ?? TerminalTextInputResult.Submitted("sample-interactive");
 
@@ -279,14 +285,17 @@ public class NewCliCommandInteractiveTests
 
         public int TemplatePromptCount { get; private set; }
 
-        public Task<TerminalTextInputResult> PromptForWorkspaceNameAsync(CancellationToken cancellationToken)
+        public Task<TerminalTextInputResult> PromptForTextAsync(
+            TerminalTextPrompt prompt,
+            CancellationToken cancellationToken
+        )
         {
             WorkspacePromptCount += 1;
             return Task.FromResult(_workspaceNameResult);
         }
 
-        public Task<TerminalTemplateSelectionResult> PromptForTemplateSelectionAsync(
-            IReadOnlyList<ListedTemplate> templates,
+        public Task<TerminalSelectionResult> PromptForSelectionAsync(
+            TerminalSelectionPrompt prompt,
             CancellationToken cancellationToken
         )
         {
@@ -294,8 +303,10 @@ public class NewCliCommandInteractiveTests
             return Task.FromResult(_templateSelectionResult);
         }
 
-        public void WriteLine(string message) { }
+        public void RenderTable(TerminalTable table) { }
 
-        public void WriteErrorLine(string message) { }
+        public void WriteLine(string message) => output.WriteLine(message);
+
+        public void WriteErrorLine(string message) => Console.Error.WriteLine(message);
     }
 }
