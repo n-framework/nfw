@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using NFramework.Core.CLI.Abstractions;
 using NFramework.NFW.Application.Features.Cli;
 using NFramework.NFW.Application.Features.Cli.Logging;
@@ -11,9 +10,14 @@ namespace NFramework.NFW.CLI;
 /// Orchestrates CLI application startup, configuration, and execution.
 /// Separated from the generated application class to keep source generation clean.
 /// </summary>
-public sealed class NfwCliApplicationOrchestrator(IServiceProvider serviceProvider, DiagnosticLogger diagnosticLogger)
+internal sealed class NfwCliApplicationOrchestrator(
+    IServiceProvider serviceProvider,
+    CliServices cliServices,
+    DiagnosticLogger diagnosticLogger
+)
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly CliServices _cliServices = cliServices;
     private readonly DiagnosticLogger _diagnosticLogger = diagnosticLogger;
 
     public int Run(string[] args)
@@ -26,16 +30,7 @@ public sealed class NfwCliApplicationOrchestrator(IServiceProvider serviceProvid
             return validationExitCode;
         }
 
-        // Create CliServices for bootstrapping
-        ServiceCollection bootstrapServices = new();
-        foreach (ServiceDescriptor service in _serviceProvider.GetServices<ServiceDescriptor>())
-        {
-            _ = bootstrapServices.Add(service);
-        }
-
-        Startup.CliServices cliServices = new(bootstrapServices, _diagnosticLogger);
-
-        CliBootstrapResult bootstrapResult = Startup.CliBootstrapper.Bootstrap(cliServices);
+        CliBootstrapResult bootstrapResult = Startup.CliBootstrapper.Bootstrap(_serviceProvider, _diagnosticLogger);
         if (bootstrapResult.IsFailure)
         {
             Console.Error.WriteLine(bootstrapResult.ErrorMessage);
@@ -67,10 +62,7 @@ public sealed class NfwCliApplicationOrchestrator(IServiceProvider serviceProvid
         {
             _diagnosticLogger.Write($"Executing CLI with args: {string.Join(" ", forwardedArguments)}");
 
-            // The source generator will handle command execution from here
-            // Call the generated Run method
-            ICliApplication cliApplication = _serviceProvider.GetRequiredService<ICliApplication>();
-            int exitCode = cliApplication.Run(forwardedArguments);
+            int exitCode = _cliServices.GeneratedCliApplication.Run(forwardedArguments);
 
             return interruptedBySignal ? ExitCodes.Interrupted : NormalizeExitCode(exitCode);
         }

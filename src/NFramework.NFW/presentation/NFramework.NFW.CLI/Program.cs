@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NFramework.Core.CLI.Abstractions;
+using NFramework.NFW.CLI;
 using NFramework.NFW.CLI.Startup;
 
 IHostBuilder builder = Host.CreateDefaultBuilder(args);
@@ -21,5 +21,5 @@ builder.ConfigureServices(
 );
 
 using IHost host = builder.Build();
-ICliApplication cliApplication = host.Services.GetRequiredService<ICliApplication>();
-return cliApplication.Run(args);
+NfwCliApplicationOrchestrator orchestrator = host.Services.GetRequiredService<NfwCliApplicationOrchestrator>();
+return orchestrator.Run(args);

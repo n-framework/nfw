@@ -2,21 +2,21 @@ using Microsoft.Extensions.DependencyInjection;
 using NFramework.NFW.Application.Features.Cli;
 using NFramework.NFW.Application.Features.Cli.Configuration;
 using NFramework.NFW.Application.Features.Cli.Configuration.Abstractions;
+using NFramework.NFW.Application.Features.Cli.Logging;
 using NFramework.NFW.Application.Features.Versioning.Abstractions;
 
 namespace NFramework.NFW.CLI.Startup;
 
 internal static class CliBootstrapper
 {
-    public static CliBootstrapResult Bootstrap(CliServices cliServices)
+    public static CliBootstrapResult Bootstrap(IServiceProvider serviceProvider, DiagnosticLogger diagnosticLogger)
     {
-        using ServiceProvider serviceProvider = cliServices.Services.BuildServiceProvider();
         INfwConfigurationLoader configurationLoader = serviceProvider.GetRequiredService<INfwConfigurationLoader>();
         RequiredConfigurationValidator requiredConfigurationValidator =
             serviceProvider.GetRequiredService<RequiredConfigurationValidator>();
         IVersionProvider versionProvider = serviceProvider.GetRequiredService<IVersionProvider>();
 
-        cliServices.DiagnosticLogger.Write("Loading configuration from nfw.yaml and environment.");
+        diagnosticLogger.Write("Loading configuration from nfw.yaml and environment.");
 
         Result<NfwConfiguration> configurationResult = configurationLoader.Load();
         if (configurationResult.IsFailure)

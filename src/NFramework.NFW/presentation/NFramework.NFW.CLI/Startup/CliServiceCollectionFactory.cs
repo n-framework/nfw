@@ -3,7 +3,6 @@ using NFramework.Core.CLI.Abstractions;
 using NFramework.Core.CLI.SpectreConsoleUI.DependencyInjection;
 using NFramework.NFW.Application;
 using NFramework.NFW.Application.Features.Cli.Logging;
-using NFramework.NFW.Infrastructure.FileSystem;
 using NFramework.NFW.Infrastructure.FileSystem.DependencyInjection;
 using NFramework.NFW.Infrastructure.GitHub;
 
@@ -20,15 +19,11 @@ internal static class CliServiceCollectionFactory
         _ = services.AddNfwFileSystemInfrastructure();
         _ = services.AddNfwGitHubInfrastructure();
 
-        // Core-cli Spectre.Console UI (includes ITerminalSession, IAnsiConsole)
+        // NFramework.Core.CLI Spectre.Console UI (includes ITerminalSession, IAnsiConsole)
         _ = services.AddCoreCliSpectreConsoleUi();
 
         // Scriban template rendering
         _ = services.AddScribanTemplateRendering();
-
-        // Register the orchestrator and application
-        _ = services.AddSingleton<NfwCliApplicationOrchestrator>();
-        _ = services.AddSingleton<ICliApplication, NfwCliApplication>();
 
         DiagnosticLogger diagnosticLogger = new();
         if (parsedArguments.VerboseEnabled)
@@ -37,8 +32,23 @@ internal static class CliServiceCollectionFactory
         }
 
         _ = services.AddSingleton(diagnosticLogger);
-        return new CliServices(services, diagnosticLogger);
+
+        // Source-generated: registers Spectre.Console commands and creates the command app
+        ICliApplication generatedCliApplication = SpectreConsoleCommandRegistration.CreateCommandApp(services);
+
+        // Register the orchestrator and application
+        _ = services.AddSingleton<NfwCliApplicationOrchestrator>();
+        _ = services.AddSingleton<ICliApplication>(generatedCliApplication);
+
+        CliServices cliServices = new(services, diagnosticLogger, generatedCliApplication);
+        _ = services.AddSingleton(cliServices);
+
+        return cliServices;
     }
 }
 
-internal sealed record CliServices(IServiceCollection Services, DiagnosticLogger DiagnosticLogger);
+internal sealed record CliServices(
+    IServiceCollection Services,
+    DiagnosticLogger DiagnosticLogger,
+    ICliApplication GeneratedCliApplication
+);

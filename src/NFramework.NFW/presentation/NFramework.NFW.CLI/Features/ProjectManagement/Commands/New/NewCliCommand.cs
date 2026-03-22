@@ -82,10 +82,7 @@ public sealed class NewCliCommand(
         }
 
         TerminalTextPrompt prompt = new("Workspace name:", "Workspace name is required.");
-        TerminalTextInputResult promptResult = await _terminalSession.PromptForTextAsync(
-            prompt,
-            cancellationToken
-        );
+        TerminalTextInputResult promptResult = await _terminalSession.PromptForTextAsync(prompt, cancellationToken);
         if (promptResult.WasCancelled || string.IsNullOrWhiteSpace(promptResult.Value))
             return WorkspaceNameResolutionResult.Cancelled();
 
