@@ -43,7 +43,7 @@ public sealed class FileSystemWorkspaceArtifactWriter(
 
         if (templateFiles.Count == 0)
         {
-            CreateBasicWorkspaceFiles(artifacts);
+            createBasicWorkspaceFiles(artifacts);
             return;
         }
 
@@ -72,7 +72,7 @@ public sealed class FileSystemWorkspaceArtifactWriter(
         }
     }
 
-    private void CreateBasicWorkspaceFiles(WorkspaceArtifacts artifacts)
+    private void createBasicWorkspaceFiles(WorkspaceArtifacts artifacts)
     {
         string configurationContent = $"""
             workspace:
@@ -80,15 +80,5 @@ public sealed class FileSystemWorkspaceArtifactWriter(
               template: {artifacts.TemplateIdentifier}
             """;
         File.WriteAllText(Path.Combine(artifacts.WorkspacePath, "nfw.yaml"), configurationContent);
-
-        string readmeContent = $"""
-            # {artifacts.WorkspaceName}
-
-            Created by `nfw new` using template `{artifacts.TemplateIdentifier}`.
-
-            Template: {artifacts.TemplateDisplayName}
-            Description: {artifacts.TemplateDescription}
-            """;
-        File.WriteAllText(Path.Combine(artifacts.WorkspacePath, "README.md"), readmeContent);
     }
 }

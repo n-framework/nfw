@@ -30,7 +30,6 @@ public sealed class FileSystemWorkspaceArtifactWriterTests
 
         Directory.Exists(workspacePath).ShouldBeTrue();
         File.ReadAllText(Path.Combine(workspacePath, "nfw.yaml")).ShouldContain("template: blank");
-        File.ReadAllText(Path.Combine(workspacePath, "README.md")).ShouldContain("Blank Workspace");
     }
 
     private sealed class TemporaryWorkingDirectory : IDisposable

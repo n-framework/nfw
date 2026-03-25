@@ -24,7 +24,7 @@ public sealed class NewCliCommand(
     {
         bool promptsAllowed = _terminalSession.IsInteractive && !settings.NoInput;
 
-        WorkspaceNameResolutionResult workspaceNameResult = await ResolveWorkspaceNameAsync(
+        WorkspaceNameResolutionResult workspaceNameResult = await resolveWorkspaceNameAsync(
             settings.WorkspaceName,
             promptsAllowed,
             cancellationToken
@@ -35,7 +35,7 @@ public sealed class NewCliCommand(
             return workspaceNameResult.ExitCode;
         }
 
-        TemplateIdentifierResolutionResult templateIdentifierResult = await ResolveTemplateIdentifierAsync(
+        TemplateIdentifierResolutionResult templateIdentifierResult = await resolveTemplateIdentifierAsync(
             settings.TemplateIdentifier,
             promptsAllowed,
             cancellationToken
@@ -64,7 +64,7 @@ public sealed class NewCliCommand(
         return ExitCodes.Success;
     }
 
-    private async Task<WorkspaceNameResolutionResult> ResolveWorkspaceNameAsync(
+    private async Task<WorkspaceNameResolutionResult> resolveWorkspaceNameAsync(
         string? workspaceName,
         bool promptsAllowed,
         CancellationToken cancellationToken
@@ -89,7 +89,7 @@ public sealed class NewCliCommand(
         return WorkspaceNameResolutionResult.Success(promptResult.Value);
     }
 
-    private async Task<TemplateIdentifierResolutionResult> ResolveTemplateIdentifierAsync(
+    private async Task<TemplateIdentifierResolutionResult> resolveTemplateIdentifierAsync(
         string? templateIdentifier,
         bool promptsAllowed,
         CancellationToken cancellationToken
