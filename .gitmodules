@@ -1,9 +1,9 @@
-[submodule "packages/n-framework-core-cli"]
-	path = packages/n-framework-core-cli
-	url = git@github.com:n-framework/n-framework-core-cli.git
 [submodule "packages/nfw-templates"]
 	path = packages/nfw-templates
 	url = git@github.com:n-framework/nfw-templates.git
-[submodule "packages/n-framework-core-template"]
-	path = packages/n-framework-core-template
-	url = git@github.com:n-framework/n-framework-core-template.git
+[submodule "packages/core-cli-dotnet"]
+	path = packages/core-cli-dotnet
+	url = git@github.com:n-framework/core-cli-dotnet.git
+[submodule "packages/core-template-dotnet"]
+	path = packages/core-template-dotnet
+	url = git@github.com:n-framework/core-template-dotnet.git

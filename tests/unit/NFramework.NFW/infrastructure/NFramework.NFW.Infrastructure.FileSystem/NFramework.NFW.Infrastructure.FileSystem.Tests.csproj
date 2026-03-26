@@ -32,7 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../../../src/NFramework.NFW/infrastructure/NFramework.NFW.Infrastructure.FileSystem/NFramework.NFW.Infrastructure.FileSystem.csproj" />
-    <ProjectReference Include="../../../../../packages/n-framework-core-template/src/NFramework.Core.Template.Abstractions/NFramework.Core.Template.Abstractions.csproj" />
+    <ProjectReference Include="../../../../../packages/core-template-dotnet/src/NFramework.Core.Template.Abstractions/NFramework.Core.Template.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
