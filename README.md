@@ -1,7 +1,7 @@
 # nfw CLI
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Buy A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black&style=flat)](https://ahmetcetinkaya.me/donate)
+[![Buy A Coffee](https://img.shields.io/badge/Buy%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black&style=flat)](https://ahmetcetinkaya.me/donate)
 
 The `nfw` CLI is the command-line entry point for the NFramework toolchain. It creates workspaces from templates, scaffolds services and CRUD flows, and validates architecture boundaries.
 
