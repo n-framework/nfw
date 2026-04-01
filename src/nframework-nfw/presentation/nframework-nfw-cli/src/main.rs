@@ -3,7 +3,7 @@ mod args;
 mod commands;
 mod startup;
 
-use core_cli_rust::CliAdapter;
+use nframework_core_cli_abstraction::CliAdapter;
 
 use crate::adapters::nfw_cli_adapter::NfwCliAdapter;
 use crate::args::{CliArgs, CliCommand, TemplatesCommand};

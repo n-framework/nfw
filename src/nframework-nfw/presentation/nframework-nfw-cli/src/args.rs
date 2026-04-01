@@ -1,4 +1,4 @@
-use core_cli_rust::Command;
+use nframework_core_cli_abstraction::Command;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CliArgs {

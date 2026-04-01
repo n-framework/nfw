@@ -1,6 +1,7 @@
-use core_cli_rust::{
-    ClapAdapter, CliAdapter, CliAdapterError, CliCommandSpec, CliOptionSpec, CliSpec, Command,
+use nframework_core_cli_abstraction::{
+    CliAdapter, CliAdapterError, CliCommandSpec, CliOptionSpec, CliSpec, Command,
 };
+use nframework_core_cli_clap::ClapAdapter;
 
 const NFRAMEWORK_ASCII_BANNER: &str = r#"
    _  ______                                   __
