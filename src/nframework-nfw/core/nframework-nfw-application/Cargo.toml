@@ -14,3 +14,7 @@ serde_yaml = "0.9"
 [[test]]
 name = "template_catalog_parser_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_parser_tests.rs"
+
+[[test]]
+name = "template_catalog_source_resolver_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_source_resolver_tests.rs"

@@ -1,3 +1,5 @@
 pub mod template_catalog_error;
+pub mod template_catalog_source_resolver_error;
 
 pub use template_catalog_error::TemplateCatalogError;
+pub use template_catalog_source_resolver_error::TemplateCatalogSourceResolverError;

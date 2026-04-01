@@ -1,1 +1,3 @@
-//! NFW crate skeleton.
+//! Filesystem infrastructure adapters.
+
+pub mod features;

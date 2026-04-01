@@ -194,18 +194,18 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Phase 4: Application Services
 
-- [ ] T033 [US2] Implement `TemplateCatalogSourceResolver` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/template_catalog_source_resolver.rs` (scan repo for subdirectories with template.yaml, build catalog)
-- [ ] T034 [US2] Define `TemplateCatalog` value object in `src/nframework-nfw/core/nframework-nfw-domain/src/features/template_management/template_catalog.rs` (source name, list of template descriptors)
-- [ ] T035 [US2] Define `TemplateDescriptor` value object in `src/nframework-nfw/core/nframework-nfw-domain/src/features/template_management/template_descriptor.rs` (metadata + cache_path)
+- [x] T033 [US2] Implement `TemplateCatalogSourceResolver` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/template_catalog_source_resolver.rs` (scan repo for subdirectories with template.yaml, build catalog)
+- [x] T034 [US2] Define `TemplateCatalog` value object in `src/nframework-nfw/core/nframework-nfw-domain/src/features/template_management/template_catalog.rs` (source name, list of template descriptors)
+- [x] T035 [US2] Define `TemplateDescriptor` value object in `src/nframework-nfw/core/nframework-nfw-domain/src/features/template_management/template_descriptor.rs` (metadata + cache_path)
 
 ### Phase 4: Infrastructure Adapters
 
-- [ ] T036 [US2] Implement `LocalTemplatesCatalogSource` in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/template_management/services/local_templates_catalog_source.rs` (scan content directory, apply .nfwignore exclusions)
-- [ ] T036b [P] [US2] Implement placeholder detection in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/template_management/services/placeholder_detector.rs` (scan file/directory names for `__PascalCase__` pattern per FR-012)
+- [x] T036 [US2] Implement `LocalTemplatesCatalogSource` in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/template_management/services/local_templates_catalog_source.rs` (scan content directory, apply .nfwignore exclusions)
+- [x] T036b [P] [US2] Implement placeholder detection in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/template_management/services/placeholder_detector.rs` (scan file/directory names for `__PascalCase__` pattern per FR-012)
 
 ### Phase 4: Application Tests
 
-- [ ] T037 [P] [US2] Write tests for TemplateCatalogSourceResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_source_resolver_tests.rs`
+- [x] T037 [P] [US2] Write tests for TemplateCatalogSourceResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_source_resolver_tests.rs`
 
 ---
 
