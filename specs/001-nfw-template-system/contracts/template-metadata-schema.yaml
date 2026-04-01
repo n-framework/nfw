@@ -1,0 +1,91 @@
+# Template Metadata Schema
+# This file defines the structure and validation rules for template.yaml
+
+# ============================================
+# REQUIRED FIELDS
+# ============================================
+
+# Template identifier (kebab-case, unique within source)
+# Regex: ^[a-z][a-z0-9-]*$
+id: microservice
+
+# Human-readable display name
+# Max length: 100 characters
+name: ASP.NET Core Microservice
+
+# One-line summary describing the template
+# Max length: 200 characters
+description: A standalone .NET microservice with Clean Architecture layers
+
+# Semantic version (MAJOR.MINOR.PATCH)
+# Pre-release suffixes allowed: 1.0.0-alpha, 1.0.0-beta.1
+version: 1.0.0
+
+# Target programming language
+# Allowed values: dotnet, go, rust
+language: dotnet
+
+# ============================================
+# OPTIONAL FIELDS
+# ============================================
+
+# Searchable keywords for template discovery
+# List of strings, max 10 tags
+tags:
+  - microservice
+  - web-api
+  - clean-architecture
+
+# Template author/maintainer
+# Free-form string, max 100 characters
+author: NFramework Team
+
+# Minimum CLI version required to use this template
+# If current CLI version is older, user sees warning
+# Example: 0.1.0
+minCliVersion: 0.1.0
+
+# Canonical repository URL for this template
+# Used for attribution and updates
+# Example: https://github.com/n-framework/nfw-templates
+sourceUrl: https://github.com/n-framework/nfw-templates
+
+# ============================================
+# VALIDATION RULES
+# ============================================
+
+# Field-specific validation:
+# - id: Must be kebab-case, start with letter
+# - name: Required, max 100 chars
+# - description: Required, max 200 chars
+# - version: Must be valid semver
+# - language: Must be one of: dotnet, go, rust
+# - tags: Optional, max 10 items, max 20 chars each
+# - author: Optional, max 100 chars
+# - minCliVersion: Optional, must be valid semver
+# - sourceUrl: Optional, must be valid URL
+
+# ============================================
+# EXAMPLES
+# ============================================
+
+# Example 1: Minimal template
+# id: minimal
+# name: Minimal Service
+# description: A basic .NET service template
+# version: 1.0.0
+# language: dotnet
+
+# Example 2: Full-featured template
+# id: full-featured
+# name: Full-Featured Microservice
+# description: Complete microservice with auth, persistence, and telemetry
+# version: 2.1.0-beta
+# language: dotnet
+# tags:
+#   - microservice
+#   - auth
+#   - database
+# author: NFramework Team
+# minCliVersion: 0.5.0
+# sourceUrl: https://github.com/n-framework/nfw-templates
