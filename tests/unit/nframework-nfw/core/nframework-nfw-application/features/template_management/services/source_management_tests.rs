@@ -189,7 +189,6 @@ fn adds_source_when_url_is_valid() {
         vec![TemplateSource::new(
             "official".to_owned(),
             "https://github.com/n-framework/nfw-templates".to_owned(),
-            true,
         )],
         HashMap::from([("https://example.com/my-team.git".to_owned(), true)]),
     );
@@ -208,7 +207,6 @@ fn rejects_duplicate_source_name() {
         vec![TemplateSource::new(
             "official".to_owned(),
             "https://github.com/n-framework/nfw-templates".to_owned(),
-            true,
         )],
         HashMap::from([("https://example.com/my-team.git".to_owned(), true)]),
     );
@@ -230,12 +228,10 @@ fn removes_source_and_clears_cache() {
             TemplateSource::new(
                 "official".to_owned(),
                 "https://github.com/n-framework/nfw-templates".to_owned(),
-                true,
             ),
             TemplateSource::new(
                 "my-team".to_owned(),
                 "https://example.com/my-team.git".to_owned(),
-                true,
             ),
         ],
         HashMap::new(),

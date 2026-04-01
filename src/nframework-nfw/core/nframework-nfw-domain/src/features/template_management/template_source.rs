@@ -6,7 +6,19 @@ pub struct TemplateSource {
 }
 
 impl TemplateSource {
-    pub fn new(name: String, url: String, enabled: bool) -> Self {
-        Self { name, url, enabled }
+    pub fn new(name: String, url: String) -> Self {
+        Self {
+            name,
+            url,
+            enabled: true,
+        }
+    }
+
+    pub fn new_disabled(name: String, url: String) -> Self {
+        Self {
+            name,
+            url,
+            enabled: false,
+        }
     }
 }

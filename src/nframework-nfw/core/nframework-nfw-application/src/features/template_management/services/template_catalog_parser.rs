@@ -45,67 +45,14 @@ where
             .parse::<RawTemplateMetadata>(yaml_content)
             .map_err(TemplateCatalogError::InvalidYaml)?;
 
-        let id = required_non_empty(raw.id, "id")?;
-        if !self.validator.is_kebab_case(&id) {
-            return Err(TemplateCatalogError::InvalidField {
-                field: "id",
-                reason: "must use kebab-case (example: web-api)".to_owned(),
-            });
-        }
-
+        let id = self.validate_and_parse_id(raw.id)?;
         let name = required_non_empty(raw.name, "name")?;
         let description = required_non_empty(raw.description, "description")?;
-
-        let version = required_non_empty(raw.version, "version")?;
-        self.version_comparator.parse(&version).map_err(|error| {
-            TemplateCatalogError::InvalidField {
-                field: "version",
-                reason: error,
-            }
-        })?;
-        let parsed_version =
-            Version::from_str(&version).map_err(|error| TemplateCatalogError::InvalidField {
-                field: "version",
-                reason: error.to_string(),
-            })?;
-
+        let parsed_version = self.parse_and_validate_version(raw.version)?;
         let language = parse_language(required_non_empty(raw.language, "language")?)?;
-
-        let min_cli_version = match raw.min_cli_version {
-            Some(value) => {
-                let value = required_non_empty(Some(value), "min_cli_version")?;
-                self.version_comparator.parse(&value).map_err(|error| {
-                    TemplateCatalogError::InvalidField {
-                        field: "min_cli_version",
-                        reason: error,
-                    }
-                })?;
-                Some(Version::from_str(&value).map_err(|error| {
-                    TemplateCatalogError::InvalidField {
-                        field: "min_cli_version",
-                        reason: error.to_string(),
-                    }
-                })?)
-            }
-            None => None,
-        };
-
-        let source_url = normalize_optional(raw.source_url);
-        if let Some(url) = source_url.as_deref()
-            && !self.validator.is_git_url(url)
-        {
-            return Err(TemplateCatalogError::InvalidField {
-                field: "source_url",
-                reason: "must be a valid git URL".to_owned(),
-            });
-        }
-
-        let tags = raw
-            .tags
-            .unwrap_or_default()
-            .into_iter()
-            .filter(|tag| !tag.trim().is_empty())
-            .collect::<Vec<_>>();
+        let min_cli_version = self.parse_min_cli_version(raw.min_cli_version)?;
+        let source_url = self.validate_source_url(raw.source_url)?;
+        let tags = self.filter_tags(raw.tags);
 
         let metadata = TemplateMetadata {
             id,
@@ -127,6 +74,88 @@ where
             })?;
 
         Ok(metadata)
+    }
+}
+
+impl<Y, V, C> TemplateCatalogParser<Y, V, C>
+where
+    Y: YamlParser,
+    V: Validator,
+    C: VersionComparator,
+{
+    fn validate_and_parse_id(&self, id: Option<String>) -> Result<String, TemplateCatalogError> {
+        let id = required_non_empty(id, "id")?;
+        if !self.validator.is_kebab_case(&id) {
+            return Err(TemplateCatalogError::InvalidField {
+                field: "id",
+                reason: "must use kebab-case (example: web-api)".to_owned(),
+            });
+        }
+        Ok(id)
+    }
+
+    fn parse_and_validate_version(
+        &self,
+        version: Option<String>,
+    ) -> Result<Version, TemplateCatalogError> {
+        let version = required_non_empty(version, "version")?;
+        self.version_comparator.parse(&version).map_err(|error| {
+            TemplateCatalogError::InvalidField {
+                field: "version",
+                reason: error,
+            }
+        })?;
+        Version::from_str(&version).map_err(|error| TemplateCatalogError::InvalidField {
+            field: "version",
+            reason: error.to_string(),
+        })
+    }
+
+    fn parse_min_cli_version(
+        &self,
+        min_cli_version: Option<String>,
+    ) -> Result<Option<Version>, TemplateCatalogError> {
+        match min_cli_version {
+            Some(value) => {
+                let value = required_non_empty(Some(value), "min_cli_version")?;
+                self.version_comparator.parse(&value).map_err(|error| {
+                    TemplateCatalogError::InvalidField {
+                        field: "min_cli_version",
+                        reason: error,
+                    }
+                })?;
+                Ok(Some(Version::from_str(&value).map_err(|error| {
+                    TemplateCatalogError::InvalidField {
+                        field: "min_cli_version",
+                        reason: error.to_string(),
+                    }
+                })?))
+            }
+            None => Ok(None),
+        }
+    }
+
+    fn validate_source_url(
+        &self,
+        source_url: Option<String>,
+    ) -> Result<Option<String>, TemplateCatalogError> {
+        let url = normalize_optional(source_url);
+        if let Some(url_value) = url.as_deref()
+            && !self.validator.is_git_url(url_value)
+        {
+            return Err(TemplateCatalogError::InvalidField {
+                field: "source_url",
+                reason: "must be a valid git URL".to_owned(),
+            });
+        }
+        Ok(url)
+    }
+
+    fn filter_tags(&self, tags: Option<Vec<String>>) -> Vec<String> {
+        tags.unwrap_or_default()
+            .into_iter()
+            .filter(|tag| !tag.trim().is_empty())
+            .collect()
     }
 }
 

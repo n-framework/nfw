@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use glob::Pattern;
+use nframework_nfw_application::features::template_management::constants::template;
 use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_source::TemplateCatalogSource;
 
 use crate::features::template_management::services::placeholder_detector::PlaceholderDetector;
@@ -23,7 +24,7 @@ impl LocalTemplatesCatalogSource {
         &self,
         template_directory: &Path,
     ) -> Result<Vec<PathBuf>, String> {
-        let content_directory = template_directory.join("content");
+        let content_directory = template_directory.join(template::CONTENT_DIR);
         if !content_directory.is_dir() {
             return Err(format!(
                 "template directory '{}' is missing required 'content/' directory",
@@ -32,13 +33,8 @@ impl LocalTemplatesCatalogSource {
         }
 
         let ignore_patterns = load_ignore_patterns(template_directory)?;
-        let mut entries = Vec::new();
-        collect_entries_recursive(
-            &content_directory,
-            &content_directory,
-            &ignore_patterns,
-            &mut entries,
-        )?;
+        let mut entries =
+            collect_entries_recursive(&content_directory, &content_directory, &ignore_patterns)?;
 
         if entries.is_empty() {
             return Err(format!(
@@ -52,7 +48,7 @@ impl LocalTemplatesCatalogSource {
     }
 
     pub fn detect_placeholders(&self, template_directory: &Path) -> Result<Vec<String>, String> {
-        let content_directory = template_directory.join("content");
+        let content_directory = template_directory.join(template::CONTENT_DIR);
         let content_entries = self.collect_content_entries(template_directory)?;
         let mut placeholders = BTreeSet::new();
 
@@ -125,7 +121,7 @@ impl TemplateCatalogSource for LocalTemplatesCatalogSource {
             ));
         }
 
-        let metadata_path = template_directory.join("template.yaml");
+        let metadata_path = template_directory.join(template::METADATA_FILE);
         let metadata = fs::read_to_string(&metadata_path).map_err(|error| {
             format!(
                 "failed to read template metadata '{}': {error}",
@@ -150,14 +146,15 @@ fn collect_entries_recursive(
     root_directory: &Path,
     current_directory: &Path,
     ignore_patterns: &IgnorePatterns,
-    entries: &mut Vec<PathBuf>,
-) -> Result<(), String> {
+) -> Result<Vec<PathBuf>, String> {
     let directory_entries = fs::read_dir(current_directory).map_err(|error| {
         format!(
             "failed to read content directory '{}': {error}",
             current_directory.display()
         )
     })?;
+
+    let mut entries = Vec::new();
 
     for directory_entry in directory_entries {
         let entry_path = directory_entry
@@ -186,11 +183,13 @@ fn collect_entries_recursive(
         entries.push(entry_path.clone());
 
         if entry_path.is_dir() {
-            collect_entries_recursive(root_directory, &entry_path, ignore_patterns, entries)?;
+            let sub_entries =
+                collect_entries_recursive(root_directory, &entry_path, ignore_patterns)?;
+            entries.extend(sub_entries);
         }
     }
 
-    Ok(())
+    Ok(entries)
 }
 
 fn should_ignore(relative_path: &Path, ignore_patterns: &IgnorePatterns) -> bool {
@@ -209,7 +208,7 @@ fn should_ignore(relative_path: &Path, ignore_patterns: &IgnorePatterns) -> bool
 }
 
 fn load_ignore_patterns(template_directory: &Path) -> Result<IgnorePatterns, String> {
-    let ignore_file_path = template_directory.join(".nfwignore");
+    let ignore_file_path = template_directory.join(template::IGNORE_FILE);
     if !ignore_file_path.is_file() {
         return Ok(IgnorePatterns::default());
     }
@@ -239,37 +238,48 @@ fn load_ignore_patterns(template_directory: &Path) -> Result<IgnorePatterns, Str
                 patterns
                     .directory_prefixes
                     .push(PathBuf::from(directory_prefix));
-                append_glob_pattern(
-                    &mut patterns.glob_patterns,
-                    &format!("{directory_prefix}/**"),
-                )?;
-                append_glob_pattern(
-                    &mut patterns.glob_patterns,
-                    &format!("**/{directory_prefix}/**"),
-                )?;
+                patterns
+                    .glob_patterns
+                    .push(parse_glob_pattern(&format!("{directory_prefix}/**"))?);
+                patterns
+                    .glob_patterns
+                    .push(parse_glob_pattern(&format!("**/{directory_prefix}/**"))?);
             }
             continue;
         }
 
-        append_glob_pattern(&mut patterns.glob_patterns, normalized_line)?;
+        patterns
+            .glob_patterns
+            .push(parse_glob_pattern(normalized_line)?);
         if !normalized_line.contains('/') {
-            append_glob_pattern(
-                &mut patterns.glob_patterns,
-                &format!("**/{normalized_line}"),
-            )?;
+            patterns
+                .glob_patterns
+                .push(parse_glob_pattern(&format!("**/{normalized_line}"))?);
         }
     }
 
     Ok(patterns)
 }
 
-fn append_glob_pattern(glob_patterns: &mut Vec<Pattern>, value: &str) -> Result<(), String> {
-    let pattern = Pattern::new(value)
-        .map_err(|error| format!("invalid .nfwignore pattern '{value}': {error}"))?;
-    glob_patterns.push(pattern);
-    Ok(())
+fn parse_glob_pattern(value: &str) -> Result<Pattern, String> {
+    Pattern::new(value).map_err(|error| format!("invalid .nfwignore pattern '{value}': {error}"))
 }
 
 fn is_template_directory(path: &Path) -> bool {
-    path.join("template.yaml").is_file() && path.join("content").is_dir()
+    has_required_template_structure(path)
+}
+
+/// Checks if a directory has the required template structure (metadata file and content directory)
+fn has_required_template_structure(path: &Path) -> bool {
+    has_template_metadata(path) && has_content_directory(path)
+}
+
+/// Checks if a directory contains the required template metadata file
+fn has_template_metadata(path: &Path) -> bool {
+    path.join(template::METADATA_FILE).is_file()
+}
+
+/// Checks if a directory contains the required content directory
+fn has_content_directory(path: &Path) -> bool {
+    path.join(template::CONTENT_DIR).is_dir()
 }

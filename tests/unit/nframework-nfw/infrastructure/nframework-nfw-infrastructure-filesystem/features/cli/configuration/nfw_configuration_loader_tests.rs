@@ -62,12 +62,10 @@ fn saves_and_loads_sources_file() {
             TemplateSource::new(
                 "official".to_owned(),
                 "https://github.com/n-framework/nfw-templates".to_owned(),
-                true,
             ),
-            TemplateSource::new(
+            TemplateSource::new_disabled(
                 "my-team".to_owned(),
                 "https://example.com/my-team.git".to_owned(),
-                false,
             ),
         ],
         cache_directory.clone(),

@@ -5,6 +5,9 @@ use crate::features::template_management::models::errors::template_selection_err
 use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::template_management::services::template_selection_result::TemplateSelectionResult;
 
+/// Maximum number of unique template matches before considering the identifier ambiguous
+const MAX_UNIQUE_MATCH_COUNT: usize = 1;
+
 #[derive(Debug, Clone)]
 pub struct TemplateSelectionService<D>
 where
@@ -87,7 +90,7 @@ where
             });
         }
 
-        if matches.len() > 1 {
+        if matches.len() > MAX_UNIQUE_MATCH_COUNT {
             let candidates = matches
                 .iter()
                 .map(|(source_name, template)| format!("{source_name}/{}", template.metadata.id))

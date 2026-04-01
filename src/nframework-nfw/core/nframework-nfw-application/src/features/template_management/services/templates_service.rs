@@ -2,6 +2,7 @@ use nframework_nfw_domain::features::template_management::template_catalog::Temp
 use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 
 use crate::features::cli::configuration::abstraction::config_store::ConfigStore;
+use crate::features::template_management::constants::source;
 use crate::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use crate::features::template_management::models::listed_template::ListedTemplate;
 use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
@@ -13,9 +14,6 @@ use crate::features::template_management::services::abstraction::validator::Vali
 use crate::features::template_management::services::abstraction::yaml_parser::YamlParser;
 use crate::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
 use crate::features::versioning::abstraction::version_comparator::VersionComparator;
-
-const OFFICIAL_SOURCE_NAME: &str = "official";
-const OFFICIAL_SOURCE_URL: &str = "https://github.com/n-framework/nfw-templates";
 
 #[derive(Debug, Clone)]
 pub struct TemplatesService<R, S, Y, V, C, CS, G>
@@ -69,15 +67,14 @@ where
 
         if sources
             .iter()
-            .any(|source| source.name == OFFICIAL_SOURCE_NAME)
+            .any(|source| source.name == source::OFFICIAL_NAME)
         {
             return Ok(());
         }
 
         sources.push(TemplateSource::new(
-            OFFICIAL_SOURCE_NAME.to_owned(),
-            OFFICIAL_SOURCE_URL.to_owned(),
-            true,
+            source::OFFICIAL_NAME.to_owned(),
+            source::OFFICIAL_URL.to_owned(),
         ));
         self.config_store
             .save_sources(&sources)
@@ -110,7 +107,6 @@ where
         sources.push(TemplateSource::new(
             normalized_name.to_owned(),
             normalized_url.to_owned(),
-            true,
         ));
         sources.sort_by(|left, right| left.name.cmp(&right.name));
         self.config_store

@@ -10,36 +10,44 @@ impl SemverVersionComparator {
     pub fn new() -> Self {
         Self
     }
+
+    fn format_parse_error(version: &str, error: semver::Error) -> String {
+        format!("invalid semver '{version}': {error}")
+    }
+
+    fn format_requirement_parse_error(requirement: &str, error: semver::Error) -> String {
+        format!("invalid version requirement '{requirement}': {error}")
+    }
 }
 
 impl VersionComparator for SemverVersionComparator {
     fn parse(&self, version: &str) -> Result<(), String> {
         Version::parse(version)
             .map(|_| ())
-            .map_err(|error| format!("invalid semver '{version}': {error}"))
+            .map_err(|error| Self::format_parse_error(version, error))
     }
 
     fn compare(&self, left: &str, right: &str) -> Result<Ordering, String> {
         let left_version =
-            Version::parse(left).map_err(|error| format!("invalid semver '{left}': {error}"))?;
+            Version::parse(left).map_err(|error| Self::format_parse_error(left, error))?;
         let right_version =
-            Version::parse(right).map_err(|error| format!("invalid semver '{right}': {error}"))?;
+            Version::parse(right).map_err(|error| Self::format_parse_error(right, error))?;
 
         Ok(left_version.cmp(&right_version))
     }
 
     fn is_stable(&self, version: &str) -> Result<bool, String> {
-        let parsed = Version::parse(version)
-            .map_err(|error| format!("invalid semver '{version}': {error}"))?;
+        let parsed =
+            Version::parse(version).map_err(|error| Self::format_parse_error(version, error))?;
 
         Ok(parsed.pre.is_empty())
     }
 
     fn satisfies(&self, version: &str, requirement: &str) -> Result<bool, String> {
-        let parsed_version = Version::parse(version)
-            .map_err(|error| format!("invalid semver '{version}': {error}"))?;
+        let parsed_version =
+            Version::parse(version).map_err(|error| Self::format_parse_error(version, error))?;
         let parsed_requirement = VersionReq::parse(requirement)
-            .map_err(|error| format!("invalid version requirement '{requirement}': {error}"))?;
+            .map_err(|error| Self::format_requirement_parse_error(requirement, error))?;
 
         Ok(parsed_requirement.matches(&parsed_version))
     }

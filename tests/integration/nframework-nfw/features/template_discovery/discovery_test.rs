@@ -96,7 +96,6 @@ fn discovers_and_refreshes_templates_from_git_source() {
         vec![TemplateSource::new(
             "official".to_owned(),
             remote_repository.to_string_lossy().to_string(),
-            true,
         )],
         cache_directory,
         config_directory,

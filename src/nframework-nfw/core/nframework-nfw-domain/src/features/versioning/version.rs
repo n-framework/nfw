@@ -29,8 +29,60 @@ impl Version {
         }
     }
 
+    /// Creates a builder for constructing a Version with a fluent API
+    pub fn builder() -> VersionBuilder {
+        VersionBuilder::default()
+    }
+
     pub fn is_stable(&self) -> bool {
         self.pre.as_deref().is_none_or(str::is_empty)
+    }
+}
+
+/// Builder for constructing Version instances with a fluent API
+#[derive(Debug, Default)]
+pub struct VersionBuilder {
+    major: u64,
+    minor: u64,
+    patch: u64,
+    pre: Option<String>,
+    build: Option<String>,
+}
+
+impl VersionBuilder {
+    pub fn major(mut self, major: u64) -> Self {
+        self.major = major;
+        self
+    }
+
+    pub fn minor(mut self, minor: u64) -> Self {
+        self.minor = minor;
+        self
+    }
+
+    pub fn patch(mut self, patch: u64) -> Self {
+        self.patch = patch;
+        self
+    }
+
+    pub fn pre<S: Into<String>>(mut self, pre: S) -> Self {
+        self.pre = Some(pre.into());
+        self
+    }
+
+    pub fn build<S: Into<String>>(mut self, build: S) -> Self {
+        self.build = Some(build.into());
+        self
+    }
+
+    pub fn build_version(self) -> Version {
+        Version {
+            major: self.major,
+            minor: self.minor,
+            patch: self.patch,
+            pre: self.pre,
+            build: self.build,
+        }
     }
 }
 

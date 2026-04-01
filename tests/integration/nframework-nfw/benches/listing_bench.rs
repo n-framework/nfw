@@ -140,7 +140,6 @@ fn create_templates_service(
         sources: vec![TemplateSource::new(
             source_name.to_owned(),
             source_url.to_owned(),
-            true,
         )],
     };
 

@@ -37,16 +37,33 @@ pub struct CliValidator;
 
 impl Validator for CliValidator {
     fn is_kebab_case(&self, value: &str) -> bool {
-        if value.starts_with('-') || value.ends_with('-') || value.contains("--") {
+        if Self::has_invalid_kebab_placement(value) {
             return false;
         }
 
+        Self::has_only_valid_kebab_characters(value)
+    }
+
+    fn is_git_url(&self, value: &str) -> bool {
+        Self::has_valid_git_url_format(value)
+    }
+}
+
+impl CliValidator {
+    /// Checks if a string has hyphens in invalid positions (start, end, or consecutive)
+    fn has_invalid_kebab_placement(value: &str) -> bool {
+        value.starts_with('-') || value.ends_with('-') || value.contains("--")
+    }
+
+    /// Checks if a string contains only valid kebab-case characters
+    fn has_only_valid_kebab_characters(value: &str) -> bool {
         value.chars().all(|character| {
             character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
         })
     }
 
-    fn is_git_url(&self, value: &str) -> bool {
+    /// Checks if a string has a valid Git URL format (HTTP, HTTPS, SSH, or local path)
+    fn has_valid_git_url_format(value: &str) -> bool {
         value.starts_with("http://")
             || value.starts_with("https://")
             || value.starts_with("git@")

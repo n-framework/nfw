@@ -3,6 +3,9 @@ use std::process::Command;
 
 use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
 
+/// Shallow clone depth for git operations - clones only the latest commit
+const GIT_SHALLOW_CLONE_DEPTH: &str = "1";
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CliGitRepository;
 
@@ -42,7 +45,17 @@ impl GitRepository for CliGitRepository {
             .to_str()
             .ok_or_else(|| "destination path is not valid UTF-8".to_owned())?;
 
-        Self::run_git_command(&["clone", "--depth", "1", url, destination_str], None).map(|_| ())
+        Self::run_git_command(
+            &[
+                "clone",
+                "--depth",
+                GIT_SHALLOW_CLONE_DEPTH,
+                url,
+                destination_str,
+            ],
+            None,
+        )
+        .map(|_| ())
     }
 
     fn fetch(&self, repository_path: &Path) -> Result<(), String> {

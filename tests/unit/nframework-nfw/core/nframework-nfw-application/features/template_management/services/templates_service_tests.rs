@@ -178,7 +178,6 @@ fn lists_templates_from_single_source() {
         vec![TemplateSource::new(
             "official".to_owned(),
             "https://example.com/official.git".to_owned(),
-            true,
         )],
         HashMap::from([("official".to_owned(), Ok((root.clone(), None)))]),
         HashMap::from([(root, vec![template_path.clone()])]),
@@ -197,20 +196,17 @@ fn lists_templates_from_single_source() {
 fn lists_templates_from_multiple_sources() {
     let official_root = PathBuf::from("/tmp/nfw/source-official");
     let community_root = PathBuf::from("/tmp/nfw/source-community");
-    let official_template_path = official_root.join("web-api");
-    let community_template_path = community_root.join("worker-service");
-
+    let official_template = official_root.join("web-api");
+    let community_template = community_root.join("cli-tool");
     let service = create_service(
         vec![
             TemplateSource::new(
                 "official".to_owned(),
                 "https://example.com/official.git".to_owned(),
-                true,
             ),
             TemplateSource::new(
                 "community".to_owned(),
                 "https://example.com/community.git".to_owned(),
-                true,
             ),
         ],
         HashMap::from([
@@ -218,16 +214,13 @@ fn lists_templates_from_multiple_sources() {
             ("community".to_owned(), Ok((community_root.clone(), None))),
         ]),
         HashMap::from([
-            (official_root, vec![official_template_path.clone()]),
-            (community_root, vec![community_template_path.clone()]),
+            (official_root, vec![official_template.clone()]),
+            (community_root, vec![community_template.clone()]),
         ]),
         HashMap::from([
+            (official_template, valid_template_yaml("web-api", "Web API")),
             (
-                official_template_path,
-                valid_template_yaml("web-api", "Web API"),
-            ),
-            (
-                community_template_path,
+                community_template,
                 valid_template_yaml("worker-service", "Worker Service"),
             ),
         ]),
@@ -248,7 +241,6 @@ fn returns_warning_for_empty_source() {
         vec![TemplateSource::new(
             "empty".to_owned(),
             "https://example.com/empty.git".to_owned(),
-            true,
         )],
         HashMap::from([("empty".to_owned(), Ok((empty_root.clone(), None)))]),
         HashMap::from([(empty_root, Vec::new())]),
@@ -272,12 +264,10 @@ fn falls_back_when_a_source_is_unreachable() {
             TemplateSource::new(
                 "official".to_owned(),
                 "https://example.com/official.git".to_owned(),
-                true,
             ),
             TemplateSource::new(
                 "broken".to_owned(),
                 "https://example.com/broken.git".to_owned(),
-                true,
             ),
         ],
         HashMap::from([
@@ -295,6 +285,60 @@ fn falls_back_when_a_source_is_unreachable() {
 
     assert_eq!(templates.len(), 1);
     assert_eq!(templates[0].id, "web-api");
+    assert!(
+        warnings
+            .iter()
+            .any(|warning| warning.contains("unreachable"))
+    );
+}
+
+#[test]
+fn filters_out_templates_with_invalid_metadata() {
+    let empty_root = PathBuf::from("/tmp/nfw/source-empty");
+    let service = create_service(
+        vec![TemplateSource::new(
+            "empty".to_owned(),
+            "https://example.com/empty.git".to_owned(),
+        )],
+        HashMap::from([("empty".to_owned(), Ok((empty_root.clone(), None)))]),
+        HashMap::from([(empty_root, Vec::new())]),
+        HashMap::new(),
+    );
+
+    let (templates, warnings) = service.list_templates().expect("list should succeed");
+
+    assert!(templates.is_empty());
+    assert_eq!(warnings.len(), 1);
+    assert!(warnings[0].contains("contains no valid templates"));
+}
+
+#[test]
+fn warns_about_templates_with_unreachable_sources() {
+    let service = create_service(
+        vec![
+            TemplateSource::new(
+                "official".to_owned(),
+                "https://example.com/official.git".to_owned(),
+            ),
+            TemplateSource::new(
+                "broken".to_owned(),
+                "https://example.com/broken.git".to_owned(),
+            ),
+        ],
+        HashMap::from([
+            (
+                "official".to_owned(),
+                Ok((PathBuf::from("/tmp/nfw/source-official"), None)),
+            ),
+            ("broken".to_owned(), Err("network offline".to_owned())),
+        ]),
+        HashMap::from([(PathBuf::from("/tmp/nfw/source-official"), Vec::new())]),
+        HashMap::new(),
+    );
+
+    let (templates, warnings) = service.list_templates().expect("list should succeed");
+
+    assert!(templates.is_empty());
     assert!(
         warnings
             .iter()

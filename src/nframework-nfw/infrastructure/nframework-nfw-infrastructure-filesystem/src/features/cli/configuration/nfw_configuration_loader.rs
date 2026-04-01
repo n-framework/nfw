@@ -53,7 +53,13 @@ where
             parsed
                 .sources
                 .into_iter()
-                .map(|source| TemplateSource::new(source.name, source.url, source.enabled))
+                .map(|source| {
+                    if source.enabled {
+                        TemplateSource::new(source.name, source.url)
+                    } else {
+                        TemplateSource::new_disabled(source.name, source.url)
+                    }
+                })
                 .collect()
         };
 
