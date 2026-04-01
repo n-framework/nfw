@@ -10,6 +10,7 @@ serde = { version = "1", features = ["derive"] }
 [dev-dependencies]
 semver = "1"
 serde_yaml = "0.9"
+nframework-nfw-infrastructure-versioning = { path = "../../infrastructure/nframework-nfw-infrastructure-versioning" }
 
 [[test]]
 name = "template_catalog_parser_tests"
@@ -26,3 +27,7 @@ path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/fe
 [[test]]
 name = "template_selection_service_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_selection_service_tests.rs"
+
+[[test]]
+name = "version_resolver_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/versioning/version_resolver_tests.rs"

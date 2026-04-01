@@ -251,13 +251,13 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Phase 6: Application Services
 
-- [ ] T049 [US4] Implement `VersionResolver` in `src/nframework-nfw/core/nframework-nfw-application/src/features/versioning/version_resolver.rs` (find latest stable, handle pre-release, resolve by constraint)
-- [ ] T050 [US4] Define `IVersionProvider` abstraction in `src/nframework-nfw/core/nframework-nfw-application/src/features/versioning/abstraction/version_provider.rs`
-- [ ] T051 [US4] Implement `VersionProvider` in `src/nframework-nfw/core/nframework-nfw-application/src/features/versioning/version_provider.rs` (wraps nfw-internal VersionComparator)
+- [x] T049 [US4] Implement `VersionResolver` in `src/nframework-nfw/core/nframework-nfw-application/src/features/versioning/version_resolver.rs` (find latest stable, handle pre-release, resolve by constraint)
+- [x] T050 [US4] Define `VersionProvider` abstraction in `src/nframework-nfw/core/nframework-nfw-application/src/features/versioning/abstraction/version_provider.rs`
+- [x] T051 [US4] Implement `VersionProvider` in `src/nframework-nfw/core/nframework-nfw-application/src/features/versioning/version_provider.rs` (wraps nfw-internal VersionComparator)
 
 ### Phase 6: Tests
 
-- [ ] T052 [P] [US4] Write tests for VersionResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/tests/version_resolver.rs` (latest stable, pre-release excluded, explicit version, minCliVersion warning)
+- [x] T052 [P] [US4] Write tests for VersionResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/versioning/version_resolver_tests.rs` (latest stable, pre-release excluded, explicit version, minCliVersion warning)
 
 ---
 
