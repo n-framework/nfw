@@ -18,3 +18,11 @@ path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/fe
 [[test]]
 name = "template_catalog_source_resolver_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_source_resolver_tests.rs"
+
+[[test]]
+name = "templates_service_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/templates_service_tests.rs"
+
+[[test]]
+name = "template_selection_service_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_selection_service_tests.rs"

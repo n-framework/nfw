@@ -217,29 +217,29 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Phase 5: Application Services
 
-- [ ] T038 [US3] Implement `TemplatesService` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/templates_service.rs` (orchestrates discovery: iterate sources, clone/fetch, parse metadata, index)
-- [ ] T039 [US3] Implement `TemplateSelectionService` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/template_selection_service.rs` (resolve template by ID, handle qualified/unqualified lookup)
-- [ ] T040 [US3] Define `TemplateSelectionResult` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/template_selection_result.rs`
-- [ ] T041 [US3] Implement `ListTemplatesQueryHandler` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/queries/list_templates/list_templates_query_handler.rs`
+- [x] T038 [US3] Implement `TemplatesService` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/templates_service.rs` (orchestrates discovery: iterate sources, clone/fetch, parse metadata, index)
+- [x] T039 [US3] Implement `TemplateSelectionService` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/template_selection_service.rs` (resolve template by ID, handle qualified/unqualified lookup)
+- [x] T040 [US3] Define `TemplateSelectionResult` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/services/template_selection_result.rs`
+- [x] T041 [US3] Implement `ListTemplatesQueryHandler` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/queries/list_templates/list_templates_query_handler.rs`
 
 ### Query/Command Models
 
-- [ ] T042 [P] [US3] Define `ListTemplatesQuery` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/queries/list_templates/list_templates_query.rs`
-- [ ] T043 [P] [US3] Define `ListTemplatesQueryResult` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/queries/list_templates/list_templates_query_result.rs`
+- [x] T042 [P] [US3] Define `ListTemplatesQuery` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/queries/list_templates/list_templates_query.rs`
+- [x] T043 [P] [US3] Define `ListTemplatesQueryResult` in `src/nframework-nfw/core/nframework-nfw-application/src/features/template_management/queries/list_templates/list_templates_query_result.rs`
 
 ### Phase 5: Infrastructure Adapters
 
-- [ ] T044 [US3] Implement `GitHubTemplatesReleaseClient` (or git-based source) in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-git/src/features/template_management/services/git_template_catalog_source.rs` (clone to `~/.nfw/templates/`, incremental fetch, corruption detection)
+- [x] T044 [US3] Implement `GitTemplateCatalogSource` (git-based source) in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-git/src/features/template_management/services/git_template_catalog_source.rs` (clone to `~/.nfw/templates/`, incremental fetch, corruption detection)
 
 ### Edge Cases
 
-- [ ] T045 [US3] Handle unreachable sources in `TemplatesService` (fall back to cache, warn user)
-- [ ] T046 [US3] Handle conflicting template identifiers in `TemplateSelectionService` (qualified ID `source/template`, warn user)
+- [x] T045 [US3] Handle unreachable sources in `TemplatesService` (fall back to cache, warn user)
+- [x] T046 [US3] Handle conflicting template identifiers in `TemplateSelectionService` (qualified ID `source/template`, warn user)
 
 ### Phase 5: Tests
 
-- [ ] T047 [P] [US3] Write application tests for TemplatesService in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/tests/templates_service.rs` (mock git, single/multiple sources, empty source, unreachable source)
-- [ ] T048 [P] [US3] Write integration tests in `src/nfw/tests/integration/nframework-nfw/features/template_discovery/discovery_test.rs` (real git clone, cache refresh, multi-template catalog)
+- [x] T047 [P] [US3] Write application tests for TemplatesService in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/templates_service_tests.rs` (mock git, single/multiple sources, empty source, unreachable source)
+- [x] T048 [P] [US3] Write integration tests in `src/nfw/tests/integration/nframework-nfw/features/template_discovery/discovery_test.rs` (real git clone, cache refresh, multi-template catalog)
 
 ---
 

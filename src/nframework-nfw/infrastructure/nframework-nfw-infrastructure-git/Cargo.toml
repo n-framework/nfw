@@ -5,3 +5,13 @@ edition = "2024"
 
 [dependencies]
 nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+nframework-nfw-domain = { path = "../../core/nframework-nfw-domain" }
+
+[dev-dependencies]
+nframework-nfw-infrastructure-filesystem = { path = "../nframework-nfw-infrastructure-filesystem" }
+nframework-nfw-infrastructure-versioning = { path = "../nframework-nfw-infrastructure-versioning" }
+nframework-nfw-infrastructure-yaml = { path = "../nframework-nfw-infrastructure-yaml" }
+
+[[test]]
+name = "discovery_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/discovery_test.rs"
