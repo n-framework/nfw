@@ -11,5 +11,5 @@ members = [
 ]
 
 [workspace.dependencies]
-core-cli-rust = { path = "../core-cli-rust" }
+core-cli-rust = { path = "packages/nframework-core-cli" }
 core-template-rust = { path = "../core-template-rust" }
