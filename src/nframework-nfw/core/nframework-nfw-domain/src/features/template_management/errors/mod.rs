@@ -1,0 +1,3 @@
+pub mod template_metadata_validation_error;
+
+pub use template_metadata_validation_error::TemplateMetadataValidationError;

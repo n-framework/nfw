@@ -1,0 +1,9 @@
+[package]
+name = "nframework-nfw-infrastructure-yaml"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"

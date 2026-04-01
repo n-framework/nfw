@@ -1,0 +1,7 @@
+[package]
+name = "nframework-nfw-infrastructure-git"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nframework-nfw-application = { path = "../../core/nframework-nfw-application" }

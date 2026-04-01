@@ -1,0 +1,16 @@
+[package]
+name = "nframework-nfw-application"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nframework-nfw-domain = { path = "../nframework-nfw-domain" }
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+semver = "1"
+serde_yaml = "0.9"
+
+[[test]]
+name = "template_catalog_parser_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_parser_tests.rs"

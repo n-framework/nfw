@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+  "src/nframework-nfw/core/nframework-nfw-domain",
+  "src/nframework-nfw/core/nframework-nfw-application",
+  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem",
+  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-git",
+  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-yaml",
+  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-versioning",
+  "src/nframework-nfw/presentation/nframework-nfw-cli",
+]
+
+[workspace.dependencies]
+core-cli-rust = { path = "../core-cli-rust" }
+core-template-rust = { path = "../core-template-rust" }
