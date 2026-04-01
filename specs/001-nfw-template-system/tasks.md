@@ -294,24 +294,24 @@ CLI presentation layer wiring and final integration.
 
 ### Presentation Layer (nframework-nfw-cli)
 
-- [ ] T060 Set up CLI entry point in `src/nframework-nfw/presentation/nframework-nfw-cli/src/main.rs` with clap (parse args, route to commands)
-- [ ] T061 Define CLI args in `src/nframework-nfw/presentation/nframework-nfw-cli/src/args.rs` (template subcommands: list, add, remove, refresh)
-- [ ] T062 [P] Implement `TemplatesCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/list_templates.rs` (calls ListTemplatesQueryHandler)
-- [ ] T063 [P] Implement `AddSourceCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/add_source.rs`
-- [ ] T064 [P] Implement `RemoveSourceCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/remove_source.rs`
-- [ ] T065 [P] Implement `RefreshTemplatesCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/refresh.rs`
+- [x] T060 Set up CLI entry point in `src/nframework-nfw/presentation/nframework-nfw-cli/src/main.rs` with clap (parse args, route to commands)
+- [x] T061 Define CLI args in `src/nframework-nfw/presentation/nframework-nfw-cli/src/args.rs` (template subcommands: list, add, remove, refresh)
+- [x] T062 [P] Implement `TemplatesCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/list_templates.rs` (calls ListTemplatesQueryHandler)
+- [x] T063 [P] Implement `AddSourceCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/add_source.rs`
+- [x] T064 [P] Implement `RemoveSourceCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/remove_source.rs`
+- [x] T065 [P] Implement `RefreshTemplatesCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/refresh.rs`
 
 ### Dependency Injection / Wiring
 
-- [ ] T066 Create `CliServiceCollectionFactory` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs` (wire domain → application → infrastructure → presentation)
-- [ ] T067 Create `CliBootstrapper` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_bootstrapper.rs` (initialize config, resolve path, load sources)
+- [x] T066 Create `CliServiceCollectionFactory` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs` (wire domain → application → infrastructure → presentation)
+- [x] T067 Create `CliBootstrapper` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_bootstrapper.rs` (initialize config, resolve path, load sources)
 
 ### Integration & Benchmarks
 
-- [ ] T068 [P] Write integration test for full template workflow in `src/nfw/tests/integration/nframework-nfw/features/template_discovery/e2e_test.rs` (add source → discover → list → resolve version)
-- [ ] T069 [P] Add benchmark for SC-001 (< 50ms metadata validation) in `src/nfw/tests/integration/nframework-nfw/benches/metadata_bench.rs`
-- [ ] T070 [P] Add benchmark for SC-003 (< 500ms listing 50 templates) in `src/nfw/tests/integration/nframework-nfw/benches/listing_bench.rs`
-- [ ] T071 [P] Write reproducibility test for SC-006 in `src/nfw/tests/integration/nframework-nfw/features/template_discovery/reproducibility_test.rs` (generate workspace twice from same template+version, verify identical file structures)
+- [x] T068 [P] Write integration test for full template workflow in `src/nfw/tests/integration/nframework-nfw/features/template_discovery/e2e_test.rs` (add source → discover → list → resolve version)
+- [x] T069 [P] Add benchmark for SC-001 (< 50ms metadata validation) in `src/nfw/tests/integration/nframework-nfw/benches/metadata_bench.rs`
+- [x] T070 [P] Add benchmark for SC-003 (< 500ms listing 50 templates) in `src/nfw/tests/integration/nframework-nfw/benches/listing_bench.rs`
+- [x] T071 [P] Write reproducibility test for SC-006 in `src/nfw/tests/integration/nframework-nfw/features/template_discovery/reproducibility_test.rs` (generate workspace twice from same template+version, verify identical file structures)
 
 ---
 
