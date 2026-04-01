@@ -25,6 +25,10 @@ name = "templates_service_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/templates_service_tests.rs"
 
 [[test]]
+name = "source_management_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/source_management_tests.rs"
+
+[[test]]
 name = "template_selection_service_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_selection_service_tests.rs"
 

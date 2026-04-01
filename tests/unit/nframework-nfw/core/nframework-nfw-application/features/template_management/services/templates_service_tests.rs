@@ -6,6 +6,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use nframework_nfw_application::features::cli::configuration::abstraction::config_store::ConfigStore;
+use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
 use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_source::TemplateCatalogSource;
 use nframework_nfw_application::features::template_management::services::abstraction::template_source_synchronizer::TemplateSourceSynchronizer;
 use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
@@ -42,6 +43,10 @@ impl TemplateSourceSynchronizer for MockSourceSynchronizer {
             .get(&source.name)
             .cloned()
             .unwrap_or_else(|| Err("source not configured in test synchronizer".to_owned()))
+    }
+
+    fn clear_source_cache(&self, _source_name: &str) -> Result<(), String> {
+        Ok(())
     }
 }
 
@@ -137,6 +142,31 @@ impl VersionComparator for TestVersionComparator {
         let requirement =
             semver::VersionReq::parse(requirement).map_err(|error| error.to_string())?;
         Ok(requirement.matches(&version))
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+struct MockGitRepository;
+
+impl GitRepository for MockGitRepository {
+    fn clone(&self, _url: &str, _destination: &Path) -> Result<(), String> {
+        Ok(())
+    }
+
+    fn fetch(&self, _repository_path: &Path) -> Result<(), String> {
+        Ok(())
+    }
+
+    fn current_branch(&self, _repository_path: &Path) -> Result<String, String> {
+        Ok("main".to_owned())
+    }
+
+    fn is_valid_repo(&self, _repository_path: &Path) -> bool {
+        true
+    }
+
+    fn is_valid_remote_url(&self, _url: &str) -> bool {
+        true
     }
 }
 
@@ -284,6 +314,7 @@ fn create_service(
     TestValidator,
     TestVersionComparator,
     MockConfigStore,
+    MockGitRepository,
 > {
     let source_synchronizer = MockSourceSynchronizer {
         outcomes: sync_outcomes,
@@ -297,7 +328,13 @@ fn create_service(
     let catalog_resolver = TemplateCatalogSourceResolver::new(catalog_source, catalog_parser);
     let config_store = MockConfigStore { sources };
 
-    TemplatesService::new(source_synchronizer, catalog_resolver, config_store)
+    TemplatesService::new(
+        source_synchronizer,
+        catalog_resolver,
+        config_store,
+        TestValidator,
+        MockGitRepository,
+    )
 }
 
 fn valid_template_yaml(id: &str, name: &str) -> String {

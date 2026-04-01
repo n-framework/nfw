@@ -1,3 +1,4 @@
+use nframework_nfw_domain::features::template_management::qualified_template_id::QualifiedTemplateId;
 use nframework_nfw_domain::features::template_management::template_descriptor::TemplateDescriptor;
 
 use crate::features::template_management::models::errors::template_selection_error::TemplateSelectionError;
@@ -36,7 +37,18 @@ where
             });
         }
 
-        if let Some((source_name, template_id)) = parse_qualified_identifier(trimmed_identifier) {
+        let identifier = QualifiedTemplateId::parse(trimmed_identifier).ok_or_else(|| {
+            TemplateSelectionError::TemplateNotFound {
+                identifier: template_identifier.to_owned(),
+            }
+        })?;
+
+        if identifier.is_qualified() {
+            let source_name = identifier
+                .source
+                .as_deref()
+                .expect("qualified identifier must contain source");
+            let template_id = identifier.template.as_str();
             for catalog in catalogs {
                 if catalog.source_name != source_name {
                     continue;
@@ -63,7 +75,7 @@ where
         let mut matches = Vec::<(String, TemplateDescriptor)>::new();
         for catalog in catalogs {
             for template in catalog.templates {
-                if template.metadata.id == trimmed_identifier {
+                if template.metadata.id == identifier.template.as_str() {
                     matches.push((catalog.source_name.clone(), template));
                 }
             }
@@ -71,7 +83,7 @@ where
 
         if matches.is_empty() {
             return Err(TemplateSelectionError::TemplateNotFound {
-                identifier: trimmed_identifier.to_owned(),
+                identifier: identifier.template.clone(),
             });
         }
 
@@ -82,7 +94,7 @@ where
                 .collect::<Vec<_>>();
 
             return Err(TemplateSelectionError::AmbiguousTemplateIdentifier {
-                identifier: trimmed_identifier.to_owned(),
+                identifier: identifier.template.clone(),
                 candidates,
             });
         }
@@ -96,13 +108,4 @@ where
             warnings,
         })
     }
-}
-
-fn parse_qualified_identifier(identifier: &str) -> Option<(&str, &str)> {
-    let (source_name, template_id) = identifier.split_once('/')?;
-    if source_name.trim().is_empty() || template_id.trim().is_empty() {
-        return None;
-    }
-
-    Some((source_name.trim(), template_id.trim()))
 }

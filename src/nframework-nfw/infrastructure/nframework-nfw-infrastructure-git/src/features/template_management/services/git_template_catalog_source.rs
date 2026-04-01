@@ -130,4 +130,19 @@ where
             )),
         }
     }
+
+    fn clear_source_cache(&self, source_name: &str) -> Result<(), String> {
+        let cache_root = self.resolve_cache_root()?;
+        let source_cache_path = cache_root.join(source_name);
+        if !source_cache_path.exists() {
+            return Ok(());
+        }
+
+        fs::remove_dir_all(&source_cache_path).map_err(|error| {
+            format!(
+                "failed to remove source cache '{}': {error}",
+                source_cache_path.display()
+            )
+        })
+    }
 }

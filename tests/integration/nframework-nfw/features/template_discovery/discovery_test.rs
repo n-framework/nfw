@@ -157,6 +157,7 @@ fn create_templates_service(
     TestValidator,
     SemverVersionComparator,
     TestConfigStore,
+    CliGitRepository,
 > {
     fs::create_dir_all(&cache_directory).expect("cache directory should be created");
     fs::create_dir_all(&config_directory).expect("config directory should be created");
@@ -176,7 +177,13 @@ fn create_templates_service(
     let catalog_resolver = TemplateCatalogSourceResolver::new(catalog_source, catalog_parser);
     let config_store = TestConfigStore { sources };
 
-    TemplatesService::new(source_synchronizer, catalog_resolver, config_store)
+    TemplatesService::new(
+        source_synchronizer,
+        catalog_resolver,
+        config_store,
+        TestValidator,
+        git_repository,
+    )
 }
 
 fn write_catalog_repository(root: &Path, templates: &[(&str, &str)]) {

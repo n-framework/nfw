@@ -269,22 +269,22 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Domain
 
-- [ ] T053 [US5] Define `QualifiedTemplateId` value object in `src/nframework-nfw/core/nframework-nfw-domain/src/features/template_management/template_source.rs` (source, template, new, unqualified, is_qualified)
+- [x] T053 [US5] Define `QualifiedTemplateId` value object in `src/nframework-nfw/core/nframework-nfw-domain/src/features/template_management/qualified_template_id.rs` (source, template, new, unqualified, is_qualified)
 
 ### Phase 7: Application Services
 
-- [ ] T054 [US5] Implement source management in `TemplatesService` (add_source: validate URL via GitRepository trait, persist to config; remove_source: clean up cache)
-- [ ] T055 [US5] Implement default official source initialization in `TemplatesService` (add `https://github.com/n-framework/nfw-templates` on first run)
+- [x] T054 [US5] Implement source management in `TemplatesService` (add_source: validate URL via GitRepository trait, persist to config; remove_source: clean up cache)
+- [x] T055 [US5] Implement default official source initialization in `TemplatesService` (add `https://github.com/n-framework/nfw-templates` on first run)
 
 ### Phase 7: Infrastructure Adapters
 
-- [ ] T056 [US5] Implement `NfwConfigurationLoader` in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/cli/configuration/nfw_configuration_loader.rs` (read/write sources.yaml using serde_yaml)
-- [ ] T057 [US5] Implement `FileSystemWorkspaceArtifactWriter` in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/template_management/services/file_system_config_store.rs` (persist source config to `~/.nfw/sources.yaml`)
+- [x] T056 [US5] Implement `NfwConfigurationLoader` in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/cli/configuration/nfw_configuration_loader.rs` (read/write sources.yaml using serde_yaml)
+- [x] T057 [US5] Implement `FileSystemWorkspaceArtifactWriter` in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/template_management/services/file_system_config_store.rs` (persist source config to `~/.nfw/sources.yaml`)
 
 ### Phase 7: Tests
 
-- [ ] T058 [P] [US5] Write tests for source management in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/tests/source_management.rs` (add, remove, duplicate, default init)
-- [ ] T059 [P] [US5] Write tests for NfwConfigurationLoader in `src/nfw/tests/unit/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/tests/config_loader.rs`
+- [x] T058 [P] [US5] Write tests for source management in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/source_management_tests.rs` (add, remove, duplicate, default init)
+- [x] T059 [P] [US5] Write tests for NfwConfigurationLoader in `src/nfw/tests/unit/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/features/cli/configuration/nfw_configuration_loader_tests.rs`
 
 ---
 

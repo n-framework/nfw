@@ -68,4 +68,8 @@ impl GitRepository for CliGitRepository {
         .map(|output| output == "true")
         .unwrap_or(false)
     }
+
+    fn is_valid_remote_url(&self, url: &str) -> bool {
+        Self::run_git_command(&["ls-remote", "--heads", url], None).is_ok()
+    }
 }
