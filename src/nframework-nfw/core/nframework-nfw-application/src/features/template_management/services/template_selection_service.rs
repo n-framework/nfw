@@ -47,10 +47,12 @@ where
         })?;
 
         if identifier.is_qualified() {
-            let source_name = identifier
-                .source
-                .as_deref()
-                .expect("qualified identifier must contain source");
+            let source_name = identifier.source.as_deref().ok_or_else(|| {
+                TemplateSelectionError::InternalError {
+                    message: "qualified identifier parsing inconsistency: missing source"
+                        .to_owned(),
+                }
+            })?;
             let template_id = identifier.template.as_str();
             for catalog in catalogs {
                 if catalog.source_name != source_name {
@@ -102,9 +104,15 @@ where
             });
         }
 
-        let (source_name, template) = matches
-            .pop()
-            .expect("template matches must contain exactly one item");
+        // At this point, matches.len() == 1, so pop() should always succeed
+        let (source_name, template) =
+            matches
+                .pop()
+                .ok_or_else(|| TemplateSelectionError::InternalError {
+                    message:
+                        "template matching logic error: expected exactly one match but found none"
+                            .to_owned(),
+                })?;
         Ok(TemplateSelectionResult {
             source_name,
             template,

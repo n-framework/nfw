@@ -9,6 +9,16 @@ pub enum TemplatesServiceError {
     SourceNotFound(String),
     InvalidSourceUrl(String),
     CacheCleanupFailed(String),
+    /// Critical error: failed to synchronize a template source
+    SourceSyncFailed {
+        source: String,
+        reason: String,
+    },
+    /// Critical error: failed to discover templates from a source
+    SourceDiscoveryFailed {
+        source: String,
+        reason: String,
+    },
 }
 
 impl Display for TemplatesServiceError {
@@ -37,6 +47,18 @@ impl Display for TemplatesServiceError {
             }
             Self::CacheCleanupFailed(reason) => {
                 write!(f, "failed to cleanup template source cache: {reason}")
+            }
+            Self::SourceSyncFailed { source, reason } => {
+                write!(
+                    f,
+                    "failed to synchronize template source '{source}': {reason}"
+                )
+            }
+            Self::SourceDiscoveryFailed { source, reason } => {
+                write!(
+                    f,
+                    "failed to discover templates from source '{source}': {reason}"
+                )
             }
         }
     }

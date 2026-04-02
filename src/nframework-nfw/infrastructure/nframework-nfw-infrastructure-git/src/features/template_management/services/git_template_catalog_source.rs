@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use nframework_nfw_application::features::cli::configuration::abstraction::path_resolver::PathResolver;
 use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
@@ -50,32 +49,12 @@ where
     }
 
     fn refresh_working_tree(&self, cache_path: &Path) -> Result<(), String> {
-        let output = Command::new("git")
-            .arg("pull")
-            .arg("--ff-only")
-            .current_dir(cache_path)
-            .output()
-            .map_err(|error| {
-                format!(
-                    "failed to execute git pull in cache '{}': {error}",
-                    cache_path.display()
-                )
-            })?;
-
-        if output.status.success() {
-            return Ok(());
-        }
-
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
-        if stderr.is_empty() {
-            Err(format!(
-                "git pull failed in cache '{}' with status {}",
-                cache_path.display(),
-                output.status
-            ))
-        } else {
-            Err(stderr)
-        }
+        self.git_repository.pull(cache_path).map_err(|error| {
+            format!(
+                "failed to pull updates in cache '{}': {error}",
+                cache_path.display()
+            )
+        })
     }
 }
 
@@ -88,14 +67,29 @@ where
         let cache_path = self.source_cache_path(source)?;
         let cache_exists = cache_path.is_dir();
 
-        if cache_exists && !self.git_repository.is_valid_repo(&cache_path) {
-            fs::remove_dir_all(&cache_path).map_err(|error| {
-                format!(
-                    "template source '{}' cache is corrupted and could not be removed ('{}'): {error}",
-                    source.name,
-                    cache_path.display()
-                )
-            })?;
+        if cache_exists {
+            match self.git_repository.is_valid_repo(&cache_path) {
+                Ok(is_valid) => {
+                    if !is_valid {
+                        fs::remove_dir_all(&cache_path).map_err(|error| {
+                            format!(
+                                "template source '{}' cache is corrupted and could not be removed ('{}'): {error}",
+                                source.name,
+                                cache_path.display()
+                            )
+                        })?;
+                    }
+                }
+                Err(error) => {
+                    fs::remove_dir_all(&cache_path).map_err(|remove_error| {
+                        format!(
+                            "template source '{}' cache check failed ('{}'): {error}. Additionally, failed to remove cache: {remove_error}",
+                            source.name,
+                            cache_path.display()
+                        )
+                    })?;
+                }
+            }
         }
 
         if !cache_path.is_dir() {

@@ -89,7 +89,8 @@ where
             return Err(TemplatesServiceError::InvalidSourceName(name.to_owned()));
         }
 
-        if normalized_url.is_empty() || !self.git_repository.is_valid_remote_url(normalized_url) {
+        if normalized_url.is_empty() || !self.git_repository.is_valid_git_url_format(normalized_url)
+        {
             return Err(TemplatesServiceError::InvalidSourceUrl(url.to_owned()));
         }
 
@@ -159,23 +160,34 @@ where
 
         let mut catalogs = Vec::new();
         let mut warnings = Vec::new();
+        let mut transient_failures = Vec::new();
 
         for source in sources.into_iter().filter(|source| source.enabled) {
             let sync_result = self.source_synchronizer.sync_source(&source);
             let (cache_path, sync_warning) = match sync_result {
                 Ok(value) => value,
                 Err(reason) => {
-                    warnings.push(format!(
-                        "template source '{}' is unreachable: {reason}",
-                        source.name
-                    ));
-                    continue;
+                    let is_transient = reason.contains("could not refresh remote")
+                        || reason.contains("could not fast-forward")
+                        || reason.contains("network")
+                        || reason.contains("connection")
+                        || reason.contains("timeout");
+
+                    if is_transient {
+                        transient_failures.push((source.name.clone(), reason));
+                        continue;
+                    } else {
+                        return Err(TemplatesServiceError::SourceSyncFailed {
+                            source: source.name.clone(),
+                            reason,
+                        });
+                    }
                 }
             };
 
             if let Some(sync_warning) = sync_warning {
                 warnings.push(format!(
-                    "template source '{}' fallback to cache: {sync_warning}",
+                    "template source '{}' using cached data: {sync_warning}",
                     source.name
                 ));
             }
@@ -190,11 +202,37 @@ where
                     }
                     catalogs.push(catalog);
                 }
-                Err(error) => warnings.push(format!(
-                    "template source '{}' discovery warning: {error}",
-                    source.name
-                )),
+                Err(error) => {
+                    let error_string = error.to_string();
+                    let is_critical = error_string.contains("cache is corrupted")
+                        || error_string.contains("permission denied")
+                        || error_string.contains("not a directory");
+
+                    if is_critical {
+                        return Err(TemplatesServiceError::SourceDiscoveryFailed {
+                            source: source.name.clone(),
+                            reason: error_string,
+                        });
+                    } else {
+                        warnings.push(format!(
+                            "template source '{}' discovery warning: {error}",
+                            source.name
+                        ));
+                    }
+                }
             }
+        }
+
+        if !transient_failures.is_empty() {
+            let failed_sources: Vec<&str> = transient_failures
+                .iter()
+                .map(|(name, _)| name.as_str())
+                .collect();
+            warnings.push(format!(
+                "Could not reach {} template source(s): {}. Using cached data if available.",
+                failed_sources.len(),
+                failed_sources.join(", ")
+            ));
         }
 
         catalogs.sort_by(|left, right| left.source_name.cmp(&right.source_name));

@@ -5,6 +5,7 @@ use nframework_nfw_application::features::template_management::services::abstrac
 use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use nframework_nfw_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
 use nframework_nfw_application::features::template_management::services::templates_service::TemplatesService;
+use nframework_nfw_application::validation::is_kebab_case;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::dirs_path_resolver::DirsPathResolver;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::file_system_config_store::FileSystemWorkspaceArtifactWriter;
@@ -37,11 +38,7 @@ pub struct CliValidator;
 
 impl Validator for CliValidator {
     fn is_kebab_case(&self, value: &str) -> bool {
-        if Self::has_invalid_kebab_placement(value) {
-            return false;
-        }
-
-        Self::has_only_valid_kebab_characters(value)
+        is_kebab_case(value)
     }
 
     fn is_git_url(&self, value: &str) -> bool {
@@ -50,18 +47,6 @@ impl Validator for CliValidator {
 }
 
 impl CliValidator {
-    /// Checks if a string has hyphens in invalid positions (start, end, or consecutive)
-    fn has_invalid_kebab_placement(value: &str) -> bool {
-        value.starts_with('-') || value.ends_with('-') || value.contains("--")
-    }
-
-    /// Checks if a string contains only valid kebab-case characters
-    fn has_only_valid_kebab_characters(value: &str) -> bool {
-        value.chars().all(|character| {
-            character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
-        })
-    }
-
     /// Checks if a string has a valid Git URL format (HTTP, HTTPS, SSH, or local path)
     fn has_valid_git_url_format(value: &str) -> bool {
         value.starts_with("http://")

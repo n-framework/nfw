@@ -79,15 +79,27 @@ impl GitRepository for NoopGitRepository {
         Ok(())
     }
 
+    fn pull(&self, _repository_path: &Path) -> Result<(), String> {
+        Ok(())
+    }
+
     fn current_branch(&self, _repository_path: &Path) -> Result<String, String> {
         Ok("main".to_owned())
     }
 
-    fn is_valid_repo(&self, _repository_path: &Path) -> bool {
-        true
+    fn is_valid_repo(&self, _repository_path: &Path) -> Result<bool, String> {
+        Ok(true)
     }
 
-    fn is_valid_remote_url(&self, _url: &str) -> bool {
+    fn is_valid_git_url_format(&self, url: &str) -> bool {
+        // Simple format validation for tests
+        url.starts_with("http://")
+            || url.starts_with("https://")
+            || url.starts_with("git@")
+            || url.starts_with('/')
+    }
+
+    fn is_remote_url_reachable(&self, _url: &str) -> bool {
         true
     }
 }

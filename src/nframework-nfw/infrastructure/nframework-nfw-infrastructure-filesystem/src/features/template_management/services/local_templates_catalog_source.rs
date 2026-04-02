@@ -122,17 +122,12 @@ impl TemplateCatalogSource for LocalTemplatesCatalogSource {
         }
 
         let metadata_path = template_directory.join(template::METADATA_FILE);
-        let metadata = fs::read_to_string(&metadata_path).map_err(|error| {
+        fs::read_to_string(&metadata_path).map_err(|error| {
             format!(
                 "failed to read template metadata '{}': {error}",
                 metadata_path.display()
             )
-        })?;
-
-        self.collect_content_entries(template_directory)?;
-        self.detect_placeholders(template_directory)?;
-
-        Ok(metadata)
+        })
     }
 }
 

@@ -33,8 +33,17 @@ impl PlaceholderDetector {
     }
 }
 
+/// Returns a compiled regex for matching placeholder patterns.
+///
+/// The regex pattern `__[A-Z][A-Za-z0-9]*__` matches placeholders like `__NAME__`, `__VERSION__`, etc.
+///
+/// # Panics
+/// This function will panic on first call if the hardcoded regex pattern is invalid.
+/// Since the pattern is a compile-time constant and has been validated, this should never happen.
 fn placeholder_regex() -> &'static Regex {
     static PLACEHOLDER_REGEX: OnceLock<Regex> = OnceLock::new();
-    PLACEHOLDER_REGEX
-        .get_or_init(|| Regex::new(r"__[A-Z][A-Za-z0-9]*__").expect("placeholder regex is valid"))
+    PLACEHOLDER_REGEX.get_or_init(|| {
+        Regex::new(r"__[A-Z][A-Za-z0-9]*__")
+            .expect("hardcoded placeholder regex pattern is invalid - this is a bug in the code")
+    })
 }

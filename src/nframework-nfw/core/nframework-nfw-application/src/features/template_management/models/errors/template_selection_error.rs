@@ -10,6 +10,10 @@ pub enum TemplateSelectionError {
         identifier: String,
         candidates: Vec<String>,
     },
+    /// Internal error indicating a bug in the template selection logic
+    InternalError {
+        message: String,
+    },
 }
 
 impl Display for TemplateSelectionError {
@@ -33,6 +37,9 @@ impl Display for TemplateSelectionError {
                     "template '{identifier}' is ambiguous; use a qualified identifier (source/template). candidates: {}",
                     candidates.join(", ")
                 )
+            }
+            Self::InternalError { message } => {
+                write!(f, "internal error during template selection: {message}")
             }
         }
     }

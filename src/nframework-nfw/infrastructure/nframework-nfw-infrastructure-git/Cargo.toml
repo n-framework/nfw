@@ -32,3 +32,15 @@ path = "../../../../tests/integration/nframework-nfw/benches/listing_bench.rs"
 [[test]]
 name = "reproducibility_test"
 path = "../../../../tests/integration/nframework-nfw/features/template_discovery/reproducibility_test.rs"
+
+[[test]]
+name = "corrupted_cache_recovery_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/corrupted_cache_recovery_test.rs"
+
+[[test]]
+name = "authentication_failure_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/authentication_failure_test.rs"
+
+[[test]]
+name = "offline_fallback_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/offline_fallback_test.rs"
