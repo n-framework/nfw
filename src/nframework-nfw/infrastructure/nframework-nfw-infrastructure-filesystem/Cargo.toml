@@ -1,0 +1,17 @@
+[package]
+name = "nframework-nfw-infrastructure-filesystem"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+nframework-nfw-domain = { path = "../../core/nframework-nfw-domain" }
+glob = "0.3"
+regex = "1"
+dirs = "6"
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+
+[[test]]
+name = "nfw_configuration_loader_tests"
+path = "../../../../tests/unit/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/features/cli/configuration/nfw_configuration_loader_tests.rs"

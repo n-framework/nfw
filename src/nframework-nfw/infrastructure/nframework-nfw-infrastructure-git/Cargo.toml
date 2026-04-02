@@ -1,0 +1,46 @@
+[package]
+name = "nframework-nfw-infrastructure-git"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+nframework-nfw-domain = { path = "../../core/nframework-nfw-domain" }
+
+[dev-dependencies]
+nframework-nfw-infrastructure-filesystem = { path = "../nframework-nfw-infrastructure-filesystem" }
+nframework-nfw-infrastructure-versioning = { path = "../nframework-nfw-infrastructure-versioning" }
+nframework-nfw-infrastructure-yaml = { path = "../nframework-nfw-infrastructure-yaml" }
+core-template-rust = { workspace = true }
+
+[[test]]
+name = "discovery_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/discovery_test.rs"
+
+[[test]]
+name = "e2e_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/e2e_test.rs"
+
+[[test]]
+name = "metadata_bench"
+path = "../../../../tests/integration/nframework-nfw/benches/metadata_bench.rs"
+
+[[test]]
+name = "listing_bench"
+path = "../../../../tests/integration/nframework-nfw/benches/listing_bench.rs"
+
+[[test]]
+name = "reproducibility_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/reproducibility_test.rs"
+
+[[test]]
+name = "corrupted_cache_recovery_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/corrupted_cache_recovery_test.rs"
+
+[[test]]
+name = "authentication_failure_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/authentication_failure_test.rs"
+
+[[test]]
+name = "offline_fallback_test"
+path = "../../../../tests/integration/nframework-nfw/features/template_discovery/offline_fallback_test.rs"

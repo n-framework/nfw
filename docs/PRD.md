@@ -43,7 +43,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 ## 5. Product Principles
 
-1. **Instant Feedback**: Commands should complete in under 3 seconds for workspace creation and under 10 seconds for full CRUD generation.
+1. **Instant Feedback**: Commands should complete in under 1 second for workspace creation and under 10 seconds for full CRUD generation.
 2. **Correct by Default**: Generated code must compile and pass basic validation without manual edits.
 3. **Actionable Errors**: Every failure must state what went wrong, why, and exactly how to fix it.
 4. **Idempotent Where Possible**: Rerunning commands should be safe and predictable.
@@ -266,7 +266,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 ### Performance
 
-- Workspace creation must complete in under 3 seconds.
+- Workspace creation must complete in under 1 second.
 - Full CRUD entity generation must complete in under 10 seconds.
 - Architecture validation must complete in under 5 seconds for a standard workspace.
 - The CLI executable must start up in under 100ms.

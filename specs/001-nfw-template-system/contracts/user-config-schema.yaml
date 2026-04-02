@@ -1,0 +1,128 @@
+# User Configuration Schema: sources.yaml
+# This file defines the structure for registered template sources
+
+# ============================================
+# LOCATION
+# ============================================
+
+# Platform-specific locations (Clean Architecture: ~/.nfw/ for user data):
+# Linux/macOS:   ~/.nfw/sources.yaml
+# Windows:       %USERPROFILE%\.nfw\sources.yaml
+
+# ============================================
+# SCHEMA
+# ============================================
+
+# List of registered template sources
+sources:
+  # Official NFramework template source (auto-registered)
+  - name: official
+    url: https://github.com/n-framework/nfw-templates
+    enabled: true
+
+# Additional sources can be added by users:
+#  - name: my-company
+#    url: https://github.com/mycompany/nfw-templates
+#    enabled: true
+
+# ============================================
+# FIELD DEFINITIONS
+# ============================================
+
+# sources: List of template sources
+#   - name: Source identifier (kebab-case, unique)
+#     - Used for qualified template IDs (name/template-id)
+#     - Derived from URL if not specified
+#     - Max length: 50 characters
+#
+#   - url: Git repository URL
+#     - Supported schemes: https://, git://, file://, or local path
+#     - Must point to a valid git repository
+#     - .git suffix is optional (auto-stripped)
+#
+#   - enabled: Whether source is active
+#     - true: Source is included in template discovery
+#     - false: Source is registered but not used
+#     - Default: true
+
+# ============================================
+# VALIDATION RULES
+# ============================================
+
+# name validation:
+# - Must be kebab-case (^[a-z][a-z0-9-]*$)
+# - Must be unique within sources list
+# - Max 50 characters
+#
+# url validation:
+# - Must be valid git URL or local path
+# - Must be reachable on registration (git clone test)
+# - Cannot be empty
+#
+# enabled validation:
+# - Must be boolean (true/false)
+# - Default: true if omitted
+
+# ============================================
+# BEHAVIOR
+# ============================================
+
+# Source Registration:
+# 1. User adds source via CLI: nfw templates add <url>
+# 2. CLI validates URL is a git repository
+# 3. CLI clones repository to cache
+# 4. CLI adds entry to sources.yaml
+# 5. Source is available for template discovery
+
+# Source Removal:
+# 1. User removes source via CLI: nfw templates remove <name>
+# 2. CLI removes entry from sources.yaml
+# 3. CLI deletes cached repository
+# 4. Templates from source no longer listed
+
+# Source Disabling (without removal):
+# 1. User disables via CLI: nfw templates disable <name>
+# 2. CLI sets enabled: false in sources.yaml
+# 3. Cache is preserved
+# 4. Templates from source skipped in discovery
+
+# ============================================
+# EXAMPLES
+# ============================================
+
+# Example 1: Minimal configuration (default official source only)
+# sources:
+#   - name: official
+#     url: https://github.com/n-framework/nfw-templates
+#     enabled: true
+
+# Example 2: Multiple sources
+# sources:
+#   - name: official
+#     url: https://github.com/n-framework/nfw-templates
+#     enabled: true
+#   - name: my-company
+#     url: https://github.com/mycompany/templates
+#     enabled: true
+#   - name: experimental
+#     url: https://github.com/mycompany/experimental-templates
+#     enabled: false
+
+# Example 3: Local git repository
+# sources:
+#   - name: official
+#     url: https://github.com/n-framework/nfw-templates
+#     enabled: true
+#   - name: local-dev
+#     url: file:///home/user/dev/nfw-templates
+#     enabled: true
+
+# ============================================
+# FUTURE EXTENSIONS
+# ============================================
+
+# Reserved for future use:
+# - cache: Cache directory configuration
+# - refresh: Auto-refresh interval
+# - credentials: Per-source credential config
+# - proxy: Proxy configuration

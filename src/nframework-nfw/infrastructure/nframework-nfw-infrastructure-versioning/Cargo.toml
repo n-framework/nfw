@@ -1,0 +1,12 @@
+[package]
+name = "nframework-nfw-infrastructure-versioning"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+semver = "1"
+
+[[test]]
+name = "semver_version_comparator_tests"
+path = "../../../../tests/unit/nframework-nfw/infrastructure/nframework-nfw-infrastructure-versioning/features/versioning/services/semver_version_comparator_tests.rs"

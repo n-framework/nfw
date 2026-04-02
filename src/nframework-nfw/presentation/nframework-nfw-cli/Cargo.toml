@@ -1,0 +1,13 @@
+[package]
+name = "nframework-nfw-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nframework-core-cli-abstraction = { workspace = true }
+nframework-core-cli-clap = { workspace = true }
+nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+nframework-nfw-infrastructure-filesystem = { path = "../../infrastructure/nframework-nfw-infrastructure-filesystem" }
+nframework-nfw-infrastructure-git = { path = "../../infrastructure/nframework-nfw-infrastructure-git" }
+nframework-nfw-infrastructure-versioning = { path = "../../infrastructure/nframework-nfw-infrastructure-versioning" }
+nframework-nfw-infrastructure-yaml = { path = "../../infrastructure/nframework-nfw-infrastructure-yaml" }
