@@ -2,7 +2,6 @@ use crate::features::template_management::services::abstraction::template_catalo
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use crate::features::workspace_management::models::new_command_request::NewCommandRequest;
 use crate::features::workspace_management::models::new_command_resolution::NewCommandResolution;
-use crate::features::workspace_management::services::abstraction::prompt_service::PromptService;
 use crate::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
 use crate::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
 use crate::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
@@ -11,18 +10,20 @@ use crate::features::workspace_management::services::namespace_resolver::Namespa
 use crate::features::workspace_management::services::new_command_validator::NewCommandValidator;
 use crate::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
 use crate::features::workspace_management::services::workspace_blueprint_builder::WorkspaceBlueprintBuilder;
+use nframework_core_cli_abstraction::PromptService;
 
 #[derive(Clone)]
-pub struct WorkspaceInitializationService<P, V, T, W, D>
+pub struct WorkspaceInitializationService<P, V, T, W, D, PS>
 where
     P: PromptService,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
+    PS: PromptService + Clone,
 {
     input_resolution_service: InputResolutionService<P, V>,
-    template_selection_service: TemplateSelectionForNewService<T>,
+    template_selection_service: TemplateSelectionForNewService<T, PS>,
     workspace_blueprint_builder: WorkspaceBlueprintBuilder,
     namespace_resolver: NamespaceResolver,
     new_command_validator: NewCommandValidator<V>,
@@ -30,18 +31,19 @@ where
     working_directory_provider: D,
 }
 
-impl<P, V, T, W, D> WorkspaceInitializationService<P, V, T, W, D>
+impl<P, V, T, W, D, PS> WorkspaceInitializationService<P, V, T, W, D, PS>
 where
     P: PromptService,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
+    PS: PromptService + Clone,
 {
     pub fn new(
         prompt_service: P,
         workspace_name_validator: V,
-        template_selection_service: TemplateSelectionForNewService<T>,
+        template_selection_service: TemplateSelectionForNewService<T, PS>,
         workspace_writer: W,
         working_directory_provider: D,
     ) -> Self {
@@ -69,9 +71,10 @@ where
         let workspace_name = self
             .input_resolution_service
             .resolve_workspace_name(&request)?;
-        let template_selection = self
-            .template_selection_service
-            .resolve_template_selection(request.template_id.as_deref())?;
+        let template_selection = self.template_selection_service.resolve_template_selection(
+            request.template_id.as_deref(),
+            !request.no_input && request.is_interactive_terminal,
+        )?;
 
         let namespace_base = self
             .namespace_resolver

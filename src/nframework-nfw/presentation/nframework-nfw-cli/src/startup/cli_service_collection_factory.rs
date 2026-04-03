@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use nframework_core_cli_inquire::InquirerPromptService;
 use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
 use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
 use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
@@ -21,8 +22,6 @@ use nframework_nfw_infrastructure_git::features::template_management::services::
 use nframework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
 use nframework_nfw_infrastructure_yaml::features::template_management::services::serde_yaml_parser::SerdeYamlParser;
 
-use crate::runtime::interactive_prompt_service::InteractivePromptService;
-
 pub type CliPathResolver = DirsPathResolver;
 pub type CliGitRepository = InfrastructureCliGitRepository;
 pub type CliConfigurationLoader = NfwFileSystemConfigurationLoader<CliPathResolver>;
@@ -42,13 +41,13 @@ pub type CliListTemplatesQueryHandler = ListTemplatesQueryHandler<CliTemplatesSe
 pub type CliWorkspaceWriter = FileSystemWorkspaceWriter;
 pub type CliWorkingDirectoryProvider = StandardWorkingDirectoryProvider;
 pub type CliWorkspaceInitializationService = WorkspaceInitializationService<
-    InteractivePromptService,
+    InquirerPromptService,
     CliValidator,
     CliTemplatesService,
     CliWorkspaceWriter,
     CliWorkingDirectoryProvider,
+    InquirerPromptService,
 >;
-
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CliValidator;
 
@@ -126,10 +125,12 @@ impl CliServiceCollectionFactory {
         let list_templates_query_handler =
             ListTemplatesQueryHandler::new(templates_service.clone());
 
-        let template_selection_for_new_service =
-            TemplateSelectionForNewService::new(templates_service.clone());
+        let template_selection_for_new_service = TemplateSelectionForNewService::new(
+            templates_service.clone(),
+            InquirerPromptService::new(),
+        );
         let workspace_initialization_service = WorkspaceInitializationService::new(
-            InteractivePromptService::new(),
+            InquirerPromptService::new(),
             CliValidator,
             template_selection_for_new_service,
             FileSystemWorkspaceWriter::new(),

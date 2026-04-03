@@ -13,4 +13,5 @@ members = [
 [workspace.dependencies]
 nframework-core-cli-abstraction = { path = "packages/nframework-core-cli/src/nframework-core-cli-abstraction" }
 nframework-core-cli-clap = { path = "packages/nframework-core-cli/src/nframework-core-cli-clap" }
+nframework-core-cli-inquire = { path = "packages/nframework-core-cli/src/nframework-core-cli-inquire" }
 core-template-rust = { path = "../core-template-rust" }

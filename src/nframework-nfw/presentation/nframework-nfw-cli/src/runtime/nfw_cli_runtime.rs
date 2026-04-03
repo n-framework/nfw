@@ -82,6 +82,9 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
 }
 
 pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliServiceCollection> {
+    println!("{NFRAMEWORK_ASCII_BANNER}");
+    println!();
+
     ClapCliRuntimeBuilder::new(build_nfw_cli_app_config(), services)
         .register_handler("new", handle_workspace_new)
         .register_handler("templates/list", handle_templates_list)

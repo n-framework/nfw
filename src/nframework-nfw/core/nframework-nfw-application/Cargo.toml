@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+nframework-core-cli-abstraction = { path = "../../../../packages/nframework-core-cli/src/nframework-core-cli-abstraction" }
 nframework-nfw-domain = { path = "../nframework-nfw-domain" }
 serde = { version = "1", features = ["derive"] }
 

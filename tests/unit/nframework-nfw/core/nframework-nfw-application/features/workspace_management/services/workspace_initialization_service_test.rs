@@ -1,27 +1,49 @@
 use std::path::PathBuf;
 
-use nframework_nfw_domain::features::template_management::template_catalog::TemplateCatalog;
+use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
 use nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_application::features::workspace_management::models::new_command_request::NewCommandRequest;
-use nframework_nfw_application::features::workspace_management::services::abstraction::prompt_service::PromptService;
 use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
 use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
 use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
 use nframework_nfw_application::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
 use nframework_nfw_application::features::workspace_management::services::workspace_initialization_service::WorkspaceInitializationService;
+use nframework_nfw_domain::features::template_management::template_catalog::TemplateCatalog;
 use nframework_nfw_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 
 #[derive(Debug, Clone)]
 struct TestPromptService;
 
 impl PromptService for TestPromptService {
-    fn prompt(&self, _message: &str) -> Result<String, String> {
+    fn is_interactive(&self) -> bool {
+        false
+    }
+
+    fn text(&self, _message: &str, _default: Option<&str>) -> Result<String, PromptError> {
         Ok("test-value".to_owned())
     }
 
-    fn is_interactive(&self) -> bool {
-        false
+    fn confirm(&self, _message: &str, _default: bool) -> Result<bool, PromptError> {
+        Ok(true)
+    }
+
+    fn select(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_index: usize,
+    ) -> Result<SelectOption, PromptError> {
+        Err(PromptError::internal("not implemented"))
+    }
+
+    fn select_index(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_index: usize,
+    ) -> Result<usize, PromptError> {
+        Ok(0)
     }
 }
 
@@ -82,7 +104,7 @@ mod tests {
         let service = WorkspaceInitializationService::new(
             TestPromptService,
             TestValidator,
-            TemplateSelectionForNewService::new(TestCatalogDiscoveryService),
+            TemplateSelectionForNewService::new(TestCatalogDiscoveryService, TestPromptService),
             TestWorkspaceWriter,
             working_dir_provider,
         );
@@ -102,7 +124,7 @@ mod tests {
         let service = WorkspaceInitializationService::new(
             TestPromptService,
             TestValidator,
-            TemplateSelectionForNewService::new(TestCatalogDiscoveryService),
+            TemplateSelectionForNewService::new(TestCatalogDiscoveryService, TestPromptService),
             TestWorkspaceWriter,
             working_dir_provider,
         );
@@ -121,7 +143,7 @@ mod tests {
         let service = WorkspaceInitializationService::new(
             TestPromptService,
             TestValidator,
-            TemplateSelectionForNewService::new(TestCatalogDiscoveryService),
+            TemplateSelectionForNewService::new(TestCatalogDiscoveryService, TestPromptService),
             TestWorkspaceWriter,
             working_dir_provider,
         );

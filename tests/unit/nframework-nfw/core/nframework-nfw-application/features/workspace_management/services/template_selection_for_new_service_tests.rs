@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
 use nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_application::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
@@ -23,17 +24,55 @@ impl TemplateCatalogDiscoveryService for StubDiscoveryService {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct StubPromptService;
+
+impl PromptService for StubPromptService {
+    fn is_interactive(&self) -> bool {
+        false
+    }
+
+    fn text(&self, _message: &str, _default: Option<&str>) -> Result<String, PromptError> {
+        Ok("stub-value".to_owned())
+    }
+
+    fn confirm(&self, _message: &str, _default: bool) -> Result<bool, PromptError> {
+        Ok(true)
+    }
+
+    fn select(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_index: usize,
+    ) -> Result<SelectOption, PromptError> {
+        Err(PromptError::internal("not implemented"))
+    }
+
+    fn select_index(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_index: usize,
+    ) -> Result<usize, PromptError> {
+        Ok(0)
+    }
+}
+
 #[test]
 fn defaults_to_official_blank_workspace_when_template_is_not_provided() {
-    let service = TemplateSelectionForNewService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![
-                descriptor("service-starter", "/tmp/official/service-starter"),
-                descriptor("blank-workspace", "/tmp/official/blank-workspace"),
-            ],
-        )],
-    });
+    let service = TemplateSelectionForNewService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![
+                    descriptor("service-starter", "/tmp/official/service-starter"),
+                    descriptor("blank-workspace", "/tmp/official/blank-workspace"),
+                ],
+            )],
+        },
+        StubPromptService,
+    );
 
     let selected_template_id = service
         .resolve_template_id(None)
@@ -44,15 +83,18 @@ fn defaults_to_official_blank_workspace_when_template_is_not_provided() {
 
 #[test]
 fn falls_back_to_first_official_template_when_blank_workspace_missing() {
-    let service = TemplateSelectionForNewService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor(
-                "service-starter",
-                "/tmp/official/service-starter",
+    let service = TemplateSelectionForNewService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor(
+                    "service-starter",
+                    "/tmp/official/service-starter",
+                )],
             )],
-        )],
-    });
+        },
+        StubPromptService,
+    );
 
     let selected_template_id = service
         .resolve_template_id(None)

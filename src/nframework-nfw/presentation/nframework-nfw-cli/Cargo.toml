@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 nframework-core-cli-abstraction = { workspace = true }
 nframework-core-cli-clap = { workspace = true }
+nframework-core-cli-inquire = { workspace = true }
 nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
 nframework-nfw-infrastructure-filesystem = { path = "../../infrastructure/nframework-nfw-infrastructure-filesystem" }
 nframework-nfw-infrastructure-git = { path = "../../infrastructure/nframework-nfw-infrastructure-git" }

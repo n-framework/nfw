@@ -1,6 +1,6 @@
+use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
 use nframework_nfw_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use nframework_nfw_application::features::workspace_management::models::new_command_request::NewCommandRequest;
-use nframework_nfw_application::features::workspace_management::services::abstraction::prompt_service::PromptService;
 use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
 use nframework_nfw_application::features::workspace_management::services::input_resolution_service::InputResolutionService;
 
@@ -16,12 +16,34 @@ impl PromptService for StubPromptService {
         self.interactive
     }
 
-    fn prompt(&self, _message: &str) -> Result<String, String> {
+    fn text(&self, _message: &str, _default: Option<&str>) -> Result<String, PromptError> {
         if let Some(failure) = &self.failure {
-            return Err(failure.clone());
+            return Err(PromptError::internal(failure.clone()));
         }
 
         Ok(self.answer.clone().unwrap_or_default())
+    }
+
+    fn confirm(&self, _message: &str, _default: bool) -> Result<bool, PromptError> {
+        Ok(true)
+    }
+
+    fn select(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_index: usize,
+    ) -> Result<SelectOption, PromptError> {
+        Err(PromptError::internal("not implemented"))
+    }
+
+    fn select_index(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_index: usize,
+    ) -> Result<usize, PromptError> {
+        Ok(0)
     }
 }
 

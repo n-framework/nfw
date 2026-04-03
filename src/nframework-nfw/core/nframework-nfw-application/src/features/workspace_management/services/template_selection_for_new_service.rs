@@ -2,30 +2,37 @@ use crate::features::template_management::constants::source;
 use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::template_management::services::template_selection_result::TemplateSelectionResult;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
+use nframework_core_cli_abstraction::{PromptService, SelectOption};
+use nframework_nfw_domain::features::template_management::template_descriptor::TemplateDescriptor;
 
 const DEFAULT_TEMPLATE_ID_PREFERENCES: [&str; 3] = ["blank-workspace", "blank", "workspace-blank"];
 
 #[derive(Debug, Clone)]
-pub struct TemplateSelectionForNewService<S>
+pub struct TemplateSelectionForNewService<S, P>
 where
-    S: TemplateCatalogDiscoveryService,
+    S: TemplateCatalogDiscoveryService + Clone,
+    P: PromptService + Clone,
 {
     template_catalog_discovery_service: S,
+    prompt_service: P,
 }
 
-impl<S> TemplateSelectionForNewService<S>
+impl<S, P> TemplateSelectionForNewService<S, P>
 where
-    S: TemplateCatalogDiscoveryService,
+    S: TemplateCatalogDiscoveryService + Clone,
+    P: PromptService + Clone,
 {
-    pub fn new(template_catalog_discovery_service: S) -> Self {
+    pub fn new(template_catalog_discovery_service: S, prompt_service: P) -> Self {
         Self {
             template_catalog_discovery_service,
+            prompt_service,
         }
     }
 
     pub fn resolve_template_selection(
         &self,
         requested_template: Option<&str>,
+        allow_interactive: bool,
     ) -> Result<TemplateSelectionResult, WorkspaceNewError> {
         let (catalogs, warnings) = self
             .template_catalog_discovery_service
@@ -74,21 +81,36 @@ where
         }
 
         for preferred_template_id in DEFAULT_TEMPLATE_ID_PREFERENCES {
-            if let Some((source_name, template)) =
-                templates.iter().find(|(source_name, template)| {
+            let default_match = templates
+                .iter()
+                .find(|(source_name, template)| {
                     source_name == source::OFFICIAL_NAME
                         && template.metadata.id == preferred_template_id
                 })
-            {
+                .cloned();
+
+            if let Some((source_name, template)) = default_match {
+                if allow_interactive && self.prompt_service.is_interactive() {
+                    return self.prompt_template_selection(
+                        templates,
+                        warnings,
+                        source_name,
+                        template,
+                    );
+                }
+
                 return Ok(TemplateSelectionResult {
-                    source_name: source_name.clone(),
-                    template: template.clone(),
+                    source_name,
+                    template,
                     warnings,
                 });
             }
         }
 
-        // SAFETY: We verified templates.is_empty() == false above at line 45
+        if allow_interactive && self.prompt_service.is_interactive() {
+            return self.prompt_template_selection_interactive(templates, warnings);
+        }
+
         let fallback = templates
             .iter()
             .find(|(source_name, _)| source_name == source::OFFICIAL_NAME)
@@ -102,11 +124,93 @@ where
         })
     }
 
+    fn prompt_template_selection(
+        &self,
+        templates: Vec<(String, TemplateDescriptor)>,
+        warnings: Vec<String>,
+        default_source_name: String,
+        default_template: TemplateDescriptor,
+    ) -> Result<TemplateSelectionResult, WorkspaceNewError> {
+        let options: Vec<SelectOption> = templates
+            .iter()
+            .map(|(source_name, template)| {
+                SelectOption::new(
+                    format!("{}/{}", source_name, template.metadata.id),
+                    format!("{}/{}", source_name, template.metadata.id),
+                )
+                .with_description(&template.metadata.description)
+            })
+            .collect();
+
+        let default_index = templates
+            .iter()
+            .position(|(source_name, template)| {
+                source_name == &default_source_name
+                    && template.metadata.id == default_template.metadata.id
+            })
+            .unwrap_or(0);
+
+        let selected_index = self
+            .prompt_service
+            .select_index("Select a template:", &options, default_index)
+            .map_err(|error| WorkspaceNewError::PromptFailed(error.to_string()))?;
+
+        let (source_name, template) = templates
+            .into_iter()
+            .nth(selected_index)
+            .expect("selected index out of bounds");
+
+        Ok(TemplateSelectionResult {
+            source_name,
+            template,
+            warnings,
+        })
+    }
+
+    fn prompt_template_selection_interactive(
+        &self,
+        templates: Vec<(String, TemplateDescriptor)>,
+        warnings: Vec<String>,
+    ) -> Result<TemplateSelectionResult, WorkspaceNewError> {
+        let options: Vec<SelectOption> = templates
+            .iter()
+            .map(|(source_name, template)| {
+                SelectOption::new(
+                    format!("{}/{}", source_name, template.metadata.id),
+                    format!("{}/{}", source_name, template.metadata.id),
+                )
+                .with_description(&template.metadata.description)
+            })
+            .collect();
+
+        let default_index = templates
+            .iter()
+            .position(|(source_name, _)| source_name == source::OFFICIAL_NAME)
+            .or_else(|| templates.first().map(|_| 0))
+            .unwrap_or(0);
+
+        let selected_index = self
+            .prompt_service
+            .select_index("Select a template:", &options, default_index)
+            .map_err(|error| WorkspaceNewError::PromptFailed(error.to_string()))?;
+
+        let (source_name, template) = templates
+            .into_iter()
+            .nth(selected_index)
+            .expect("selected index out of bounds");
+
+        Ok(TemplateSelectionResult {
+            source_name,
+            template,
+            warnings,
+        })
+    }
+
     pub fn resolve_template_id(
         &self,
         requested_template: Option<&str>,
     ) -> Result<String, WorkspaceNewError> {
-        let selection = self.resolve_template_selection(requested_template)?;
+        let selection = self.resolve_template_selection(requested_template, false)?;
         Ok(format!(
             "{}/{}",
             selection.source_name, selection.template.metadata.id
