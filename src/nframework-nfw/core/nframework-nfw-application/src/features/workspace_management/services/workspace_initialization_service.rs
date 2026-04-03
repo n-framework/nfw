@@ -1,10 +1,9 @@
-use std::env;
-
 use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use crate::features::workspace_management::models::new_command_request::NewCommandRequest;
 use crate::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use crate::features::workspace_management::services::abstraction::prompt_service::PromptService;
+use crate::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
 use crate::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
 use crate::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
 use crate::features::workspace_management::services::input_resolution_service::InputResolutionService;
@@ -14,12 +13,13 @@ use crate::features::workspace_management::services::template_selection_for_new_
 use crate::features::workspace_management::services::workspace_blueprint_builder::WorkspaceBlueprintBuilder;
 
 #[derive(Clone)]
-pub struct WorkspaceInitializationService<P, V, T, W>
+pub struct WorkspaceInitializationService<P, V, T, W, D>
 where
     P: PromptService,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
+    D: WorkingDirectoryProvider,
 {
     input_resolution_service: InputResolutionService<P, V>,
     template_selection_service: TemplateSelectionForNewService<T>,
@@ -27,20 +27,23 @@ where
     namespace_resolver: NamespaceResolver,
     new_command_validator: NewCommandValidator<V>,
     workspace_writer: W,
+    working_directory_provider: D,
 }
 
-impl<P, V, T, W> WorkspaceInitializationService<P, V, T, W>
+impl<P, V, T, W, D> WorkspaceInitializationService<P, V, T, W, D>
 where
     P: PromptService,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
+    D: WorkingDirectoryProvider,
 {
     pub fn new(
         prompt_service: P,
         workspace_name_validator: V,
         template_selection_service: TemplateSelectionForNewService<T>,
         workspace_writer: W,
+        working_directory_provider: D,
     ) -> Self {
         let input_resolution_service =
             InputResolutionService::new(prompt_service, workspace_name_validator.clone());
@@ -53,6 +56,7 @@ where
             namespace_resolver: NamespaceResolver::new(),
             new_command_validator,
             workspace_writer,
+            working_directory_provider,
         }
     }
 
@@ -70,7 +74,9 @@ where
         let namespace_base = self
             .namespace_resolver
             .resolve_workspace_base_namespace(&workspace_name);
-        let output_path = env::current_dir()
+        let output_path = self
+            .working_directory_provider
+            .current_dir()
             .map_err(|error| WorkspaceNewError::Internal(error.to_string()))?
             .join(&workspace_name);
 

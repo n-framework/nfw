@@ -5,7 +5,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
 use nframework_nfw_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
-use nframework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
+use nframework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::{FileSystemWorkspaceWriter, stable_project_guid};
 
 #[test]
 fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
@@ -130,24 +130,4 @@ fn create_template_directory(sandbox_root: &Path) -> PathBuf {
     .expect("template config should be written");
 
     template_root
-}
-
-fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {
-    let mut state_a: u64 = 0xcbf29ce484222325;
-    let mut state_b: u64 = 0x8422_2325_cbf2_9ce4;
-    for byte in workspace_name.bytes().chain(template_id.bytes()) {
-        state_a ^= byte as u64;
-        state_a = state_a.wrapping_mul(0x100000001b3);
-
-        state_b ^= (byte as u64) << 1;
-        state_b = state_b.wrapping_mul(0x100000001b3);
-    }
-
-    let part1 = (state_a >> 32) as u32;
-    let part2 = ((state_a >> 16) & 0xffff) as u16;
-    let part3 = (state_a & 0xffff) as u16;
-    let part4 = ((state_b >> 48) & 0xffff) as u16;
-    let part5 = state_b & 0xffff_ffff_ffff;
-
-    format!("{part1:08x}-{part2:04x}-{part3:04x}-{part4:04x}-{part5:012x}")
 }

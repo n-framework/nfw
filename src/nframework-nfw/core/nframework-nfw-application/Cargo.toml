@@ -43,3 +43,7 @@ path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/fe
 [[test]]
 name = "template_selection_for_new_service_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/template_selection_for_new_service_tests.rs"
+
+[[test]]
+name = "workspace_initialization_service_test"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/workspace_initialization_service_test.rs"

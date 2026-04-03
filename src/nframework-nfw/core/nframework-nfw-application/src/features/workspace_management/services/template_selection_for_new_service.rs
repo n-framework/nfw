@@ -86,11 +86,12 @@ where
             }
         }
 
+        // SAFETY: We verified templates.is_empty() == false above at line 45
         let fallback = templates
             .iter()
             .find(|(source_name, _)| source_name == source::OFFICIAL_NAME)
             .or_else(|| templates.first())
-            .expect("templates are not empty at this point");
+            .expect("BUG: templates non-empty invariant violated");
 
         Ok(TemplateSelectionResult {
             source_name: fallback.0.clone(),

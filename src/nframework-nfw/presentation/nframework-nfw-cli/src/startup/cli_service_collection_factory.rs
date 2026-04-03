@@ -15,6 +15,7 @@ use nframework_nfw_infrastructure_filesystem::features::template_management::ser
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::local_templates_catalog_source::LocalTemplatesCatalogSource;
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::placeholder_detector::PlaceholderDetector;
 use nframework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
+use nframework_nfw_infrastructure_filesystem::features::workspace_management::services::standard_working_directory_provider::StandardWorkingDirectoryProvider;
 use nframework_nfw_infrastructure_git::features::template_management::services::cli_git_repository::CliGitRepository as InfrastructureCliGitRepository;
 use nframework_nfw_infrastructure_git::features::template_management::services::git_template_catalog_source::GitTemplateCatalogSource;
 use nframework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
@@ -39,11 +40,13 @@ pub type CliTemplatesService = TemplatesService<
 >;
 pub type CliListTemplatesQueryHandler = ListTemplatesQueryHandler<CliTemplatesService>;
 pub type CliWorkspaceWriter = FileSystemWorkspaceWriter;
+pub type CliWorkingDirectoryProvider = StandardWorkingDirectoryProvider;
 pub type CliWorkspaceInitializationService = WorkspaceInitializationService<
     InteractivePromptService,
     CliValidator,
     CliTemplatesService,
     CliWorkspaceWriter,
+    CliWorkingDirectoryProvider,
 >;
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -130,6 +133,7 @@ impl CliServiceCollectionFactory {
             CliValidator,
             template_selection_for_new_service,
             FileSystemWorkspaceWriter::new(),
+            StandardWorkingDirectoryProvider::new(),
         );
 
         CliServiceCollection {

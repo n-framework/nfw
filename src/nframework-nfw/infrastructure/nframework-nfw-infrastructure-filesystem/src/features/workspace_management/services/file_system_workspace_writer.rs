@@ -164,7 +164,11 @@ fn render_path(relative_path: &Path, resolution: &NewCommandResolution) -> PathB
 fn render_bytes(bytes: &[u8], resolution: &NewCommandResolution) -> Vec<u8> {
     match String::from_utf8(bytes.to_vec()) {
         Ok(renderable_text) => render_text(&renderable_text, resolution).into_bytes(),
-        Err(_) => bytes.to_vec(),
+        Err(_) => {
+            // Binary file or non-UTF-8 encoding detected - return bytes unmodified.
+            // This is expected for images, compiled binaries, etc.
+            bytes.to_vec()
+        }
     }
 }
 
@@ -176,7 +180,7 @@ fn render_text(text: &str, resolution: &NewCommandResolution) -> String {
         .replace("__ProjectGuid__", &project_guid)
 }
 
-fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {
+pub fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {
     let mut state_a: u64 = 0xcbf29ce484222325;
     let mut state_b: u64 = 0x8422_2325_cbf2_9ce4;
     for byte in workspace_name.bytes().chain(template_id.bytes()) {

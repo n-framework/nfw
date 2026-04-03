@@ -6,6 +6,7 @@ use nframework_core_cli_abstraction::{
 use nframework_core_cli_clap::ClapCliRuntimeBuilder;
 use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
 
+use crate::cli_error::CliError;
 use crate::commands::templates::add_source::AddSourceCliCommand;
 use crate::commands::templates::list_templates::TemplatesCliCommand;
 use crate::commands::templates::refresh::RefreshTemplatesCliCommand;
@@ -97,7 +98,10 @@ fn required_option(command: &dyn Command, option_name: &str) -> Result<String, S
         .ok_or_else(|| format!("missing required option '--{option_name}'"))
 }
 
-fn handle_workspace_new(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
+fn handle_workspace_new(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
 
@@ -137,4 +141,47 @@ fn handle_templates_remove(
 
 fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     RefreshTemplatesCliCommand::new(context.templates_service.clone()).execute()
+}
+
+/// Extension trait to parse exit code from error string protocol.
+/// This improves reliability of the exit code extraction with better validation.
+pub trait ParseExitCode {
+    fn parse_exit_code(&self) -> CliError;
+}
+
+impl ParseExitCode for String {
+    fn parse_exit_code(&self) -> CliError {
+        let Some(rest) = self.strip_prefix("[exit:") else {
+            return CliError::internal(self.clone());
+        };
+
+        let Some((exit_code_text, message)) = rest.split_once(']') else {
+            return CliError::internal(self.clone());
+        };
+
+        let Ok(exit_code) = exit_code_text.parse::<i32>() else {
+            return CliError::internal(self.clone());
+        };
+
+        CliError::new(exit_code, message.trim_start().to_owned())
+    }
+}
+
+impl ParseExitCode for &str {
+    fn parse_exit_code(&self) -> CliError {
+        // Directly parse the &str to avoid infinite recursion
+        let Some(rest) = self.strip_prefix("[exit:") else {
+            return CliError::internal(self.to_owned());
+        };
+
+        let Some((exit_code_text, message)) = rest.split_once(']') else {
+            return CliError::internal(self.to_owned());
+        };
+
+        let Ok(exit_code) = exit_code_text.parse::<i32>() else {
+            return CliError::internal(self.to_owned());
+        };
+
+        CliError::new(exit_code, message.trim_start().to_owned())
+    }
 }

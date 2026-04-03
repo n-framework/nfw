@@ -1,6 +1,7 @@
 use nframework_nfw_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use nframework_nfw_application::features::workspace_management::models::new_command_request::NewCommandRequest;
 use nframework_nfw_application::features::workspace_management::services::workspace_initialization_service::WorkspaceInitializationService;
+use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
 
 #[derive(Debug, Clone)]
 pub struct NewWorkspaceCliCommand<S> {
@@ -15,7 +16,7 @@ impl<S> NewWorkspaceCliCommand<S> {
     }
 }
 
-impl<P, V, T, W> NewWorkspaceCliCommand<WorkspaceInitializationService<P, V, T, W>>
+impl<P, V, T, W, D> NewWorkspaceCliCommand<WorkspaceInitializationService<P, V, T, W, D>>
 where
     P: nframework_nfw_application::features::workspace_management::services::abstraction::prompt_service::PromptService,
     V: nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator
@@ -23,6 +24,7 @@ where
     T: nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService
         + Clone,
     W: nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter,
+    D: WorkingDirectoryProvider,
 {
     pub fn execute(
         &self,
