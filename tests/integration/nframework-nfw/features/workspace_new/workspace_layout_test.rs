@@ -44,8 +44,8 @@ fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
     assert!(output_path.join("README.md").is_file());
     assert!(output_path.join("nfw.yaml").is_file());
 
-    let yaml = fs::read_to_string(output_path.join("nfw.yaml"))
-        .expect("nfw.yaml should be readable");
+    let yaml =
+        fs::read_to_string(output_path.join("nfw.yaml")).expect("nfw.yaml should be readable");
     assert_eq!(
         yaml,
         format!(
@@ -111,8 +111,11 @@ fn create_template_directory(sandbox_root: &Path) -> PathBuf {
     fs::create_dir_all(content_root.join("docs"))
         .expect("template docs directory should be created");
 
-    fs::write(content_root.join("workspace.manifest"), "workspace for __WorkspaceName__")
-        .expect("template manifest should be written");
+    fs::write(
+        content_root.join("workspace.manifest"),
+        "workspace for __WorkspaceName__",
+    )
+    .expect("template manifest should be written");
     fs::write(
         content_root.join("src/__WorkspaceName__/service.manifest"),
         "service for __ServiceName__ in __Namespace__",

@@ -47,7 +47,10 @@ fn workspace_generation_is_reproducible_for_identical_inputs() {
             .expect("first file should be readable");
         let second_content = fs::read(second_output_path.join(&relative_path))
             .expect("second file should be readable");
-        assert_eq!(first_content, second_content, "mismatch for {relative_path:?}");
+        assert_eq!(
+            first_content, second_content,
+            "mismatch for {relative_path:?}"
+        );
     }
 
     cleanup_sandbox_directory(&sandbox_root);
@@ -103,8 +106,11 @@ fn create_template_directory(sandbox_root: &Path) -> PathBuf {
     fs::create_dir_all(content_root.join("docs"))
         .expect("template docs directory should be created");
 
-    fs::write(content_root.join("workspace.manifest"), "workspace for __WorkspaceName__")
-        .expect("template manifest should be written");
+    fs::write(
+        content_root.join("workspace.manifest"),
+        "workspace for __WorkspaceName__",
+    )
+    .expect("template manifest should be written");
     fs::write(
         content_root.join("src/__WorkspaceName__/service.manifest"),
         "service for __ServiceName__ in __Namespace__",

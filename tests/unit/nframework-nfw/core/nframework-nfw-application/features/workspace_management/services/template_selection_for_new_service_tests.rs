@@ -47,7 +47,10 @@ fn falls_back_to_first_official_template_when_blank_workspace_missing() {
     let service = TemplateSelectionForNewService::new(StubDiscoveryService {
         catalogs: vec![TemplateCatalog::new(
             "official".to_owned(),
-            vec![descriptor("service-starter", "/tmp/official/service-starter")],
+            vec![descriptor(
+                "service-starter",
+                "/tmp/official/service-starter",
+            )],
         )],
     });
 

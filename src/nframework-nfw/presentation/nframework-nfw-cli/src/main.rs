@@ -4,8 +4,8 @@ mod runtime;
 mod startup;
 
 use crate::cli_error::CliError;
-use crate::runtime::nfw_cli_runtime::build_nfw_cli_runtime;
 use crate::runtime::nfw_cli_runtime::ParseExitCode;
+use crate::runtime::nfw_cli_runtime::build_nfw_cli_runtime;
 use crate::startup::cli_bootstrapper::CliBootstrapper;
 
 fn main() {

@@ -19,7 +19,6 @@ impl Default for StandardWorkingDirectoryProvider {
 
 impl WorkingDirectoryProvider for StandardWorkingDirectoryProvider {
     fn current_dir(&self) -> Result<PathBuf, String> {
-        std::env::current_dir()
-            .map_err(|e| format!("failed to determine current directory: {e}"))
+        std::env::current_dir().map_err(|e| format!("failed to determine current directory: {e}"))
     }
 }

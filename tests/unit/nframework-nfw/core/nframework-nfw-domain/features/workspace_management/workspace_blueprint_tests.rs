@@ -8,11 +8,7 @@ fn creates_layered_workspace_blueprint_with_solution_files() {
     assert_eq!(blueprint.workspace_name, "BillingPlatform");
     assert_eq!(
         blueprint.root_directories,
-        vec![
-            "src".to_owned(),
-            "tests".to_owned(),
-            "docs".to_owned(),
-        ]
+        vec!["src".to_owned(), "tests".to_owned(), "docs".to_owned(),]
     );
 }
 

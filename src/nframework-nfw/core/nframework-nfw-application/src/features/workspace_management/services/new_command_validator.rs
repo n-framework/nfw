@@ -21,7 +21,8 @@ where
     }
 
     pub fn validate_request(&self, request: &NewCommandRequest) -> Result<(), WorkspaceNewError> {
-        if request.no_input && !request.is_interactive_terminal && request.workspace_name.is_none() {
+        if request.no_input && !request.is_interactive_terminal && request.workspace_name.is_none()
+        {
             return Err(WorkspaceNewError::MissingRequiredInput(
                 "workspace-name".to_owned(),
             ));
@@ -32,7 +33,9 @@ where
                 .workspace_name_validator
                 .is_valid_workspace_name(workspace_name)
         {
-            return Err(WorkspaceNewError::InvalidWorkspaceName(workspace_name.clone()));
+            return Err(WorkspaceNewError::InvalidWorkspaceName(
+                workspace_name.clone(),
+            ));
         }
 
         Ok(())

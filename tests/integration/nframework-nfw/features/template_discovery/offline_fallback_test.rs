@@ -257,7 +257,10 @@ fn uses_cached_templates_when_all_sources_unreachable() {
         !templates.is_empty(),
         "should discover templates on first sync"
     );
-    assert!(warnings.is_empty(), "first sync should not produce warnings");
+    assert!(
+        warnings.is_empty(),
+        "first sync should not produce warnings"
+    );
 
     let cache_path = cache_directory.join("templates/test-source");
     Command::new("git")

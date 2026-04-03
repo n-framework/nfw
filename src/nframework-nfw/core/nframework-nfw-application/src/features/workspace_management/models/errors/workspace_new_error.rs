@@ -25,17 +25,28 @@ impl Display for WorkspaceNewError {
                 write!(f, "workspace name is required for `nfw new`")
             }
             Self::MissingRequiredInput(field) => {
-                write!(f, "required input '{field}' is missing in non-interactive mode")
+                write!(
+                    f,
+                    "required input '{field}' is missing in non-interactive mode"
+                )
             }
             Self::TemplateNotFound(template) => {
-                write!(f, "template '{template}' was not found in discovered templates")
+                write!(
+                    f,
+                    "template '{template}' was not found in discovered templates"
+                )
             }
             Self::AmbiguousTemplate(template) => {
                 write!(f, "template identifier '{template}' is ambiguous")
             }
-            Self::InvalidOptionCombination(message) => write!(f, "invalid option combination: {message}"),
+            Self::InvalidOptionCombination(message) => {
+                write!(f, "invalid option combination: {message}")
+            }
             Self::TargetDirectoryNotEmpty(path) => {
-                write!(f, "target directory '{path}' already exists and is not empty")
+                write!(
+                    f,
+                    "target directory '{path}' already exists and is not empty"
+                )
             }
             Self::PromptFailed(reason) => write!(f, "interactive prompt failed: {reason}"),
             Self::WriteFailed(reason) => write!(f, "failed to write workspace artifacts: {reason}"),

@@ -97,9 +97,7 @@ mod tests {
     #[test]
     fn test_workspace_initialization_service_with_invalid_name() {
         let working_dir = PathBuf::from("/test/dir");
-        let working_dir_provider = TestWorkingDirectoryProvider {
-            path: working_dir,
-        };
+        let working_dir_provider = TestWorkingDirectoryProvider { path: working_dir };
 
         let service = WorkspaceInitializationService::new(
             TestPromptService,
@@ -109,12 +107,7 @@ mod tests {
             working_dir_provider,
         );
 
-        let request = NewCommandRequest::new(
-            Some("INVALID-NAME".to_owned()),
-            None,
-            true,
-            false,
-        );
+        let request = NewCommandRequest::new(Some("INVALID-NAME".to_owned()), None, true, false);
 
         let result = service.execute(request);
         assert!(result.is_err());
@@ -123,9 +116,7 @@ mod tests {
     #[test]
     fn test_workspace_initialization_service_with_missing_name() {
         let working_dir = PathBuf::from("/test/dir");
-        let working_dir_provider = TestWorkingDirectoryProvider {
-            path: working_dir,
-        };
+        let working_dir_provider = TestWorkingDirectoryProvider { path: working_dir };
 
         let service = WorkspaceInitializationService::new(
             TestPromptService,

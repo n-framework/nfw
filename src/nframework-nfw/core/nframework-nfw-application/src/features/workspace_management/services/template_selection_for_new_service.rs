@@ -53,8 +53,7 @@ where
                 .iter()
                 .filter(|(source_name, template)| {
                     template.metadata.id == requested_template
-                        || format!("{}/{}", source_name, template.metadata.id)
-                            == requested_template
+                        || format!("{}/{}", source_name, template.metadata.id) == requested_template
                 })
                 .map(|(source_name, template)| (source_name.clone(), template.clone()))
                 .collect::<Vec<_>>();
@@ -75,9 +74,12 @@ where
         }
 
         for preferred_template_id in DEFAULT_TEMPLATE_ID_PREFERENCES {
-            if let Some((source_name, template)) = templates.iter().find(|(source_name, template)| {
-                source_name == source::OFFICIAL_NAME && template.metadata.id == preferred_template_id
-            }) {
+            if let Some((source_name, template)) =
+                templates.iter().find(|(source_name, template)| {
+                    source_name == source::OFFICIAL_NAME
+                        && template.metadata.id == preferred_template_id
+                })
+            {
                 return Ok(TemplateSelectionResult {
                     source_name: source_name.clone(),
                     template: template.clone(),

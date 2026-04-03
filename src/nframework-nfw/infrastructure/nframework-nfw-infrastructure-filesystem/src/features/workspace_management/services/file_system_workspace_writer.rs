@@ -66,7 +66,10 @@ impl FileSystemWorkspaceWriter {
         resolution: &NewCommandResolution,
     ) -> Result<(), String> {
         for entry in fs::read_dir(current_path).map_err(|error| {
-            format!("failed to read template content '{}': {error}", current_path.display())
+            format!(
+                "failed to read template content '{}': {error}",
+                current_path.display()
+            )
         })? {
             let entry = entry.map_err(|error| {
                 format!(
@@ -106,7 +109,10 @@ impl FileSystemWorkspaceWriter {
             }
 
             let bytes = fs::read(&source_path).map_err(|error| {
-                format!("failed to read template file '{}': {error}", source_path.display())
+                format!(
+                    "failed to read template file '{}': {error}",
+                    source_path.display()
+                )
             })?;
             let rendered_bytes = render_bytes(&bytes, resolution);
             fs::write(&destination_path, rendered_bytes).map_err(|error| {
@@ -154,7 +160,8 @@ fn render_path(relative_path: &Path, resolution: &NewCommandResolution) -> PathB
     let mut rendered_path = PathBuf::new();
 
     for component in relative_path.components() {
-        let rendered_component = render_text(component.as_os_str().to_string_lossy().as_ref(), resolution);
+        let rendered_component =
+            render_text(component.as_os_str().to_string_lossy().as_ref(), resolution);
         rendered_path.push(rendered_component);
     }
 

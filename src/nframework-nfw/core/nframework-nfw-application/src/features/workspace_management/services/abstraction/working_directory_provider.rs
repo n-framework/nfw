@@ -19,9 +19,7 @@ mod tests {
 
     impl TestWorkingDirectoryProvider {
         pub fn new(path: impl Into<PathBuf>) -> Self {
-            Self {
-                path: path.into(),
-            }
+            Self { path: path.into() }
         }
     }
 

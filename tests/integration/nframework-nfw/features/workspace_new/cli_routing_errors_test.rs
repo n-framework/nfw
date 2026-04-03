@@ -44,12 +44,10 @@ fn valid_new_command_shape_routes_to_workspace_handler() {
 
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
-    let is_expected_workspace_failure = stderr.contains("template 'does-not-exist/template' was not found")
+    let is_expected_workspace_failure = stderr
+        .contains("template 'does-not-exist/template' was not found")
         || stderr.contains("workspace initialization failed");
-    assert!(
-        is_expected_workspace_failure,
-        "stderr was: {stderr}"
-    );
+    assert!(is_expected_workspace_failure, "stderr was: {stderr}");
     assert!(!stderr.contains("unsupported command"));
 
     cleanup_sandbox_directory(&sandbox_home);

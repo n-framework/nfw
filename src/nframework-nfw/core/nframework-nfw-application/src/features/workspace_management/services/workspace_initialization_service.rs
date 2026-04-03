@@ -66,7 +66,9 @@ where
     ) -> Result<NewCommandResolution, WorkspaceNewError> {
         self.new_command_validator.validate_request(&request)?;
 
-        let workspace_name = self.input_resolution_service.resolve_workspace_name(&request)?;
+        let workspace_name = self
+            .input_resolution_service
+            .resolve_workspace_name(&request)?;
         let template_selection = self
             .template_selection_service
             .resolve_template_selection(request.template_id.as_deref())?;
