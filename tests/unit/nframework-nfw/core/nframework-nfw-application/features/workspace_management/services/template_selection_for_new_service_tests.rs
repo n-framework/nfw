@@ -44,7 +44,7 @@ impl PromptService for StubPromptService {
         &self,
         _message: &str,
         _options: &[SelectOption],
-        _default_index: usize,
+        _default_index: Option<usize>,
     ) -> Result<SelectOption, PromptError> {
         Err(PromptError::internal("not implemented"))
     }
@@ -53,7 +53,7 @@ impl PromptService for StubPromptService {
         &self,
         _message: &str,
         _options: &[SelectOption],
-        _default_index: usize,
+        _default_index: Option<usize>,
     ) -> Result<usize, PromptError> {
         Ok(0)
     }
