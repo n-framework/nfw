@@ -23,7 +23,6 @@ const NFRAMEWORK_ASCII_BANNER: &str = r#"
 pub fn build_nfw_cli_app_config() -> CliAppConfig {
     CliAppConfig::new(
         CliSpec::new("nfw")
-            .with_banner(NFRAMEWORK_ASCII_BANNER)
             .with_about("NFramework CLI")
             .require_command()
             .with_command(

@@ -152,7 +152,7 @@ where
 
         let selected_index = self
             .prompt_service
-            .select_index("Select a template:", &options, default_index)
+            .select_index("Select a template:", &options, Some(default_index))
             .map_err(|error| WorkspaceNewError::PromptFailed(error.to_string()))?;
 
         let (source_name, template) = templates
@@ -191,7 +191,7 @@ where
 
         let selected_index = self
             .prompt_service
-            .select_index("Select a template:", &options, default_index)
+            .select_index("Select a template:", &options, Some(default_index))
             .map_err(|error| WorkspaceNewError::PromptFailed(error.to_string()))?;
 
         let (source_name, template) = templates
