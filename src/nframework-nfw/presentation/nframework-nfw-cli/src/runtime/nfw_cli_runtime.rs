@@ -1,12 +1,17 @@
+use std::io::{self, IsTerminal};
+
 use nframework_core_cli_abstraction::{
     CliAppConfig, CliCommandSpec, CliOptionSpec, CliRuntime, CliSpec, Command,
 };
 use nframework_core_cli_clap::ClapCliRuntimeBuilder;
+use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
 
+use crate::cli_error::CliError;
 use crate::commands::templates::add_source::AddSourceCliCommand;
 use crate::commands::templates::list_templates::TemplatesCliCommand;
 use crate::commands::templates::refresh::RefreshTemplatesCliCommand;
 use crate::commands::templates::remove_source::RemoveSourceCliCommand;
+use crate::commands::workspace::new_workspace::NewWorkspaceCliCommand;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 const NFRAMEWORK_ASCII_BANNER: &str = r#"
@@ -21,6 +26,23 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
             .with_banner(NFRAMEWORK_ASCII_BANNER)
             .with_about("NFramework CLI")
             .require_command()
+            .with_command(
+                CliCommandSpec::new("new")
+                    .with_about("Create a new workspace")
+                    .with_option(
+                        CliOptionSpec::positional("workspace-name", 1)
+                            .with_help("Workspace name (required in non-interactive mode)"),
+                    )
+                    .with_option(
+                        CliOptionSpec::new("template", "template")
+                            .with_help("Template identifier (qualified or unqualified)"),
+                    )
+                    .with_option(
+                        CliOptionSpec::new("no-input", "no-input")
+                            .with_help("Disable all interactive prompts")
+                            .flag(),
+                    ),
+            )
             .with_command(
                 CliCommandSpec::new("templates")
                     .with_about("Manage template sources and discovery")
@@ -61,6 +83,7 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
 
 pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliServiceCollection> {
     ClapCliRuntimeBuilder::new(build_nfw_cli_app_config(), services)
+        .register_handler("new", handle_workspace_new)
         .register_handler("templates/list", handle_templates_list)
         .register_handler("templates/add", handle_templates_add)
         .register_handler("templates/remove", handle_templates_remove)
@@ -73,6 +96,26 @@ fn required_option(command: &dyn Command, option_name: &str) -> Result<String, S
         .option(option_name)
         .map(ToOwned::to_owned)
         .ok_or_else(|| format!("missing required option '--{option_name}'"))
+}
+
+fn handle_workspace_new(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
+    let no_input = command.option("no-input").is_some();
+    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+
+    NewWorkspaceCliCommand::new(context.workspace_initialization_service.clone())
+        .execute(
+            command.option("workspace-name"),
+            command.option("template"),
+            no_input,
+            is_interactive_terminal,
+        )
+        .map_err(|error| {
+            let exit_code = ExitCodes::from_workspace_new_error(&error) as i32;
+            format!("[exit:{exit_code}] {error}")
+        })
 }
 
 fn handle_templates_list(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
@@ -98,4 +141,47 @@ fn handle_templates_remove(
 
 fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     RefreshTemplatesCliCommand::new(context.templates_service.clone()).execute()
+}
+
+/// Extension trait to parse exit code from error string protocol.
+/// This improves reliability of the exit code extraction with better validation.
+pub trait ParseExitCode {
+    fn parse_exit_code(&self) -> CliError;
+}
+
+impl ParseExitCode for String {
+    fn parse_exit_code(&self) -> CliError {
+        let Some(rest) = self.strip_prefix("[exit:") else {
+            return CliError::internal(self.clone());
+        };
+
+        let Some((exit_code_text, message)) = rest.split_once(']') else {
+            return CliError::internal(self.clone());
+        };
+
+        let Ok(exit_code) = exit_code_text.parse::<i32>() else {
+            return CliError::internal(self.clone());
+        };
+
+        CliError::new(exit_code, message.trim_start().to_owned())
+    }
+}
+
+impl ParseExitCode for &str {
+    fn parse_exit_code(&self) -> CliError {
+        // Directly parse the &str to avoid infinite recursion
+        let Some(rest) = self.strip_prefix("[exit:") else {
+            return CliError::internal(self.to_owned());
+        };
+
+        let Some((exit_code_text, message)) = rest.split_once(']') else {
+            return CliError::internal(self.to_owned());
+        };
+
+        let Ok(exit_code) = exit_code_text.parse::<i32>() else {
+            return CliError::internal(self.to_owned());
+        };
+
+        CliError::new(exit_code, message.trim_start().to_owned())
+    }
 }

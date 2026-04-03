@@ -28,7 +28,7 @@ fn create_sandbox_directory() -> PathBuf {
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_secs();
+        .as_nanos();
     let sandbox = std::env::temp_dir().join(format!("nfw-test-offline-{}", timestamp));
     fs::create_dir_all(&sandbox).expect("failed to create sandbox directory");
     sandbox
@@ -165,20 +165,25 @@ impl Validator for TestValidator {
     }
 }
 
-/// Mock synchronizer that always fails (simulating network offline)
-struct OfflineSynchronizer;
+/// Mock synchronizer that returns a cache path with a stale-data warning.
+#[derive(Debug, Clone)]
+struct CachedWarningSynchronizer {
+    cache_path: PathBuf,
+}
 
-impl TemplateSourceSynchronizer for OfflineSynchronizer {
+impl TemplateSourceSynchronizer for CachedWarningSynchronizer {
     fn sync_source(&self, source: &TemplateSource) -> Result<(PathBuf, Option<String>), String> {
-        // Always fail with a network error
-        Err(format!(
-            "could not refresh remote '{}': network unreachable",
-            source.url
+        Ok((
+            self.cache_path.clone(),
+            Some(format!(
+                "could not refresh remote '{}'; using existing cache (simulated offline)",
+                source.url
+            )),
         ))
     }
 
     fn clear_source_cache(&self, _source_name: &str) -> Result<(), String> {
-        Err("cannot clear cache while offline".to_owned())
+        Ok(())
     }
 }
 
@@ -257,40 +262,29 @@ fn uses_cached_templates_when_all_sources_unreachable() {
         "first sync should not produce warnings"
     );
 
-    let offline_synchronizer = OfflineSynchronizer;
+    let cache_path = cache_directory.join("templates/test-source");
+    Command::new("git")
+        .arg("remote")
+        .arg("set-url")
+        .arg("origin")
+        .arg(cache_directory.join("missing-remote.git").as_os_str())
+        .current_dir(&cache_path)
+        .output()
+        .expect("failed to repoint remote to missing path");
 
-    let templates_service_offline = TemplatesService::new(
-        offline_synchronizer,
-        {
-            let catalog_source = LocalTemplatesCatalogSource::new(PlaceholderDetector::new());
-            let catalog_parser = TemplateCatalogParser::new(
-                SerdeYamlParser::new(),
-                TestValidator,
-                SemverVersionComparator::new(),
-            );
-            TemplateCatalogSourceResolver::new(catalog_source, catalog_parser)
-        },
-        TestConfigStore {
-            sources: vec![TemplateSource::new(
-                "test-source".to_owned(),
-                remote_repository.to_str().unwrap().to_owned(),
-            )],
-        },
-        TestValidator,
-        CliGitRepository::new(),
-    );
-
-    let result = templates_service_offline.list_templates();
+    let (offline_templates, offline_warnings) = templates_service
+        .list_templates()
+        .expect("cached templates should be used when remote is unreachable");
 
     assert!(
-        result.is_err(),
-        "should error when all sources unreachable and no cache"
+        !offline_templates.is_empty(),
+        "should still discover templates from cache"
     );
-    let error_message = result.unwrap_err().to_string();
     assert!(
-        error_message.contains("failed to synchronize") || error_message.contains("unreachable"),
-        "error should indicate sync failure: {}",
-        error_message
+        offline_warnings
+            .iter()
+            .any(|warning| warning.contains("using cached data")),
+        "should warn about stale cache usage"
     );
 
     let _ = fs::remove_dir_all(sandbox);
@@ -338,8 +332,6 @@ tags:
     assert!(is_valid.is_ok(), "should be able to check if repo is valid");
     assert!(is_valid.unwrap(), "cached repo should be valid");
 
-    let offline_synchronizer = OfflineSynchronizer;
-
     let catalog_source = LocalTemplatesCatalogSource::new(PlaceholderDetector::new());
     let catalog_parser = TemplateCatalogParser::new(
         SerdeYamlParser::new(),
@@ -349,7 +341,9 @@ tags:
     let catalog_resolver = TemplateCatalogSourceResolver::new(catalog_source, catalog_parser);
 
     let templates_service = TemplatesService::new(
-        offline_synchronizer,
+        CachedWarningSynchronizer {
+            cache_path: cache_path.clone(),
+        },
         catalog_resolver,
         TestConfigStore {
             sources: vec![TemplateSource::new(
@@ -361,8 +355,15 @@ tags:
         git_repository,
     );
 
-    let result = templates_service.list_templates();
-
-    assert!(result.is_err(), "should error when all sources fail");
+    let (templates, warnings) = templates_service
+        .list_templates()
+        .expect("cached templates should be listed with warnings");
+    assert_eq!(templates.len(), 1, "should list cached template");
+    assert!(
+        warnings
+            .iter()
+            .any(|warning| warning.contains("using cached data")),
+        "should include stale-data warning"
+    );
     let _ = fs::remove_dir_all(sandbox);
 }

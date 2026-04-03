@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use glob::Pattern;
-use nframework_nfw_application::features::template_management::constants::template;
+use nframework_nfw_application::features::template_management::constants::{source, template};
 use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_source::TemplateCatalogSource;
 
 use crate::features::template_management::services::placeholder_detector::PlaceholderDetector;
@@ -81,31 +81,16 @@ impl TemplateCatalogSource for LocalTemplatesCatalogSource {
             ));
         }
 
-        let mut directories = Vec::new();
-        if is_template_directory(source_root) {
-            directories.push(source_root.to_path_buf());
+        let mut scan_roots = vec![source_root.to_path_buf()];
+        let source_templates_root = source_root.join(source::TEMPLATES_ROOT_DIR);
+        if source_templates_root.is_dir() {
+            scan_roots.push(source_templates_root);
         }
 
-        let entries = fs::read_dir(source_root).map_err(|error| {
-            format!(
-                "failed to read template source root '{}': {error}",
-                source_root.display()
-            )
-        })?;
-
-        for entry in entries {
-            let path = entry
-                .map_err(|error| {
-                    format!(
-                        "failed to read an entry from source root '{}': {error}",
-                        source_root.display()
-                    )
-                })?
-                .path();
-
-            if path.is_dir() && is_template_directory(&path) {
-                directories.push(path);
-            }
+        let mut directories = Vec::new();
+        for scan_root in scan_roots {
+            let mut discovered = discover_templates_in_scan_root(&scan_root)?;
+            directories.append(&mut discovered);
         }
 
         directories.sort();
@@ -129,6 +114,38 @@ impl TemplateCatalogSource for LocalTemplatesCatalogSource {
             )
         })
     }
+}
+
+fn discover_templates_in_scan_root(scan_root: &Path) -> Result<Vec<PathBuf>, String> {
+    let mut directories = Vec::new();
+
+    if is_template_directory(scan_root) {
+        directories.push(scan_root.to_path_buf());
+    }
+
+    let entries = fs::read_dir(scan_root).map_err(|error| {
+        format!(
+            "failed to read template source root '{}': {error}",
+            scan_root.display()
+        )
+    })?;
+
+    for entry in entries {
+        let path = entry
+            .map_err(|error| {
+                format!(
+                    "failed to read an entry from source root '{}': {error}",
+                    scan_root.display()
+                )
+            })?
+            .path();
+
+        if path.is_dir() && is_template_directory(&path) {
+            directories.push(path);
+        }
+    }
+
+    Ok(directories)
 }
 
 #[derive(Debug, Default)]

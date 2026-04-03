@@ -1,0 +1,54 @@
+name: nfw-new-command-contract
+version: 1.0.0
+summary: Contract for parsing and executing nfw new workspace initialization
+
+command:
+  path: "nfw new"
+  description: Create a new workspace from a selected template
+
+inputs:
+  workspace_name:
+    type: string
+    required: false
+    description: Workspace name; required after interactive resolution
+  template_id:
+    type: string
+    required: false
+    description: Template identifier (qualified or unqualified)
+  no_input:
+    type: boolean
+    required: false
+    default: false
+    description: Disable all prompts
+
+behavior:
+  interactive_mode:
+    condition: terminal_is_interactive AND no_input=false
+    outcome: prompt_for_missing_required_values
+  non_interactive_mode:
+    condition: no_input=true OR terminal_is_not_interactive
+    outcome: fail_if_required_values_missing
+
+validation:
+  - workspace_name must satisfy naming convention
+  - template_id must be syntactically valid when provided
+  - target output directory must not be non-empty
+  - invalid option combinations must fail before generation
+
+outputs:
+  success:
+    exit_code: 0
+    stdout: includes workspace creation summary
+    guarantees:
+      - layered root directories exist (src/tests/docs)
+      - template-defined artifacts are rendered and written
+      - root-level YAML configuration artifacts are created when present in template
+  validation_error:
+    exit_code: non_zero
+    stderr: actionable error with remediation guidance
+  runtime_error:
+    exit_code: non_zero
+    stderr: actionable runtime failure with failing path/context
+  interrupted:
+    exit_code: 130
+    stderr: interrupted execution notice

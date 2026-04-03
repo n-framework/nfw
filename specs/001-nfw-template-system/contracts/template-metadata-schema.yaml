@@ -21,13 +21,14 @@ description: A standalone .NET microservice with Clean Architecture layers
 # Pre-release suffixes allowed: 1.0.0-alpha, 1.0.0-beta.1
 version: 1.0.0
 
-# Target programming language
-# Allowed values: dotnet, go, rust
-language: dotnet
-
 # ============================================
 # OPTIONAL FIELDS
 # ============================================
+
+# Target programming language
+# Allowed values: dotnet, go, rust, neutral
+# If omitted, CLI treats template as neutral
+language: dotnet
 
 # Searchable keywords for template discovery
 # List of strings, max 10 tags
@@ -59,7 +60,7 @@ sourceUrl: https://github.com/n-framework/nfw-templates
 # - name: Required, max 100 chars
 # - description: Required, max 200 chars
 # - version: Must be valid semver
-# - language: Must be one of: dotnet, go, rust
+# - language: Optional; when present must be one of: dotnet, go, rust, neutral
 # - tags: Optional, max 10 items, max 20 chars each
 # - author: Optional, max 100 chars
 # - minCliVersion: Optional, must be valid semver
@@ -69,12 +70,12 @@ sourceUrl: https://github.com/n-framework/nfw-templates
 # EXAMPLES
 # ============================================
 
-# Example 1: Minimal template
-# id: minimal
-# name: Minimal Service
-# description: A basic .NET service template
+# Example 1: Blank workspace template
+# id: blank-workspace
+# name: Blank Workspace
+# description: Minimal starter workspace template
 # version: 1.0.0
-# language: dotnet
+# language: neutral
 
 # Example 2: Full-featured template
 # id: full-featured

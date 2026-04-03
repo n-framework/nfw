@@ -127,3 +127,21 @@ language: rust
 
     assert!(result.is_err());
 }
+
+#[test]
+fn accepts_missing_language_as_neutral() {
+    let parser = TemplateCatalogParser::new(TestYamlParser, TestValidator, TestVersionComparator);
+
+    let metadata = parser
+        .parse_template_metadata(
+            r#"
+id: blank-workspace
+name: Blank Workspace
+description: Minimal starter workspace template
+version: 1.0.0
+"#,
+        )
+        .expect("metadata should parse");
+
+    assert_eq!(metadata.language, Language::Neutral);
+}

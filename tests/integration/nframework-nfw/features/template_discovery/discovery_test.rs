@@ -204,7 +204,7 @@ fn write_catalog_repository(root: &Path, templates: &[(&str, &str)]) {
 }
 
 fn write_template(root: &Path, template_id: &str, template_name: &str) {
-    let template_directory = root.join(template_id);
+    let template_directory = root.join("src").join(template_id);
     let content_directory = template_directory.join("content");
     fs::create_dir_all(&content_directory).expect("template content directory should be created");
 

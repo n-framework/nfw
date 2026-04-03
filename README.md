@@ -27,7 +27,7 @@ nfw templates
 nfw new my-workspace
 
 # Create non-interactively in CI
-nfw new --no-input my-workspace --template blank
+nfw new --no-input my-workspace --template blank-workspace
 ```
 
 ---
@@ -75,8 +75,7 @@ nfw check --verbose                          # Validate with detailed diagnostic
 
 | Identifier | Display Name    | Description                      |
 | ---------- | --------------- | -------------------------------- |
-| `blank`    | Blank Workspace | Minimal starter workspace        |
-| `minimal`  | Minimal API     | Starter with a minimal API focus |
+| `blank-workspace` | Blank Workspace | Minimal starter workspace |
 
 ---
 

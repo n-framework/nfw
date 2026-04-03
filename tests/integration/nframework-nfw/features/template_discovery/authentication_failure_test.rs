@@ -19,7 +19,7 @@ fn create_sandbox_directory() -> PathBuf {
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_secs();
+        .as_nanos();
     let sandbox = std::env::temp_dir().join(format!("nfw-test-auth-{}", timestamp));
     fs::create_dir_all(&sandbox).expect("failed to create sandbox directory");
     sandbox

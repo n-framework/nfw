@@ -44,7 +44,8 @@ description: A .NET microservice with custom features
 # Semantic version
 version: 1.0.0
 
-# Target language (dotnet, go, rust)
+# Optional target language (dotnet, go, rust, neutral)
+# Omit for language-agnostic templates
 language: dotnet
 
 # Optional: Searchable tags
@@ -123,10 +124,10 @@ ls -la
 **Validation Checklist**:
 
 - [ ] `template.yaml` exists and is valid YAML
-- [ ] All required fields are present: `id`, `name`, `description`, `version`, `language`
+- [ ] All required fields are present: `id`, `name`, `description`, `version`
 - [ ] `id` is kebab-case (lowercase, letters, numbers, hyphens only)
 - [ ] `version` follows semantic versioning (e.g., 1.0.0)
-- [ ] `language` is one of: `dotnet`, `go`, `rust`
+- [ ] If provided, `language` is one of: `dotnet`, `go`, `rust`, `neutral`
 - [ ] `content/` directory exists and is not empty
 
 ## Step 6: Publish to Git Repository
@@ -206,7 +207,7 @@ Each subdirectory is a separate template with its own `template.yaml`.
 
 - Invalid `id`: Use only lowercase letters, numbers, and hyphens
 - Invalid `version`: Use semantic versioning (1.0.0, not 1.0)
-- Invalid `language`: Use only `dotnet`, `go`, or `rust`
+- Invalid `language`: Use only `dotnet`, `go`, `rust`, or `neutral`
 - Missing `content/` directory: Must exist at same level as `template.yaml`
 
 ### Cache issues
