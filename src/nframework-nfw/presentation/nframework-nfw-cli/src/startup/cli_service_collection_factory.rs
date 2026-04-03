@@ -1,14 +1,18 @@
 use std::path::Path;
 
 use nframework_core_cli_inquire::InquirerPromptService;
+use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
+use nframework_nfw_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
+use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
+use nframework_nfw_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
 use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
 use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
 use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use nframework_nfw_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
 use nframework_nfw_application::features::template_management::services::templates_service::TemplatesService;
+use nframework_nfw_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
 use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
 use nframework_nfw_application::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
-use nframework_nfw_application::features::workspace_management::services::workspace_initialization_service::WorkspaceInitializationService;
 use nframework_nfw_application::validation::is_kebab_case;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::dirs_path_resolver::DirsPathResolver;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
@@ -40,7 +44,7 @@ pub type CliTemplatesService = TemplatesService<
 pub type CliListTemplatesQueryHandler = ListTemplatesQueryHandler<CliTemplatesService>;
 pub type CliWorkspaceWriter = FileSystemWorkspaceWriter;
 pub type CliWorkingDirectoryProvider = StandardWorkingDirectoryProvider;
-pub type CliWorkspaceInitializationService = WorkspaceInitializationService<
+pub type CliNewWorkspaceCommandHandler = NewWorkspaceCommandHandler<
     InquirerPromptService,
     CliValidator,
     CliTemplatesService,
@@ -48,6 +52,12 @@ pub type CliWorkspaceInitializationService = WorkspaceInitializationService<
     CliWorkingDirectoryProvider,
     InquirerPromptService,
 >;
+pub type CliAddTemplateSourceCommandHandler =
+    AddTemplateSourceCommandHandler<CliConfigStore, CliValidator, CliGitRepository>;
+pub type CliRemoveTemplateSourceCommandHandler =
+    RemoveTemplateSourceCommandHandler<CliConfigStore, CliSourceSynchronizer>;
+pub type CliRefreshTemplatesCommandHandler = RefreshTemplatesCommandHandler<CliTemplatesService>;
+pub type CliEnsureDefaultSourceCommandHandler = EnsureDefaultSourceCommandHandler<CliConfigStore>;
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CliValidator;
 
@@ -90,9 +100,12 @@ impl CliValidator {
 
 #[derive(Clone)]
 pub struct CliServiceCollection {
-    pub templates_service: CliTemplatesService,
+    pub new_workspace_command_handler: CliNewWorkspaceCommandHandler,
     pub list_templates_query_handler: CliListTemplatesQueryHandler,
-    pub workspace_initialization_service: CliWorkspaceInitializationService,
+    pub add_template_source_command_handler: CliAddTemplateSourceCommandHandler,
+    pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,
+    pub refresh_templates_command_handler: CliRefreshTemplatesCommandHandler,
+    pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -116,9 +129,9 @@ impl CliServiceCollectionFactory {
         let config_store = FileSystemWorkspaceArtifactWriter::new(config_loader);
 
         let templates_service = TemplatesService::new(
-            source_synchronizer,
+            source_synchronizer.clone(),
             catalog_resolver,
-            config_store,
+            config_store.clone(),
             CliValidator,
             git_repository,
         );
@@ -129,7 +142,7 @@ impl CliServiceCollectionFactory {
             templates_service.clone(),
             InquirerPromptService::new(),
         );
-        let workspace_initialization_service = WorkspaceInitializationService::new(
+        let new_workspace_command_handler = NewWorkspaceCommandHandler::new(
             InquirerPromptService::new(),
             CliValidator,
             template_selection_for_new_service,
@@ -137,10 +150,30 @@ impl CliServiceCollectionFactory {
             StandardWorkingDirectoryProvider::new(),
         );
 
+        let add_template_source_command_handler = AddTemplateSourceCommandHandler::new(
+            config_store.clone(),
+            CliValidator,
+            git_repository,
+        );
+
+        let remove_template_source_command_handler = RemoveTemplateSourceCommandHandler::new(
+            config_store.clone(),
+            source_synchronizer.clone(),
+        );
+
+        let refresh_templates_command_handler =
+            RefreshTemplatesCommandHandler::new(templates_service.clone());
+
+        let ensure_default_source_command_handler =
+            EnsureDefaultSourceCommandHandler::new(config_store);
+
         CliServiceCollection {
-            templates_service,
+            new_workspace_command_handler,
             list_templates_query_handler,
-            workspace_initialization_service,
+            add_template_source_command_handler,
+            remove_template_source_command_handler,
+            refresh_templates_command_handler,
+            ensure_default_source_command_handler,
         }
     }
 }

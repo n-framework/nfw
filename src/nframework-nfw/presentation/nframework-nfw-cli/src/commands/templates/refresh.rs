@@ -1,36 +1,38 @@
+use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command::RefreshTemplatesCommand;
+use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
 use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 
+/// Thin CLI presentation layer for refreshing templates.
+/// Delegates all business logic to the application layer command handler.
 #[derive(Debug, Clone)]
-pub struct RefreshTemplatesCliCommand<S>
-where
-    S: TemplateCatalogDiscoveryService,
-{
-    discovery_service: S,
+pub struct RefreshTemplatesCliCommand<H> {
+    handler: H,
 }
 
-impl<S> RefreshTemplatesCliCommand<S>
+impl<H> RefreshTemplatesCliCommand<H> {
+    pub fn new(handler: H) -> Self {
+        Self { handler }
+    }
+}
+
+impl<S> RefreshTemplatesCliCommand<RefreshTemplatesCommandHandler<S>>
 where
     S: TemplateCatalogDiscoveryService,
 {
-    pub fn new(discovery_service: S) -> Self {
-        Self { discovery_service }
-    }
-
     pub fn execute(&self) -> Result<(), String> {
-        let (catalogs, warnings) = self
-            .discovery_service
-            .discover_catalogs()
+        let command = RefreshTemplatesCommand;
+        let result = self
+            .handler
+            .handle(&command)
             .map_err(|error| error.to_string())?;
 
-        for warning in warnings {
+        for warning in result.warnings {
             eprintln!("warning: {warning}");
         }
 
-        let template_count: usize = catalogs.iter().map(|catalog| catalog.templates.len()).sum();
         println!(
             "Refreshed {} source(s), {} template(s).",
-            catalogs.len(),
-            template_count
+            result.source_count, result.template_count
         );
 
         Ok(())

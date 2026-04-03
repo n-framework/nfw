@@ -1,25 +1,31 @@
-use crate::commands::templates::source_management_service::SourceManagementService;
+use nframework_nfw_application::features::template_management::commands::remove_template_source::remove_template_source_command::RemoveTemplateSourceCommand;
+use nframework_nfw_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
+use nframework_nfw_application::features::cli::configuration::abstraction::config_store::ConfigStore;
+use nframework_nfw_application::features::template_management::services::abstraction::template_source_synchronizer::TemplateSourceSynchronizer;
 
+/// Thin CLI presentation layer for removing a template source.
+/// Delegates all business logic to the application layer command handler.
 #[derive(Debug, Clone)]
-pub struct RemoveSourceCliCommand<S>
-where
-    S: SourceManagementService,
-{
-    source_management_service: S,
+pub struct RemoveSourceCliCommand<H> {
+    handler: H,
 }
 
-impl<S> RemoveSourceCliCommand<S>
-where
-    S: SourceManagementService,
-{
-    pub fn new(source_management_service: S) -> Self {
-        Self {
-            source_management_service,
-        }
+impl<H> RemoveSourceCliCommand<H> {
+    pub fn new(handler: H) -> Self {
+        Self { handler }
     }
+}
 
+impl<CS, S> RemoveSourceCliCommand<RemoveTemplateSourceCommandHandler<CS, S>>
+where
+    CS: ConfigStore,
+    S: TemplateSourceSynchronizer,
+{
     pub fn execute(&self, name: &str) -> Result<(), String> {
-        self.source_management_service.remove_source(name)?;
+        let command = RemoveTemplateSourceCommand::new(name.to_owned());
+        self.handler
+            .handle(&command)
+            .map_err(|error| error.to_string())?;
         println!("Template source '{name}' removed.");
         Ok(())
     }

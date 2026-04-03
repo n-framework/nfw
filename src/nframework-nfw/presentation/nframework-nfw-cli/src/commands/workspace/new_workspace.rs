@@ -1,30 +1,31 @@
-use nframework_core_cli_abstraction::PromptService;
+use nframework_nfw_application::features::workspace_management::commands::new_workspace::new_workspace_command::NewWorkspaceCommand;
+use nframework_nfw_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
 use nframework_nfw_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
-use nframework_nfw_application::features::workspace_management::models::new_command_request::NewCommandRequest;
-use nframework_nfw_application::features::workspace_management::services::workspace_initialization_service::WorkspaceInitializationService;
+use nframework_core_cli_abstraction::PromptService;
+use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
+use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
+use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
 
+/// Thin CLI presentation layer for workspace creation.
+/// Delegates all business logic to the application layer command handler.
 #[derive(Debug, Clone)]
-pub struct NewWorkspaceCliCommand<S> {
-    workspace_initialization_service: S,
+pub struct NewWorkspaceCliCommand<H> {
+    handler: H,
 }
 
-impl<S> NewWorkspaceCliCommand<S> {
-    pub fn new(workspace_initialization_service: S) -> Self {
-        Self {
-            workspace_initialization_service,
-        }
+impl<H> NewWorkspaceCliCommand<H> {
+    pub fn new(handler: H) -> Self {
+        Self { handler }
     }
 }
 
-impl<P, V, T, W, D, PS> NewWorkspaceCliCommand<WorkspaceInitializationService<P, V, T, W, D, PS>>
+impl<P, V, T, W, D, PS> NewWorkspaceCliCommand<NewWorkspaceCommandHandler<P, V, T, W, D, PS>>
 where
     P: PromptService,
-    V: nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator
-        + Clone,
-    T: nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService
-        + Clone,
-    W: nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter,
+    V: WorkspaceNameValidator + Clone,
+    T: TemplateCatalogDiscoveryService + Clone,
+    W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
     PS: PromptService + Clone,
 {
@@ -35,14 +36,14 @@ where
         no_input: bool,
         is_interactive_terminal: bool,
     ) -> Result<(), WorkspaceNewError> {
-        let request = NewCommandRequest::new(
+        let command = NewWorkspaceCommand::new(
             workspace_name.map(ToOwned::to_owned),
             template_id.map(ToOwned::to_owned),
             no_input,
             is_interactive_terminal,
         );
 
-        let result = self.workspace_initialization_service.execute(request)?;
+        let result = self.handler.handle(&command)?;
 
         println!(
             "Created workspace '{}' at '{}'.",

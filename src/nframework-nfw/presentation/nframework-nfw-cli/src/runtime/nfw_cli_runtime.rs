@@ -108,7 +108,7 @@ fn handle_workspace_new(
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
 
-    NewWorkspaceCliCommand::new(context.workspace_initialization_service.clone())
+    NewWorkspaceCliCommand::new(context.new_workspace_command_handler.clone())
         .execute(
             command.option("workspace-name"),
             command.option("template"),
@@ -131,7 +131,8 @@ fn handle_templates_add(
 ) -> Result<(), String> {
     let name = required_option(command, "name")?;
     let url = required_option(command, "url")?;
-    AddSourceCliCommand::new(context.templates_service.clone()).execute(&name, &url)
+    AddSourceCliCommand::new(context.add_template_source_command_handler.clone())
+        .execute(&name, &url)
 }
 
 fn handle_templates_remove(
@@ -139,11 +140,12 @@ fn handle_templates_remove(
     context: &CliServiceCollection,
 ) -> Result<(), String> {
     let name = required_option(command, "name")?;
-    RemoveSourceCliCommand::new(context.templates_service.clone()).execute(&name)
+    RemoveSourceCliCommand::new(context.remove_template_source_command_handler.clone())
+        .execute(&name)
 }
 
 fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    RefreshTemplatesCliCommand::new(context.templates_service.clone()).execute()
+    RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
 }
 
 /// Extension trait to parse exit code from error string protocol.

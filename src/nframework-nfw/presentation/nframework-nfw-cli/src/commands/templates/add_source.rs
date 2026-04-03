@@ -1,25 +1,33 @@
-use crate::commands::templates::source_management_service::SourceManagementService;
+use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command::AddTemplateSourceCommand;
+use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
+use nframework_nfw_application::features::cli::configuration::abstraction::config_store::ConfigStore;
+use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
+use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
 
+/// Thin CLI presentation layer for adding a template source.
+/// Delegates all business logic to the application layer command handler.
 #[derive(Debug, Clone)]
-pub struct AddSourceCliCommand<S>
-where
-    S: SourceManagementService,
-{
-    source_management_service: S,
+pub struct AddSourceCliCommand<H> {
+    handler: H,
 }
 
-impl<S> AddSourceCliCommand<S>
-where
-    S: SourceManagementService,
-{
-    pub fn new(source_management_service: S) -> Self {
-        Self {
-            source_management_service,
-        }
+impl<H> AddSourceCliCommand<H> {
+    pub fn new(handler: H) -> Self {
+        Self { handler }
     }
+}
 
+impl<CS, V, G> AddSourceCliCommand<AddTemplateSourceCommandHandler<CS, V, G>>
+where
+    CS: ConfigStore,
+    V: Validator,
+    G: GitRepository,
+{
     pub fn execute(&self, name: &str, url: &str) -> Result<(), String> {
-        self.source_management_service.add_source(name, url)?;
+        let command = AddTemplateSourceCommand::new(name.to_owned(), url.to_owned());
+        self.handler
+            .handle(&command)
+            .map_err(|error| error.to_string())?;
         println!("Template source '{name}' added.");
         Ok(())
     }
