@@ -30,7 +30,7 @@ fn create_sandbox_directory() -> PathBuf {
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_secs();
+        .as_nanos();
     let sandbox = std::env::temp_dir().join(format!("nfw-test-corrupted-cache-{}", timestamp));
     fs::create_dir_all(&sandbox).expect("failed to create sandbox directory");
     sandbox
@@ -255,6 +255,7 @@ fn detects_and_recovers_from_corrupted_git_cache() {
         !templates_after_recovery.is_empty(),
         "should discover templates after recovery from corruption"
     );
+    let _ = fs::remove_dir_all(sandbox);
 }
 
 #[test]
