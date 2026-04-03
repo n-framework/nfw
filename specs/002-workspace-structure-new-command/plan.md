@@ -5,7 +5,7 @@
 
 ## Summary
 
-Implement deterministic workspace bootstrapping through `nfw new` with a layered workspace root (`src/`, `tests/`, `docs/`), YAML-only baseline configuration, root + per-service solution organization, and strict CLI routing/validation behavior for interactive and `--no-input` flows.
+Implement deterministic workspace bootstrapping through `nfw new` with a layered workspace root (`src/`, `tests/`, `docs/`), YAML-only baseline configuration, template-driven artifact generation, and strict CLI routing/validation behavior for interactive and `--no-input` flows.
 
 ## Technical Context
 
@@ -40,7 +40,7 @@ Research questions resolved in [research.md](./research.md):
 1. Deterministic command routing and option precedence for `nfw new`
 2. Interactive vs non-interactive prompting boundaries
 3. Canonical YAML-only baseline configuration strategy
-4. Workspace/solution namespace consistency rules
+4. Workspace/template namespace consistency rules
 5. Failure handling for existing directories and invalid inputs
 
 Outcome: all identified ambiguities resolved and encoded as implementation decisions.
@@ -104,7 +104,7 @@ Expected task decomposition themes:
 
 1. CLI routing surface and argument contract for `nfw new`
 2. Workspace blueprint and namespace derivation rules
-3. Solution and YAML baseline config generation
+3. Template content and YAML baseline config generation
 4. Interactive prompt orchestration and `--no-input` gating
 5. Validation and deterministic failure paths
 6. Unit/integration coverage for acceptance criteria

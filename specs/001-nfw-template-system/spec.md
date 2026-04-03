@@ -14,7 +14,7 @@ As a template author, I want to describe my template using a standard metadata f
 
 **Acceptance Scenarios**:
 
-1. **Given** a template directory containing a metadata file, **When** the CLI reads the metadata, **Then** all required fields (identifier, name, description, version, language) are parsed successfully
+1. **Given** a template directory containing a metadata file, **When** the CLI reads the metadata, **Then** all required fields (identifier, name, description, version) are parsed successfully and `language` is parsed when present
 2. **Given** a metadata file missing a required field, **When** the CLI validates the metadata, **Then** an actionable error identifies the missing field and the expected format
 3. **Given** a metadata file with an invalid field value, **When** the CLI validates the metadata, **Then** an actionable error explains why the value is invalid and what values are acceptable
 4. **Given** a valid metadata file, **When** the CLI reads the metadata, **Then** optional fields (tags, author, minimum CLI version) are parsed without errors when present and ignored when absent
@@ -107,11 +107,11 @@ As a developer, I want to add and remove template sources so that I can access t
 #### Template Metadata Schema
 
 - **FR-001**: The template metadata file MUST be located at the root of a template directory with the filename `template.yaml`
-- **FR-002**: The metadata schema MUST require the following fields: `id` (unique identifier, kebab-case), `name` (human-readable display name), `description` (one-line summary), `version` (semantic version), and `language` (target language, e.g., `dotnet`)
+- **FR-002**: The metadata schema MUST require the following fields: `id` (unique identifier, kebab-case), `name` (human-readable display name), `description` (one-line summary), and `version` (semantic version)
 - **FR-003**: The metadata schema SHOULD support the following optional fields: `tags` (list of searchable keywords), `author` (template maintainer), `minCliVersion` (minimum CLI version required), and `sourceUrl` (canonical repository URL)
 - **FR-004**: The `id` field MUST follow kebab-case naming rules (lowercase alphanumeric and hyphens, must start with a letter)
 - **FR-005**: The `version` field MUST follow semantic versioning (MAJOR.MINOR.PATCH)
-- **FR-006**: The `language` field MUST use a defined set of supported language identifiers (`dotnet`, with `go` and `rust` reserved for future use)
+- **FR-006**: The optional `language` field MUST use a defined set of supported language identifiers (`dotnet`, `go`, `rust`, `neutral`), and when omitted the CLI MUST treat it as language-agnostic (`neutral`)
 - **FR-007**: The CLI MUST validate all required fields on template discovery and report actionable errors for missing or malformed fields
 
 #### Template Repository Format

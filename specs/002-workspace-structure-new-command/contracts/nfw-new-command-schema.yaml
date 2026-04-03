@@ -41,8 +41,8 @@ outputs:
     stdout: includes workspace creation summary
     guarantees:
       - layered root directories exist (src/tests/docs)
-      - root-level solution and config files created
-      - per-service solution files created
+      - template-defined artifacts are rendered and written
+      - root-level YAML configuration artifacts are created when present in template
   validation_error:
     exit_code: non_zero
     stderr: actionable error with remediation guidance

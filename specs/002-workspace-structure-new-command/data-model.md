@@ -2,21 +2,20 @@
 
 ## Entity: WorkspaceBlueprint
 
-Represents canonical generated workspace structure and required artifacts.
+Represents canonical generated workspace structure constraints and required artifact categories.
 
 ### WorkspaceBlueprint Fields
 
 - `root_directories` (set): Required directories at root (`src`, `tests`, `docs`)
-- `root_solution_files` (list): Required workspace-level solution files
-- `service_solution_rule` (object): Rule for per-service solution naming and placement
 - `baseline_config_files` (list): Required YAML config files with canonical locations
 - `documentation_files` (list): Minimum generated docs (build/test quickstart pointers)
+- `template_artifact_policy` (object): Template-driven artifact generation and placeholder rendering policy
 
 ### WorkspaceBlueprint Validation Rules
 
 - Root directories must all exist after generation
 - Baseline config files must be YAML
-- Solution file set must include root and per-service forms
+- Artifact generation must come from selected template content after placeholder rendering
 
 ## Entity: NamespaceConvention
 
@@ -58,11 +57,11 @@ Resolved generation inputs after defaults, prompt answers, and template lookup.
 
 ### NewCommandResolution Fields
 
-- `resolved_workspace_name` (string)
-- `resolved_template_id` (string)
-- `resolved_namespace_base` (string)
-- `resolved_output_path` (path)
-- `generation_defaults` (map)
+- `workspace_name` (string)
+- `template_id` (string)
+- `template_cache_path` (path)
+- `namespace_base` (string)
+- `output_path` (path)
 
 ### NewCommandResolution Validation Rules
 

@@ -15,3 +15,11 @@ serde_yaml = "0.9"
 [[test]]
 name = "nfw_configuration_loader_tests"
 path = "../../../../tests/unit/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/features/cli/configuration/nfw_configuration_loader_tests.rs"
+
+[[test]]
+name = "workspace_layout_test"
+path = "../../../../tests/integration/nframework-nfw/features/workspace_new/workspace_layout_test.rs"
+
+[[test]]
+name = "reproducible_generation_test"
+path = "../../../../tests/integration/nframework-nfw/features/workspace_new/reproducible_generation_test.rs"

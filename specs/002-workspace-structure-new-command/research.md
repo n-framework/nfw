@@ -26,7 +26,7 @@
 
 ## Decision 4: Workspace Layout Baseline
 
-- **Decision**: Standardize layered root layout: `src/`, `tests/`, `docs/`, and root-level solution/config files.
+- **Decision**: Standardize layered root layout: `src/`, `tests/`, `docs/`, and root-level configuration files.
 - **Rationale**: Improves discoverability and aligns with current repository conventions.
 - **Alternatives considered**:
   - Flat root (rejected: root clutter)
@@ -40,13 +40,13 @@
   - Service-only namespace roots (rejected: inconsistent multi-service naming)
   - Fixed template namespace only (rejected: weak workspace identity)
 
-## Decision 6: Solution Organization
+## Decision 6: Template Artifact Organization
 
-- **Decision**: Generate one root workspace solution and per-service solution files.
-- **Rationale**: Supports both workspace-wide and service-focused workflows.
+- **Decision**: Generate files from selected template content with deterministic placeholder rendering; do not impose mandatory `.sln` artifacts at engine level.
+- **Rationale**: Keeps workspace generation template-driven and avoids hardcoded artifact assumptions.
 - **Alternatives considered**:
-  - Root-only solution (rejected: less isolated service workflows)
-  - Service-only solutions (rejected: no workspace aggregation)
+  - Hardcoded root/per-service solution generation (rejected: duplicates template ownership)
+  - Hybrid hardcoded+template writes (rejected: drift risk and unclear source of truth)
 
 ## Decision 7: Configuration Format
 

@@ -11,3 +11,15 @@ nframework-nfw-infrastructure-filesystem = { path = "../../infrastructure/nframe
 nframework-nfw-infrastructure-git = { path = "../../infrastructure/nframework-nfw-infrastructure-git" }
 nframework-nfw-infrastructure-versioning = { path = "../../infrastructure/nframework-nfw-infrastructure-versioning" }
 nframework-nfw-infrastructure-yaml = { path = "../../infrastructure/nframework-nfw-infrastructure-yaml" }
+
+[[test]]
+name = "new_command_routing_tests"
+path = "../../../../tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing_tests.rs"
+
+[[test]]
+name = "no_input_validation_test"
+path = "../../../../tests/integration/nframework-nfw/features/workspace_new/no_input_validation_test.rs"
+
+[[test]]
+name = "cli_routing_errors_test"
+path = "../../../../tests/integration/nframework-nfw/features/workspace_new/cli_routing_errors_test.rs"

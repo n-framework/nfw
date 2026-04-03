@@ -17,4 +17,7 @@ pub mod source {
 
     /// URL of the official nfw template repository
     pub const OFFICIAL_URL: &str = "https://github.com/n-framework/nfw-templates";
+
+    /// Directory under the source root where templates are primarily stored
+    pub const TEMPLATES_ROOT_DIR: &str = "src";
 }

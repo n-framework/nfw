@@ -17,10 +17,10 @@
 
 **Purpose**: Prepare workspace-management feature skeleton across clean-architecture crates.
 
-- [ ] T001 Create workspace management feature module skeleton in `src/nframework-nfw/core/nframework-nfw-domain/src/features/workspace_management/` and export it from `src/nframework-nfw/core/nframework-nfw-domain/src/features/mod.rs`
-- [ ] T002 Create workspace management application module skeleton in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/` and export it from `src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs`
-- [ ] T003 [P] Create filesystem workspace management module skeleton in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/` and export it from `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/mod.rs`
-- [ ] T004 [P] Create CLI workspace command module skeleton in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/` and export it from `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/mod.rs`
+- [X] T001 Create workspace management feature module skeleton in `src/nframework-nfw/core/nframework-nfw-domain/src/features/workspace_management/` and export it from `src/nframework-nfw/core/nframework-nfw-domain/src/features/mod.rs`
+- [X] T002 Create workspace management application module skeleton in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/` and export it from `src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs`
+- [X] T003 [P] Create filesystem workspace management module skeleton in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/` and export it from `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/mod.rs`
+- [X] T004 [P] Create CLI workspace command module skeleton in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/` and export it from `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/mod.rs`
 
 ---
 
@@ -30,12 +30,12 @@
 
 **⚠️ CRITICAL**: No user story work begins before this phase completes.
 
-- [ ] T005 Define `WorkspaceBlueprint` domain model in `src/nframework-nfw/core/nframework-nfw-domain/src/features/workspace_management/workspace_blueprint.rs`
-- [ ] T006 [P] Define `NamespaceConvention` domain model in `src/nframework-nfw/core/nframework-nfw-domain/src/features/workspace_management/namespace_convention.rs`
-- [ ] T007 [P] Define `NewCommandRequest` and `NewCommandResolution` models in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/models/new_command_request.rs` and `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/models/new_command_resolution.rs`
-- [ ] T008 Define workspace generation abstraction interfaces in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/abstraction/workspace_writer.rs`, `prompt_service.rs`, and `workspace_name_validator.rs`
-- [ ] T009 [P] Define foundational workspace errors and stable exit mapping in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/models/errors/workspace_new_error.rs` and update `src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs`
-- [ ] T010 Wire workspace services into CLI service collection in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs`
+- [X] T005 Define `WorkspaceBlueprint` domain model in `src/nframework-nfw/core/nframework-nfw-domain/src/features/workspace_management/workspace_blueprint.rs`
+- [X] T006 [P] Define `NamespaceConvention` domain model in `src/nframework-nfw/core/nframework-nfw-domain/src/features/workspace_management/namespace_convention.rs`
+- [X] T007 [P] Define `NewCommandRequest` and `NewCommandResolution` models in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/models/new_command_request.rs` and `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/models/new_command_resolution.rs`
+- [X] T008 Define workspace generation abstraction interfaces in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/abstraction/workspace_writer.rs`, `prompt_service.rs`, and `workspace_name_validator.rs`
+- [X] T009 [P] Define foundational workspace errors and stable exit mapping in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/models/errors/workspace_new_error.rs` and update `src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs`
+- [X] T010 Wire workspace services into CLI service collection in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs`
 
 **Checkpoint**: Foundation ready; user stories can proceed.
 
@@ -43,23 +43,23 @@
 
 ## Phase 3: User Story 1 - Create a New Workspace Baseline (Priority: P1) 🎯 MVP
 
-**Goal**: Generate a deterministic workspace with layered root, solution organization, namespace conventions, and YAML baseline configs.
+**Goal**: Generate a deterministic workspace with layered root, template-driven artifact generation, namespace conventions, and YAML baseline configs.
 
-**Independent Test**: `nfw new BillingPlatform --template official/microservice --no-input` creates required structure (`src/`, `tests/`, `docs/`), root/per-service solution files, and YAML baseline configuration.
+**Independent Test**: `nfw new BillingPlatform --template official/blank-workspace --no-input` creates required structure (`src/`, `tests/`, `docs/`), template-defined artifacts, and YAML baseline configuration.
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Add domain model tests for blueprint and namespace rules in `tests/unit/nframework-nfw/core/nframework-nfw-domain/features/workspace_management/workspace_blueprint_tests.rs`
-- [ ] T012 [P] [US1] Add integration test for generated workspace structure and YAML config outputs in `tests/integration/nframework-nfw/features/workspace_new/workspace_layout_test.rs`
+- [X] T011 [P] [US1] Add domain model tests for blueprint and namespace rules in `tests/unit/nframework-nfw/core/nframework-nfw-domain/features/workspace_management/workspace_blueprint_tests.rs`
+- [X] T012 [P] [US1] Add integration test for generated workspace structure and YAML config outputs in `tests/integration/nframework-nfw/features/workspace_new/workspace_layout_test.rs`
 
 ### Implementation for User Story 1
 
-- [ ] T013 [P] [US1] Implement workspace blueprint construction service in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/workspace_blueprint_builder.rs`
-- [ ] T014 [P] [US1] Implement namespace resolution service in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/namespace_resolver.rs`
-- [ ] T015 [US1] Implement filesystem workspace writer for layered root + root/per-service solution files in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/file_system_workspace_writer.rs`
-- [ ] T016 [US1] Implement YAML baseline config writer in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/yaml_baseline_config_writer.rs`
-- [ ] T017 [US1] Implement workspace initialization orchestrator in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/workspace_initialization_service.rs`
-- [ ] T018 [US1] Create `new` command application entrypoint in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/new_workspace.rs`
+- [X] T013 [P] [US1] Implement workspace blueprint construction service in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/workspace_blueprint_builder.rs`
+- [X] T014 [P] [US1] Implement namespace resolution service in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/namespace_resolver.rs`
+- [X] T015 [US1] Implement filesystem workspace writer for layered root + template-content rendering in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/file_system_workspace_writer.rs`
+- [X] T016 [US1] Implement YAML baseline configuration via template-defined `nfw.yaml` content rendering in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/file_system_workspace_writer.rs`
+- [X] T017 [US1] Implement workspace initialization orchestrator in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/workspace_initialization_service.rs`
+- [X] T018 [US1] Create `new` command application entrypoint in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/new_workspace.rs`
 
 **Checkpoint**: US1 is independently functional and testable.
 
@@ -73,15 +73,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Add unit tests for input resolution/prompt gating in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/input_resolution_service_tests.rs`
-- [ ] T020 [P] [US2] Add integration tests for `--no-input` and missing required values in `tests/integration/nframework-nfw/features/workspace_new/no_input_validation_test.rs`
+- [X] T019 [P] [US2] Add unit tests for input resolution/prompt gating in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/input_resolution_service_tests.rs`
+- [X] T020 [P] [US2] Add integration tests for `--no-input` and missing required values in `tests/integration/nframework-nfw/features/workspace_new/no_input_validation_test.rs`
 
 ### Implementation for User Story 2
 
-- [ ] T021 [P] [US2] Implement interactive prompt abstraction + runtime adapter in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/interactive_prompt_service.rs`
-- [ ] T022 [US2] Implement input resolution service (interactive vs non-interactive) in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/input_resolution_service.rs`
-- [ ] T023 [US2] Integrate template selection and validation with template-management services in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/template_selection_for_new_service.rs`
-- [ ] T024 [US2] Update `new_workspace` command flow to enforce `--no-input` no-prompt path in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/new_workspace.rs`
+- [X] T021 [P] [US2] Implement interactive prompt abstraction + runtime adapter in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/interactive_prompt_service.rs`
+- [X] T022 [US2] Implement input resolution service (interactive vs non-interactive) in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/input_resolution_service.rs`
+- [X] T023 [US2] Integrate template selection and validation with template-management services in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/template_selection_for_new_service.rs`
+- [X] T024 [US2] Update `new_workspace` command flow to enforce `--no-input` no-prompt path in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/new_workspace.rs`
 
 **Checkpoint**: US2 works independently and preserves automation safety.
 
@@ -95,15 +95,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Add runtime routing tests for `nfw new` command path in `tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing_tests.rs`
-- [ ] T026 [P] [US3] Add integration tests for invalid flags, unknown options, and unknown subcommands in `tests/integration/nframework-nfw/features/workspace_new/cli_routing_errors_test.rs`
+- [X] T025 [P] [US3] Add runtime routing tests for `nfw new` command path in `tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing_tests.rs`
+- [X] T026 [P] [US3] Add integration tests for invalid flags, unknown options, and unknown subcommands in `tests/integration/nframework-nfw/features/workspace_new/cli_routing_errors_test.rs`
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Extend CLI command spec with `new`, `--template`, and `--no-input` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
-- [ ] T028 [US3] Register `new` route handler in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs` and map to `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/new_workspace.rs`
-- [ ] T029 [US3] Implement deterministic option-combination validation and actionable errors in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/new_command_validator.rs`
-- [ ] T030 [US3] Update CLI startup wiring for new command dependencies in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs` and `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_bootstrapper.rs`
+- [X] T027 [US3] Extend CLI command spec with `new`, `--template`, and `--no-input` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
+- [X] T028 [US3] Register `new` route handler in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs` and map to `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/workspace/new_workspace.rs`
+- [X] T029 [US3] Implement deterministic option-combination validation and actionable errors in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/new_command_validator.rs`
+- [X] T030 [US3] Update CLI startup wiring for new command dependencies in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs` and `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_bootstrapper.rs`
 
 **Checkpoint**: US3 delivers predictable CLI routing and error behavior.
 
@@ -113,10 +113,10 @@
 
 **Purpose**: Final consistency checks, docs alignment, and acceptance validation.
 
-- [ ] T031 [P] Update workspace generation documentation in `src/nfw/docs/` with `nfw new` usage, flags, and failure behaviors
-- [ ] T032 Align feature spec quickstart and generated command help text in `src/nfw/specs/002-workspace-structure-new-command/quickstart.md` and `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
-- [ ] T033 [P] Add regression integration test for reproducible output from identical inputs in `tests/integration/nframework-nfw/features/workspace_new/reproducible_generation_test.rs`
-- [ ] T034 Run and document acceptance verification commands in `src/nfw/specs/002-workspace-structure-new-command/quickstart.md`
+- [X] T031 [P] Update workspace generation documentation in `src/nfw/docs/` with `nfw new` usage, flags, and failure behaviors
+- [X] T032 Align feature spec quickstart and generated command help text in `src/nfw/specs/002-workspace-structure-new-command/quickstart.md` and `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
+- [X] T033 [P] Add regression integration test for reproducible output from identical inputs in `tests/integration/nframework-nfw/features/workspace_new/reproducible_generation_test.rs`
+- [X] T034 Run and document acceptance verification commands in `src/nfw/specs/002-workspace-structure-new-command/quickstart.md`
 
 ---
 

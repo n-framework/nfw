@@ -89,9 +89,7 @@ impl TemplateMetadataBuilder {
             version: self
                 .version
                 .ok_or_else(|| TemplateMetadataValidationError::missing_field("version"))?,
-            language: self
-                .language
-                .ok_or_else(|| TemplateMetadataValidationError::missing_field("language"))?,
+            language: self.language.unwrap_or(Language::Neutral),
             tags: self.tags.unwrap_or_default(),
             author: self.author,
             min_cli_version: self.min_cli_version,

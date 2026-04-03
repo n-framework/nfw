@@ -49,7 +49,7 @@ where
         let name = required_non_empty(raw.name, "name")?;
         let description = required_non_empty(raw.description, "description")?;
         let parsed_version = self.parse_and_validate_version(raw.version)?;
-        let language = parse_language(required_non_empty(raw.language, "language")?)?;
+        let language = self.parse_optional_language(raw.language)?;
         let min_cli_version = self.parse_min_cli_version(raw.min_cli_version)?;
         let source_url = self.validate_source_url(raw.source_url)?;
         let tags = self.filter_tags(raw.tags);
@@ -151,6 +151,17 @@ where
         Ok(url)
     }
 
+    fn parse_optional_language(
+        &self,
+        language: Option<String>,
+    ) -> Result<Language, TemplateCatalogError> {
+        let normalized = normalize_optional(language);
+        match normalized {
+            Some(value) => parse_language(value),
+            None => Ok(Language::Neutral),
+        }
+    }
+
     fn filter_tags(&self, tags: Option<Vec<String>>) -> Vec<String> {
         tags.unwrap_or_default()
             .into_iter()
@@ -186,6 +197,7 @@ fn normalize_optional(value: Option<String>) -> Option<String> {
 
 fn parse_language(value: String) -> Result<Language, TemplateCatalogError> {
     match value.as_str() {
+        "neutral" => Ok(Language::Neutral),
         "dotnet" => Ok(Language::Dotnet),
         "go" => Ok(Language::Go),
         "rust" => Ok(Language::Rust),

@@ -8,12 +8,12 @@ As a platform engineer, I want one command to create a new workspace with a stan
 
 **Why this priority**: Workspace creation is the first user journey. If this fails or is inconsistent, every downstream command and convention becomes unreliable.
 
-**Independent Test**: Run `nfw new <workspace-name> --no-input` and verify the generated workspace contains the documented folders, solution files, and baseline configuration files in the correct locations.
+**Independent Test**: Run `nfw new <workspace-name> --no-input` and verify the generated workspace contains the documented folders and baseline configuration artifacts in the correct locations.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user runs `nfw new BillingPlatform --no-input`, **When** generation completes, **Then** a workspace is created with `src/`, `tests/`, and `docs/` directories plus documented root-level solution and configuration files.
-2. **Given** the generated workspace, **When** the user inspects file layout and naming, **Then** project folders, solution organization, and namespace conventions match the specification.
+1. **Given** a user runs `nfw new BillingPlatform --no-input`, **When** generation completes, **Then** a workspace is created with `src/`, `tests/`, and `docs/` directories plus documented root-level configuration files.
+2. **Given** the generated workspace, **When** the user inspects file layout and naming, **Then** project folders and namespace conventions match the specification.
 3. **Given** generation finishes successfully, **When** the user runs the documented build and test commands, **Then** the workspace builds and tests without additional setup.
 
 ---
@@ -29,7 +29,7 @@ As a developer, I want template selection to work with both prompts and flags so
 **Acceptance Scenarios**:
 
 1. **Given** an interactive terminal and missing required input, **When** the user runs `nfw new`, **Then** the command prompts for required values before generation.
-2. **Given** a non-interactive environment, **When** the user runs `nfw new MyWorkspace --template official/microservice --no-input`, **Then** generation runs without any prompt.
+2. **Given** a non-interactive environment, **When** the user runs `nfw new MyWorkspace --template official/blank-workspace --no-input`, **Then** generation runs without any prompt.
 3. **Given** `--no-input` and missing required values, **When** the command starts, **Then** it fails fast with an actionable error explaining which inputs are missing.
 
 ---
@@ -62,9 +62,9 @@ As a CLI user, I want consistent command parsing and routing so that command beh
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST define a canonical workspace folder structure for newly created workspaces using a layered root layout with `src/`, `tests/`, and `docs/` directories plus root-level solution and baseline configuration files.
+- **FR-001**: The system MUST define a canonical workspace folder structure for newly created workspaces using a layered root layout with `src/`, `tests/`, and `docs/` directories plus root-level baseline configuration files.
 - **FR-002**: The system MUST define namespace conventions using a workspace-root base namespace with explicit service and layer suffixes.
-- **FR-003**: The system MUST define solution file organization using both a root workspace solution file and per-service solution files, with documented locations for each.
+- **FR-003**: The system MUST define template-driven artifact organization, where generated files come from the selected template content and placeholder rendering rules.
 - **FR-004**: The system MUST define baseline configuration file locations and names, and MUST use YAML as the only canonical configuration format for generated workspace baseline configuration files.
 - **FR-005**: The CLI MUST parse commands and options using a deterministic routing model where each valid command shape maps to exactly one command handler.
 - **FR-006**: The CLI MUST reject unknown commands, unknown flags, and invalid argument combinations with actionable error messages.
@@ -84,7 +84,7 @@ As a CLI user, I want consistent command parsing and routing so that command beh
 
 ### Key Entities
 
-- **Workspace Blueprint**: The canonical definition of required folders, solution files, and baseline configuration artifacts for a generated workspace.
+- **Workspace Blueprint**: The canonical definition of required folders and baseline configuration artifacts for a generated workspace.
 - **Workspace Naming Rule Set**: The constraints and derivation rules for workspace names and namespaces.
   The namespace model uses a workspace-root base namespace and appends service and layer suffixes consistently.
 - **Command Route Definition**: The normalized mapping from parsed CLI input to a specific command behavior and validation path.
@@ -122,10 +122,10 @@ As a CLI user, I want consistent command parsing and routing so that command beh
 
 ### Session 2026-04-02
 
-- Q: Which workspace root layout should be standardized? → A: Layered root with `src/`, `tests/`, and `docs/`, plus root-level solution/config files.
+- Q: Which workspace root layout should be standardized? → A: Layered root with `src/`, `tests/`, and `docs/`, plus root-level configuration files.
 - Q: What namespace convention base should be used? → A: Workspace-root base namespace with service/layer suffixes.
 - Q: What baseline configuration format should be canonical? → A: YAML only.
-- Q: How should solution files be organized? → A: Root workspace solution plus per-service solution files.
+- Q: How should generated artifacts be organized? → A: Template-driven; artifact files are copied from selected template content after placeholder rendering.
 - Q: What is the policy for existing non-empty target directories? → A: Fail immediately.
 
 ## Non-Goals

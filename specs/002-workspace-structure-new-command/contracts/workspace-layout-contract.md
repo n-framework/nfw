@@ -9,15 +9,15 @@ A generated workspace MUST include this layered root structure:
 ├── src/
 ├── tests/
 ├── docs/
-├── <root-workspace-solution-files>
+├── <template-generated-artifacts>
 └── <root-yaml-configuration-files>
 ```
 
-## Solution Organization Rules
+## Template Artifact Rules
 
-- One workspace-level root solution file MUST exist.
-- Per-service solution files MUST exist according to service generation rules.
-- Solution naming and placement MUST be deterministic for identical input.
+- Generated artifacts MUST come from selected template `content/` tree.
+- Placeholder rendering in paths and file contents MUST be deterministic for identical input.
+- The workspace generator MUST NOT hardcode solution file creation.
 
 ## Namespace Rules
 
