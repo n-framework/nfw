@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
 nframework-nfw-domain = { path = "../../core/nframework-nfw-domain" }
+nframework-nfw-infrastructure-workspace-metadata = { path = "../nframework-nfw-infrastructure-workspace-metadata" }
 glob = "0.3"
 regex = "1"
 dirs = "6"

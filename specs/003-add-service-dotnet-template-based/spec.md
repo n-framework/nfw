@@ -20,18 +20,16 @@ As a developer, I want to run `nfw add service <name> --template <id>` so that I
 
 ### User Story 2 - Enforce Layer Dependency Rules (Priority: P1)
 
-As a tech lead, I want generated projects to follow strict layer dependencies so that clean architecture boundaries are preserved from the first commit.
+As a tech lead, I want generated templates to already contain the intended layer dependencies so that clean architecture boundaries are preserved from the first commit.
 
 **Why this priority**: The value of scaffold generation depends on enforcing architectural direction; invalid defaults create long-term coupling debt.
 
-**Independent Test**: Inspect generated project references and verify they match the allowed dependency matrix.
+**Independent Test**: Generate from the official service template and inspect project references in generated output.
 
 **Acceptance Scenarios**:
 
-1. **Given** a generated service, **When** I inspect project references, **Then** `Domain` has no references to `Application`, `Infrastructure`, or `Api`.
-2. **Given** a generated service, **When** I inspect project references, **Then** `Application` references `Domain` only.
-3. **Given** a generated service, **When** I inspect project references, **Then** `Infrastructure` references `Application` and `Domain` only.
-4. **Given** a generated service, **When** I inspect project references, **Then** `Api` references `Application` and `Infrastructure` only.
+1. **Given** a generated service from the official service template, **When** I inspect project references, **Then** the generated baseline matches the template's intended clean architecture dependency layout.
+2. **Given** a generated service, **When** I inspect CLI behavior, **Then** the command does not perform language-specific project-reference validation.
 
 ---
 
@@ -41,13 +39,12 @@ As an operator, I want generated services to expose health endpoints so that I c
 
 **Why this priority**: Health endpoints are required for operational baseline but are secondary to basic scaffold correctness.
 
-**Independent Test**: Start the generated API and call documented health endpoints.
+**Independent Test**: Generate from the official service template and inspect API source files for baseline health endpoint mappings.
 
 **Acceptance Scenarios**:
 
-1. **Given** a generated service API is running, **When** I request `GET /health/live`, **Then** I receive an HTTP 200 liveness response.
-2. **Given** a generated service API is running, **When** I request `GET /health/ready`, **Then** I receive an HTTP 200 readiness response.
-3. **Given** generated API source files, **When** I inspect routing setup, **Then** health endpoints are registered by default.
+1. **Given** a generated service from the official service template, **When** I inspect generated API source files, **Then** health endpoints are present by default.
+2. **Given** the CLI scope, **When** generation completes, **Then** endpoint runtime behavior verification is owned by the generated service tests, not by `nfw` command logic.
 
 ---
 
@@ -90,12 +87,8 @@ As a platform engineer, I want `nfw add service` to use the same template source
 - **FR-004d**: In non-interactive execution (including `--no-input`), `--template <id>` MUST be provided or the command MUST fail before file generation.
 - **FR-004e**: The command MUST allow only templates explicitly marked as service templates (`type=service`) and MUST reject other template types before rendering.
 - **FR-005**: Service templates MUST be sourceable from the `nfw-templates` repository through the configured template sources and rendered into the target workspace.
-- **FR-006**: The command MUST enforce layer dependency rules in generated project references using this matrix:
-  - `Domain` -> no service-layer project references
-  - `Application` -> `Domain`
-  - `Infrastructure` -> `Application`, `Domain`
-  - `Api` -> `Application`, `Infrastructure`
-- **FR-007**: The generated API project MUST include baseline health endpoints for liveness and readiness.
+- **FR-006**: The command MUST remain language-agnostic and MUST NOT implement language-specific project-reference validation logic.
+- **FR-007**: The generated API project baseline (including health endpoints) MUST come from the selected service template content.
 - **FR-008**: The generated service MUST compile on first build without manual edits.
 - **FR-009**: The command MUST validate service names using documented naming rules before file generation starts.
 - **FR-010**: The command MUST fail with actionable errors for template resolution failure, invalid inputs, invalid template selection, and invalid workspace context.
@@ -118,9 +111,9 @@ As a platform engineer, I want `nfw add service` to use the same template source
 ### Measurable Outcomes
 
 - **SC-001**: In acceptance tests, 100% of valid `nfw add service <name> --template <id>` runs generate all four required layers.
-- **SC-002**: In acceptance tests, 100% of generated services satisfy the dependency matrix with no forbidden references.
+- **SC-002**: In acceptance tests, 100% of generated services match the selected template output structure without additional CLI-side language validation.
 - **SC-003**: In acceptance tests, 100% of generated services compile successfully without manual edits.
-- **SC-004**: In acceptance tests, generated APIs return HTTP 200 for both `GET /health/live` and `GET /health/ready`.
+- **SC-004**: In acceptance tests, generated API source includes baseline health endpoint mappings from the selected template.
 - **SC-005**: In failure-path tests, command errors are actionable and deterministic for invalid workspace context, invalid name, missing template, and invalid template ID.
 - **SC-006**: In acceptance tests, 100% of generated services include persisted template provenance (template ID and resolved version) in workspace metadata.
 - **SC-007**: In acceptance tests, 100% of generated services persist template provenance in `nfw.yaml` under the created service entry.

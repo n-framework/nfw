@@ -6,7 +6,7 @@
 
 use std::path::Path;
 
-use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
+use nframework_nfw_application::features::template_management::services::abstractions::git_repository::GitRepository;
 use nframework_nfw_infrastructure_git::features::template_management::services::cli_git_repository::CliGitRepository;
 
 #[test]

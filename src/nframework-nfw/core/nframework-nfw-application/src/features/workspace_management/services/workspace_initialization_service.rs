@@ -1,10 +1,10 @@
-use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use crate::features::workspace_management::models::new_command_request::NewCommandRequest;
 use crate::features::workspace_management::models::new_command_resolution::NewCommandResolution;
-use crate::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
-use crate::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
-use crate::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
+use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use crate::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
+use crate::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
 use crate::features::workspace_management::services::input_resolution_service::InputResolutionService;
 use crate::features::workspace_management::services::namespace_resolver::NamespaceResolver;
 use crate::features::workspace_management::services::new_command_validator::NewCommandValidator;

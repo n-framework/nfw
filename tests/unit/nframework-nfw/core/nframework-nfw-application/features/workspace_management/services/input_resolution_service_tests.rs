@@ -1,7 +1,7 @@
 use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
 use nframework_nfw_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use nframework_nfw_application::features::workspace_management::models::new_command_request::NewCommandRequest;
-use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
+use nframework_nfw_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
 use nframework_nfw_application::features::workspace_management::services::input_resolution_service::InputResolutionService;
 
 #[derive(Debug, Clone)]

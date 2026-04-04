@@ -3,10 +3,10 @@ use std::cmp::Ordering;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
-use nframework_nfw_application::features::template_management::services::abstraction::yaml_parser::YamlParser;
+use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
+use nframework_nfw_application::features::template_management::services::abstractions::yaml_parser::YamlParser;
 use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
-use nframework_nfw_application::features::versioning::abstraction::version_comparator::VersionComparator;
+use nframework_nfw_application::features::versioning::abstractions::version_comparator::VersionComparator;
 use nframework_nfw_domain::features::template_management::language::Language;
 
 #[derive(Debug, Default, Clone, Copy)]

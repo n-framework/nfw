@@ -5,14 +5,15 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
 use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
+use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommandResult;
+use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use nframework_nfw_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use nframework_nfw_application::features::service_management::services::abstraction::service_template_prompt::ServiceTemplatePrompt;
-use nframework_nfw_application::features::service_management::services::abstraction::service_template_selector::ServiceTemplateSelector;
+use nframework_nfw_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
+use nframework_nfw_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
-use nframework_nfw_application::features::service_management::services::add_service_orchestration_service::AddServiceOrchestrationService;
 use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
-use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
+use nframework_nfw_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use nframework_nfw_domain::features::versioning::version::Version;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
@@ -103,7 +104,7 @@ impl PromptService for FailingPromptService {
 pub fn build_default_orchestration(
     workspace_root: &Path,
     template_resolution: ServiceTemplateResolution,
-) -> AddServiceOrchestrationService<
+) -> AddServiceCommandHandler<
     FixedWorkingDirectoryProvider,
     StaticTemplateSelector,
     FirstTemplatePrompt,
@@ -119,7 +120,7 @@ pub fn build_default_orchestration(
         FailingPromptService,
     );
 
-    AddServiceOrchestrationService::new(
+    AddServiceCommandHandler::new(
         FixedWorkingDirectoryProvider {
             current_directory: workspace_root.to_path_buf(),
         },
@@ -130,7 +131,7 @@ pub fn build_default_orchestration(
 }
 
 pub fn execute_non_interactive_add_service(
-    orchestration_service: &AddServiceOrchestrationService<
+    orchestration_service: &AddServiceCommandHandler<
         FixedWorkingDirectoryProvider,
         StaticTemplateSelector,
         FirstTemplatePrompt,
@@ -140,10 +141,7 @@ pub fn execute_non_interactive_add_service(
     >,
     service_name: &str,
     template_id: &str,
-) -> Result<
-    nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommandResult,
-    AddServiceError,
->{
+) -> Result<AddServiceCommandResult, AddServiceError> {
     let command = AddServiceCommand::new(
         Some(service_name.to_owned()),
         Some(template_id.to_owned()),
@@ -151,7 +149,7 @@ pub fn execute_non_interactive_add_service(
         false,
     );
 
-    orchestration_service.execute(&command)
+    orchestration_service.handle(&command)
 }
 
 pub fn create_template_resolution(

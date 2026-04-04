@@ -1,6 +1,6 @@
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use crate::features::workspace_management::models::new_command_request::NewCommandRequest;
-use crate::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
+use crate::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
 
 #[derive(Debug, Clone)]
 pub struct NewCommandValidator<V>

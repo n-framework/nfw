@@ -1,4 +1,4 @@
-use crate::features::cli::configuration::abstraction::config_store::ConfigStore;
+use crate::features::cli::configuration::abstractions::config_store::ConfigStore;
 use crate::features::template_management::commands::ensure_default_source::ensure_default_source_command::{
     EnsureDefaultSourceCommand, EnsureDefaultSourceCommandResult,
 };

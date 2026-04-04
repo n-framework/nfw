@@ -10,7 +10,7 @@ Expected behavior:
 
 - Generates service at `src/Orders/`
 - Creates layer projects: `Domain`, `Application`, `Infrastructure`, `Api`
-- Scaffolds health endpoints in API layer
+- Renders template-defined API baseline (including health endpoints for official template)
 - Persists template provenance in `nfw.yaml`
 
 ## CLI help contract
@@ -50,16 +50,15 @@ Expected directories/files include layer projects and template-defined artifacts
 - `Infrastructure`
 - `Api`
 
-## 4. Verify build and health baseline
+## 4. Verify build and template baseline
 
-Run workspace-documented one-command build and test flows, then start generated API and verify:
+Run workspace-documented one-command build and test flows, then verify template-rendered API baseline:
 
 ```bash
-curl -i http://localhost:<port>/health/live
-curl -i http://localhost:<port>/health/ready
+rg -n "health/live|health/ready" src/Orders
 ```
 
-Expected behavior: both return HTTP `200`.
+Expected behavior: official service template output includes both health endpoint mappings.
 
 ## 5. Verify strict failure cases
 

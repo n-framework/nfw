@@ -1,5 +1,5 @@
-use nframework_nfw_application::features::cli::configuration::abstraction::config_store::ConfigStore;
-use nframework_nfw_application::features::cli::configuration::abstraction::nfw_configuration_loader::NfwConfigurationLoader;
+use nframework_nfw_application::features::cli::configuration::abstractions::config_store::ConfigStore;
+use nframework_nfw_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
 use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 
 #[derive(Debug, Clone)]

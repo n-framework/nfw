@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use nframework_nfw_application::features::cli::configuration::abstraction::path_resolver::PathResolver;
-use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
+use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
+use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
 use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use nframework_nfw_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
 use nframework_nfw_application::features::template_management::services::templates_service::TemplatesService;

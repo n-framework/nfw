@@ -1,10 +1,10 @@
-use crate::features::cli::configuration::abstraction::config_store::ConfigStore;
+use crate::features::cli::configuration::abstractions::config_store::ConfigStore;
 use crate::features::template_management::commands::add_template_source::add_template_source_command::{
     AddTemplateSourceCommand, AddTemplateSourceCommandResult,
 };
 use crate::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
-use crate::features::template_management::services::abstraction::git_repository::GitRepository;
-use crate::features::template_management::services::abstraction::validator::Validator;
+use crate::features::template_management::services::abstractions::git_repository::GitRepository;
+use crate::features::template_management::services::abstractions::validator::Validator;
 use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 
 /// Command handler for adding a template source.

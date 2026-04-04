@@ -1,8 +1,8 @@
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use crate::features::service_management::services::abstraction::service_template_selector::ServiceTemplateSelector;
+use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use crate::features::template_management::models::errors::template_selection_error::TemplateSelectionError;
-use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::template_management::services::template_selection_service::TemplateSelectionService;
 use crate::features::template_management::services::template_type_resolver::read_template_type;
 

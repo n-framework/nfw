@@ -1,6 +1,6 @@
 use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command::RefreshTemplatesCommand;
 use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
-use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use nframework_nfw_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 
 /// Thin CLI presentation layer for refreshing templates.
 /// Delegates all business logic to the application layer command handler.

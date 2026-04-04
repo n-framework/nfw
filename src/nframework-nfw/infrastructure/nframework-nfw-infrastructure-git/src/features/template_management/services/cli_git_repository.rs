@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
+use nframework_nfw_application::features::template_management::services::abstractions::git_repository::GitRepository;
 
 /// Checks if a string has a valid Git URL format (HTTP, HTTPS, SSH, or local path)
 ///

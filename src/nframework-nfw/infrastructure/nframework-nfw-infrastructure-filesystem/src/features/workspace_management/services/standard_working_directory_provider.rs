@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
+use nframework_nfw_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 
 /// Standard implementation of WorkingDirectoryProvider that uses std::env.
 #[derive(Debug, Clone, Copy)]

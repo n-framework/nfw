@@ -148,7 +148,7 @@ fn handle_add_service(command: &dyn Command, context: &CliServiceCollection) -> 
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
 
-    AddServiceCliCommand::new(context.add_service_orchestration_service.clone())
+    AddServiceCliCommand::new(context.add_service_command_handler.clone())
         .execute(
             command.option("name"),
             command.option("template"),

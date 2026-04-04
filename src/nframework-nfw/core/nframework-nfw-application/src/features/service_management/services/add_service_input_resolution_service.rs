@@ -1,8 +1,8 @@
 use crate::features::service_management::models::add_service_command_request::AddServiceCommandRequest;
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use crate::features::service_management::services::abstraction::service_template_prompt::ServiceTemplatePrompt;
-use crate::features::service_management::services::abstraction::service_template_selector::ServiceTemplateSelector;
+use crate::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
+use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use nframework_core_cli_abstraction::{PromptError, PromptService};
 
 #[derive(Debug, Clone)]

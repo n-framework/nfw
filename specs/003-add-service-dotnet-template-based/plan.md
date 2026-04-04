@@ -5,7 +5,7 @@
 
 ## Summary
 
-Implement `nfw add service <name>` as a template-first workflow that requires template selection in automation, prompts in interactive mode, renders service templates from `nfw-templates` into `src/<ServiceName>/`, enforces the four-layer dependency matrix, scaffolds health endpoints, and records template provenance in `nfw.yaml`.
+Implement `nfw add service <name>` as a template-first workflow that requires template selection in automation, prompts in interactive mode, renders service templates from `nfw-templates` into `src/<ServiceName>/`, and records template provenance in `nfw.yaml`.
 
 ## Technical Context
 
@@ -17,7 +17,7 @@ Implement `nfw add service <name>` as a template-first workflow that requires te
 **Project Type**: CLI application (multi-crate clean architecture)
 **Performance Goals**: No new latency SLA is introduced in this feature; runtime focus is deterministic pre-generation validation/resolution before writes.
 **Constraints**: Output path fixed to `src/<ServiceName>/`; `--template` required in non-interactive mode; only templates with `type=service`; cleanup on interruption/failure; no separate service templating subsystem
-**Scale/Scope**: One service generation per invocation; initial service baseline uses Domain/Application/Infrastructure/Api layers with health endpoints
+**Scale/Scope**: One service generation per invocation; initial service baseline uses Domain/Application/Infrastructure/Api layers provided by the selected service template
 
 ## Constitution Check
 
@@ -90,7 +90,7 @@ src/nfw/
     └── 003-add-service-dotnet-template-based/
 ```
 
-**Structure Decision**: Reuse existing template system and CLI composition boundaries. Add service-generation orchestration in command/application flow, with rendering and write operations in infrastructure services.
+**Structure Decision**: Reuse existing template system and CLI composition boundaries. Add service-generation command handling in application command flow, with rendering and write operations in infrastructure services.
 
 ## Phase 2 Preview (for `/speckit.tasks`)
 
@@ -99,10 +99,8 @@ Expected task decomposition themes:
 1. CLI command surface and request normalization for `nfw add service`
 2. Template selection/prompting and non-interactive validation
 3. Service template rendering into `src/<ServiceName>/`
-4. Layer dependency matrix validation of generated projects
-5. Health endpoint scaffold verification
-6. `nfw.yaml` provenance persistence and tests
-7. Failure-path cleanup behavior and deterministic exit assertions
+4. `nfw.yaml` provenance persistence and tests
+5. Failure-path cleanup behavior and deterministic exit assertions
 
 ## Complexity Tracking
 

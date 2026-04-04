@@ -5,11 +5,11 @@ use std::fs;
 use std::path::Path;
 
 use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
+use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use nframework_nfw_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
-use nframework_nfw_application::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
+use nframework_nfw_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
 use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
-use nframework_nfw_application::features::service_management::services::add_service_orchestration_service::AddServiceOrchestrationService;
 use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use nframework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
 
@@ -83,7 +83,7 @@ fn removes_partial_output_when_generation_is_interrupted() {
         support::FirstTemplatePrompt,
         support::FailingPromptService,
     );
-    let orchestration = AddServiceOrchestrationService::new(
+    let orchestration = AddServiceCommandHandler::new(
         support::FixedWorkingDirectoryProvider {
             current_directory: workspace_root.clone(),
         },
@@ -99,7 +99,7 @@ fn removes_partial_output_when_generation_is_interrupted() {
         false,
     );
     let error = orchestration
-        .execute(&command)
+        .handle(&command)
         .expect_err("interrupting renderer should fail");
 
     assert_eq!(error, AddServiceError::Interrupted);

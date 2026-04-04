@@ -2,8 +2,8 @@ use std::cmp::Ordering;
 
 use nframework_nfw_domain::features::versioning::version::Version;
 
-use crate::features::versioning::abstraction::version_comparator::VersionComparator;
-use crate::features::versioning::abstraction::version_provider::VersionProvider as VersionProviderTrait;
+use crate::features::versioning::abstractions::version_comparator::VersionComparator;
+use crate::features::versioning::abstractions::version_provider::VersionProvider as VersionProviderTrait;
 
 #[derive(Debug, Clone)]
 pub struct VersionProvider<C>

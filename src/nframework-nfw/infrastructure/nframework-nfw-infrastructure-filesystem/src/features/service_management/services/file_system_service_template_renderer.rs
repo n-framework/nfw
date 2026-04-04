@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use nframework_nfw_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
-use nframework_nfw_application::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
+use nframework_nfw_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
 
 use crate::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 

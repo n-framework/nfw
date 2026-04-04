@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
-use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
+use nframework_nfw_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
 use nframework_nfw_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 use nframework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
 

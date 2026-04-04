@@ -1,19 +1,19 @@
 use nframework_nfw_domain::features::template_management::template_catalog::TemplateCatalog;
 use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 
-use crate::features::cli::configuration::abstraction::config_store::ConfigStore;
+use crate::features::cli::configuration::abstractions::config_store::ConfigStore;
 use crate::features::template_management::constants::source;
 use crate::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use crate::features::template_management::models::listed_template::ListedTemplate;
-use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
-use crate::features::template_management::services::abstraction::template_listing_service::TemplateListingService;
-use crate::features::template_management::services::abstraction::git_repository::GitRepository;
-use crate::features::template_management::services::abstraction::template_catalog_source::TemplateCatalogSource;
-use crate::features::template_management::services::abstraction::template_source_synchronizer::TemplateSourceSynchronizer;
-use crate::features::template_management::services::abstraction::validator::Validator;
-use crate::features::template_management::services::abstraction::yaml_parser::YamlParser;
+use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::template_management::services::abstractions::template_listing_service::TemplateListingService;
+use crate::features::template_management::services::abstractions::git_repository::GitRepository;
+use crate::features::template_management::services::abstractions::template_catalog_source::TemplateCatalogSource;
+use crate::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
+use crate::features::template_management::services::abstractions::validator::Validator;
+use crate::features::template_management::services::abstractions::yaml_parser::YamlParser;
 use crate::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
-use crate::features::versioning::abstraction::version_comparator::VersionComparator;
+use crate::features::versioning::abstractions::version_comparator::VersionComparator;
 
 #[derive(Debug, Clone)]
 pub struct TemplatesService<R, S, Y, V, C, CS, G>

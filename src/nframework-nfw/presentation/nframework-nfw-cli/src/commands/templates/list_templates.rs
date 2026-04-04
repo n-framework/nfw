@@ -1,6 +1,6 @@
 use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query::ListTemplatesQuery;
 use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
-use nframework_nfw_application::features::template_management::services::abstraction::template_listing_service::TemplateListingService;
+use nframework_nfw_application::features::template_management::services::abstractions::template_listing_service::TemplateListingService;
 
 /// Thin CLI presentation layer for listing templates.
 /// Delegates all business logic to the application layer query handler.

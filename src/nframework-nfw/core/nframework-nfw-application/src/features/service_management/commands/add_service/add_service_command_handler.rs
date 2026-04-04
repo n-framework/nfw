@@ -2,20 +2,20 @@ use crate::features::service_management::commands::add_service::add_service_comm
     AddServiceCommand, AddServiceCommandResult,
 };
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
-use crate::features::service_management::services::abstraction::service_provenance_store::ServiceProvenanceStore;
-use crate::features::service_management::services::abstraction::service_template_prompt::ServiceTemplatePrompt;
-use crate::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
-use crate::features::service_management::services::abstraction::service_template_selector::ServiceTemplateSelector;
+use crate::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
+use crate::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
+use crate::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
+use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use crate::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use crate::features::service_management::services::add_service_request_validator::AddServiceRequestValidator;
 use crate::features::service_management::services::add_service_workspace_context_guard::AddServiceWorkspaceContextGuard;
 use crate::features::service_management::services::service_generation_plan_builder::ServiceGenerationPlanBuilder;
 use crate::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
-use crate::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
+use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use nframework_core_cli_abstraction::PromptService;
 
 #[derive(Debug, Clone)]
-pub struct AddServiceOrchestrationService<D, S, P, Q, R, PS>
+pub struct AddServiceCommandHandler<D, S, P, Q, R, PS>
 where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
@@ -33,7 +33,7 @@ where
     working_directory_provider: D,
 }
 
-impl<D, S, P, Q, R, PS> AddServiceOrchestrationService<D, S, P, Q, R, PS>
+impl<D, S, P, Q, R, PS> AddServiceCommandHandler<D, S, P, Q, R, PS>
 where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
@@ -59,7 +59,7 @@ where
         }
     }
 
-    pub fn execute(&self, command: &AddServiceCommand) -> Result<AddServiceCommandResult, AddServiceError> {
+    pub fn handle(&self, command: &AddServiceCommand) -> Result<AddServiceCommandResult, AddServiceError> {
         let request = command.to_request();
         self.request_validator.validate_request(&request)?;
 
@@ -103,6 +103,10 @@ where
             template_id: plan.template_id,
             template_version: plan.template_version.to_string(),
         })
+    }
+
+    pub fn execute(&self, command: &AddServiceCommand) -> Result<AddServiceCommandResult, AddServiceError> {
+        self.handle(command)
     }
 
     fn cleanup_and_wrap(&self, output_root: &std::path::Path, error: AddServiceError) -> AddServiceError {

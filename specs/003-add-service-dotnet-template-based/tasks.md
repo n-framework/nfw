@@ -3,14 +3,14 @@
 **Input**: Design documents from `/src/nfw/specs/003-add-service-dotnet-template-based/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
-**Tests**: Include unit/integration tests for template selection behavior, generation output, dependency matrix compliance, health endpoints, and provenance persistence.
+**Tests**: Include unit/integration tests for template selection behavior, generation output, workspace context/cleanup behavior, and provenance persistence.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing.
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (`US1`, `US2`, `US3`, `US4`)
+- **[Story]**: Which user story this task belongs to (`US1`, `US4`)
 - All task descriptions include exact file paths
 
 ## Phase 1: Setup (Shared Infrastructure)
@@ -33,8 +33,8 @@
 - [X] T005 Define `AddServiceCommandRequest` and validation model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/add_service_command_request.rs`
 - [X] T006 [P] Define `ServiceTemplateResolution` model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/service_template_resolution.rs`
 - [X] T007 [P] Define `ServiceGenerationPlan` model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/service_generation_plan.rs`
-- [X] T008 [P] Define `LayerDependencyMatrix` domain contract in `src/nframework-nfw/core/nframework-nfw-domain/src/features/service_management/layer_dependency_matrix.rs`
-- [X] T009 Define service-generation abstraction interfaces in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/abstraction/service_template_selector.rs`, `service_template_renderer.rs`, and `service_provenance_store.rs`
+- [X] T008 [P] Remove language-specific layer-dependency enforcement from `nfw add service` scope and keep CLI language-agnostic
+- [X] T009 Define service-generation abstraction interfaces in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/abstractions/service_template_selector.rs`, `service_template_renderer.rs`, and `service_provenance_store.rs`
 - [X] T010 Define service-generation error model and exit-code mapping in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/errors/add_service_error.rs` and update `src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs`
 - [X] T011 Wire service-management services into CLI dependency registration in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs`
 
@@ -61,7 +61,7 @@
 - [X] T014 [P] [US1] Implement add-service request validator in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_request_validator.rs`
 - [X] T015 [P] [US1] Implement generation-plan builder for `src/<ServiceName>/` output in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generation_plan_builder.rs`
 - [X] T016 [US1] Implement filesystem template rendering and write operations in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/file_system_service_template_renderer.rs`
-- [X] T017 [US1] Implement add-service orchestration service in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_orchestration_service.rs`
+- [X] T017 [US1] Implement add-service command handler in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/commands/add_service/add_service_command_handler.rs`
 - [X] T018 [US1] Implement CLI command handler for `nfw add service` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/service/add_service.rs`
 - [X] T019 [US1] Register `add service` command routing and options in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
 - [X] T043 [US1] Implement explicit workspace-context guard (`nfw.yaml` discovery) in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_workspace_context_guard.rs`
@@ -98,7 +98,7 @@
 **Purpose**: Persist provenance, align docs/contracts, and run end-to-end acceptance validation.
 
 - [X] T035 [P] Implement template provenance persistence in workspace YAML writer in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-yaml/src/features/workspace_management/services/workspace_metadata_writer.rs`
-- [X] T036 Implement provenance write orchestration for add-service in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_template_provenance_service.rs`
+- [X] T036 Implement provenance write flow for add-service in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_template_provenance_service.rs`
 - [X] T037 [P] Add integration test for provenance persistence in `nfw.yaml` under service entry in `tests/integration/nframework-nfw/features/service_add/service_template_provenance_persistence_test.rs`
 - [X] T038 Align command docs and quickstart examples for template-first add-service flow in `src/nfw/docs/` and `src/nfw/specs/003-add-service-dotnet-template-based/quickstart.md`
 - [X] T039 Run and record acceptance verification command set from repository root in `src/nfw/specs/003-add-service-dotnet-template-based/quickstart.md`
@@ -113,30 +113,24 @@
 - **Phase 2 (Foundational)**: Depends on Phase 1; blocks all user stories.
 - **Phase 3 (US1)**: Depends on Phase 2.
 - **Phase 4 (US4)**: Depends on Phase 2 and integrates with US1 command flow.
-- **Phase 5 (US2)**: Depends on Phase 2 and should land after US1 generation path exists.
-- **Phase 6 (US3)**: Depends on Phase 3 baseline generation path.
 - **Phase 7 (Polish)**: Depends on completion of selected user stories.
 
 ### User Story Dependencies
 
 - **US1 (P1)**: MVP slice after foundation.
 - **US4 (P1)**: Depends on US1 command baseline for integration points.
-- **US2 (P1)**: Depends on US1 generated output path; validates architecture contract.
-- **US3 (P2)**: Depends on US1/US4 template-generated API baseline.
 
 ### Within Each User Story
 
-- Tests first (or early), then core services, then CLI/runtime wiring and orchestration integration.
+- Tests first (or early), then core services, then CLI/runtime wiring and command-handler integration.
 - Story checkpoint must pass independently.
 
 ## Parallel Opportunities
 
 - Setup: T003 and T004 can run in parallel.
 - Foundational: T006, T007, T008 can run in parallel after T005.
-- US1: T012, T013, T014, T015, T040, T041, T042 can run in parallel before orchestration integration.
+- US1: T012, T013, T014, T015, T040, T041, T042 can run in parallel before command-handler integration.
 - US4: T020, T021, T022 can run in parallel before T024/T025 integration.
-- US2: T026, T027, T028 can run in parallel before T029/T030 integration.
-- US3: T031 and T032 can run in parallel.
 - Polish: T035 and T037 can run in parallel.
 
 ---
@@ -158,16 +152,6 @@ Task: "T020 [US4] Add template selection tests in tests/unit/nframework-nfw/core
 Task: "T022 [US4] Implement service-template selection adapter in src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_template_selection_service.rs"
 ```
 
-## Parallel Example: User Story 2
-
-```bash
-# Parallelizable US2 tasks
-Task: "T026 [US2] Add matrix evaluation tests in tests/unit/nframework-nfw/core/nframework-nfw-domain/features/service_management/layer_dependency_matrix_tests.rs"
-Task: "T028 [US2] Implement project dependency inspector in src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/generated_project_dependency_inspector.rs"
-```
-
----
-
 ## Implementation Strategy
 
 ### MVP First (User Story 1)
@@ -181,14 +165,12 @@ Task: "T028 [US2] Implement project dependency inspector in src/nframework-nfw/i
 
 1. Deliver US1 (template-based service generation)
 2. Deliver US4 (template-system reuse and selection policy)
-3. Deliver US2 (layer dependency contract enforcement)
-4. Deliver US3 (health endpoint baseline)
-5. Complete Polish (provenance persistence, docs, acceptance validation)
+3. Complete Polish (provenance persistence, docs, acceptance validation)
 
 ### Team Parallel Strategy
 
 1. One engineer handles CLI/runtime command surface.
-2. One engineer handles application orchestration and validation services.
+2. One engineer handles application command handlers and validation services.
 3. One engineer handles filesystem/yaml infrastructure and integration tests.
 4. Merge at user-story checkpoints.
 

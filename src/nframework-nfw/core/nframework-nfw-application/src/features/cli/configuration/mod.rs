@@ -1,2 +1,2 @@
-pub mod abstraction;
+pub mod abstractions;
 pub mod nfw_configuration;

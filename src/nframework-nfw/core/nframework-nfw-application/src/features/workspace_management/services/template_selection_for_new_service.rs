@@ -1,5 +1,5 @@
 use crate::features::template_management::constants::source;
-use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::template_management::services::template_selection_result::TemplateSelectionResult;
 use crate::features::template_management::services::template_type_resolver::read_template_type;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;

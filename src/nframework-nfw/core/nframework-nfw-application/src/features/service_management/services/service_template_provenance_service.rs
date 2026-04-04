@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::service_management::models::service_template_provenance_record::ServiceTemplateProvenanceRecord;
-use crate::features::service_management::services::abstraction::service_provenance_store::ServiceProvenanceStore;
+use crate::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
 
 #[derive(Debug, Clone)]
 pub struct ServiceTemplateProvenanceService<S>

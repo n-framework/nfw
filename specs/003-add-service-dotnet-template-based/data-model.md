@@ -51,24 +51,6 @@ Filesystem generation plan derived from template + request.
 - Placeholder set must satisfy template requirements
 - Plan must be complete before filesystem writes begin
 
-## Entity: LayerDependencyMatrix
-
-Contract defining allowed project references for generated service layers.
-
-### LayerDependencyMatrix Fields
-
-- `domain_allowed_refs` (set)
-- `application_allowed_refs` (set)
-- `infrastructure_allowed_refs` (set)
-- `api_allowed_refs` (set)
-
-### LayerDependencyMatrix Validation Rules
-
-- `Domain` references none of service-layer projects
-- `Application` references only `Domain`
-- `Infrastructure` references only `Application` and `Domain`
-- `Api` references only `Application` and `Infrastructure`
-
 ## Entity: ServiceTemplateProvenanceRecord
 
 Workspace metadata record for template traceability.
@@ -111,4 +93,3 @@ Failure transitions:
 - One `AddServiceCommandRequest` yields at most one `ServiceTemplateResolution`
 - One `ServiceTemplateResolution` yields one `ServiceGenerationPlan`
 - One successful `ServiceGenerationPlan` yields one generated service root and one `ServiceTemplateProvenanceRecord`
-- One `LayerDependencyMatrix` applies to each generated service in this feature scope

@@ -1,9 +1,9 @@
-use crate::features::cli::configuration::abstraction::config_store::ConfigStore;
+use crate::features::cli::configuration::abstractions::config_store::ConfigStore;
 use crate::features::template_management::commands::remove_template_source::remove_template_source_command::{
     RemoveTemplateSourceCommand, RemoveTemplateSourceCommandResult,
 };
 use crate::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
-use crate::features::template_management::services::abstraction::template_source_synchronizer::TemplateSourceSynchronizer;
+use crate::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
 
 /// Command handler for removing a template source.
 ///
