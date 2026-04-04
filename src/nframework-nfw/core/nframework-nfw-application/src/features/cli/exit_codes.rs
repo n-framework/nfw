@@ -5,6 +5,7 @@ use crate::features::workspace_management::models::errors::workspace_new_error::
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExitCodes {
     Success = 0,
+    Interrupted = 130,
     ValidationError = 2,
     NotFound = 3,
     Conflict = 4,
@@ -45,7 +46,7 @@ impl ExitCodes {
             AddServiceError::DependencyRuleViolation(_)
             | AddServiceError::HealthEndpointsMissing(_)
             | AddServiceError::Internal(_) => Self::InternalError,
-            AddServiceError::Interrupted => Self::Success,
+            AddServiceError::Interrupted => Self::Interrupted,
         }
     }
 }

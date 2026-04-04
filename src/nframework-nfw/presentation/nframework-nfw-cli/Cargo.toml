@@ -47,6 +47,10 @@ name = "service_generation_cleanup_test"
 path = "../../../../tests/integration/nframework-nfw/features/service_add/service_generation_cleanup_test.rs"
 
 [[test]]
+name = "service_generation_path_safety_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_generation_path_safety_test.rs"
+
+[[test]]
 name = "service_template_validation_test"
 path = "../../../../tests/integration/nframework-nfw/features/service_add/service_template_validation_test.rs"
 

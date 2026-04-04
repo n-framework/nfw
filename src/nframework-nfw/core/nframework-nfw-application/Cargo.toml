@@ -57,3 +57,7 @@ path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/fe
 [[test]]
 name = "service_template_selection_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_template_selection_tests.rs"
+
+[[test]]
+name = "exit_codes_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes_tests.rs"

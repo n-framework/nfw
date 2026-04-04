@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use nframework_nfw_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
@@ -47,6 +47,7 @@ impl FileSystemServiceTemplateRenderer {
             })?;
 
             let rendered_relative_path = render_path(relative_path, placeholder_values);
+            ensure_safe_relative_path(&rendered_relative_path)?;
             let destination_path = output_root.join(rendered_relative_path);
 
             if source_path.is_dir() {
@@ -162,4 +163,30 @@ fn render_text(value: &str, placeholders: &BTreeMap<String, String>) -> String {
         rendered = rendered.replace(placeholder, replacement);
     }
     rendered
+}
+
+fn ensure_safe_relative_path(relative_path: &Path) -> Result<(), AddServiceError> {
+    if relative_path.is_absolute() {
+        return Err(AddServiceError::RenderFailed(format!(
+            "unsafe rendered path '{}': absolute paths are not allowed",
+            relative_path.display()
+        )));
+    }
+
+    for component in relative_path.components() {
+        match component {
+            Component::Prefix(_)
+            | Component::RootDir
+            | Component::ParentDir
+            | Component::CurDir => {
+                return Err(AddServiceError::RenderFailed(format!(
+                    "unsafe rendered path '{}': traversal or root components are not allowed",
+                    relative_path.display()
+                )));
+            }
+            Component::Normal(_) => {}
+        }
+    }
+
+    Ok(())
 }
