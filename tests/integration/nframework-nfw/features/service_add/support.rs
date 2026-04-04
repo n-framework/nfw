@@ -185,7 +185,7 @@ pub fn create_workspace_root(test_name: &str) -> PathBuf {
     fs::create_dir_all(root.join("src")).expect("workspace src directory should be created");
     fs::write(
         root.join("nfw.yaml"),
-        "workspace:\n  name: BillingPlatform\n  namespace: BillingPlatform\n",
+        "#    _  ______                                   __\n#   / |/ / __/______ ___ _  ___ _    _____  ____/ /__\n#  /    / _// __/ _ `/  ' \\/ -_) |/|/ / _ \\/ __/  '_/\n# /_/|_/_/ /_/  \\_,_/_/_/_/\\__/|__,__/\\___/_/ /_/\\_\\\n\n# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  namespace: BillingPlatform\n",
     )
     .expect("workspace metadata should be written");
     root

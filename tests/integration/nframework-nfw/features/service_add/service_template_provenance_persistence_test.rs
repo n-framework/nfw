@@ -26,8 +26,13 @@ fn persists_service_template_provenance_in_nfw_yaml() {
 
     let metadata_content =
         fs::read_to_string(workspace_root.join("nfw.yaml")).expect("nfw.yaml should be readable");
+    assert!(metadata_content.starts_with("#    _  ______"));
+    assert!(metadata_content.contains(
+        "\n# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n"
+    ));
     assert!(metadata_content.contains("services:"));
     assert!(metadata_content.contains("Orders:"));
+    assert!(metadata_content.contains("path: src/Orders"));
     assert!(metadata_content.contains("id: official/dotnet-service"));
     assert!(metadata_content.contains("version: 1.0.0"));
 

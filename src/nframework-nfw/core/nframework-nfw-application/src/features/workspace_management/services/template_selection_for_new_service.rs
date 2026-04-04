@@ -45,6 +45,7 @@ where
                 catalog
                     .templates
                     .into_iter()
+                    .filter(is_workspace_template)
                     .map(move |template| (catalog.source_name.clone(), template))
             })
             .collect::<Vec<_>>();
@@ -216,4 +217,26 @@ where
             selection.source_name, selection.template.metadata.id
         ))
     }
+}
+
+fn is_workspace_template(template: &TemplateDescriptor) -> bool {
+    let has_workspace_tag = template
+        .metadata
+        .tags
+        .iter()
+        .any(|tag| tag.eq_ignore_ascii_case("workspace"));
+    if has_workspace_tag {
+        return true;
+    }
+
+    let has_service_tag = template
+        .metadata
+        .tags
+        .iter()
+        .any(|tag| tag.eq_ignore_ascii_case("service"));
+    if has_service_tag {
+        return false;
+    }
+
+    false
 }

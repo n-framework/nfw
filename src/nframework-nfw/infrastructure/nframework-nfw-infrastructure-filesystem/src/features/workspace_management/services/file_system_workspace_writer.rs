@@ -4,6 +4,17 @@ use std::path::{Path, PathBuf};
 use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
 use nframework_nfw_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
+use serde_yaml::{Mapping, Value};
+
+const NFW_SCHEMA_URL: &str =
+    "https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json";
+const NFW_SCHEMA_DIRECTIVE_COMMENT: &str = "# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json";
+const NFW_YAML_BANNER_COMMENTS: &str = "\
+#    _  ______                                   __
+#   / |/ / __/______ ___ _  ___ _    _____  ____/ /__
+#  /    / _// __/ _ `/  ' \\/ -_) |/|/ / _ \\/ __/  '_/
+# /_/|_/_/ /_/  \\_,_/_/_/_/\\__/|__,__/\\___/_/ /_/\\_\\
+";
 
 #[derive(Debug, Clone)]
 pub struct FileSystemWorkspaceWriter;
@@ -56,6 +67,92 @@ impl FileSystemWorkspaceWriter {
         }
 
         self.copy_directory_recursive(&content_root, &content_root, output_root, resolution)
+    }
+
+    fn ensure_workspace_metadata_file(
+        &self,
+        output_root: &Path,
+        resolution: &NewCommandResolution,
+    ) -> Result<(), String> {
+        let workspace_metadata_path = output_root.join("nfw.yaml");
+        if workspace_metadata_path.is_file() {
+            return Ok(());
+        }
+
+        if workspace_metadata_path.exists() {
+            return Err(format!(
+                "workspace metadata path '{}' exists but is not a file",
+                workspace_metadata_path.display()
+            ));
+        }
+        let content = format!(
+            "$schema: {NFW_SCHEMA_URL}\nworkspace:\n  name: {}\n  template: {}\n  namespace: {}\n",
+            resolution.workspace_name, resolution.template_id, resolution.namespace_base,
+        );
+
+        fs::write(&workspace_metadata_path, content).map_err(|error| {
+            format!(
+                "failed to write workspace metadata file '{}': {error}",
+                workspace_metadata_path.display()
+            )
+        })
+    }
+
+    fn normalize_workspace_metadata_file(&self, output_root: &Path) -> Result<(), String> {
+        let workspace_metadata_path = output_root.join("nfw.yaml");
+        let content = fs::read_to_string(&workspace_metadata_path).map_err(|error| {
+            format!(
+                "failed to read workspace metadata file '{}': {error}",
+                workspace_metadata_path.display()
+            )
+        })?;
+
+        let mut root = serde_yaml::from_str::<Value>(&content).map_err(|error| {
+            format!(
+                "failed to parse workspace metadata file '{}': {error}",
+                workspace_metadata_path.display()
+            )
+        })?;
+        let root_mapping = root
+            .as_mapping_mut()
+            .ok_or_else(|| "workspace metadata root must be a YAML mapping".to_owned())?;
+
+        ensure_schema_key(root_mapping);
+        remove_workspace_project_guid(root_mapping)?;
+
+        let serialized = serde_yaml::to_string(&root).map_err(|error| {
+            format!(
+                "failed to serialize workspace metadata file '{}': {error}",
+                workspace_metadata_path.display()
+            )
+        })?;
+
+        fs::write(&workspace_metadata_path, serialized).map_err(|error| {
+            format!(
+                "failed to write workspace metadata file '{}': {error}",
+                workspace_metadata_path.display()
+            )
+        })
+    }
+
+    fn ensure_workspace_metadata_banner_comments(&self, output_root: &Path) -> Result<(), String> {
+        let workspace_metadata_path = output_root.join("nfw.yaml");
+        let content = fs::read_to_string(&workspace_metadata_path).map_err(|error| {
+            format!(
+                "failed to read workspace metadata file '{}': {error}",
+                workspace_metadata_path.display()
+            )
+        })?;
+
+        let (_, yaml_body) = split_leading_comments_and_body(&content);
+        let formatted_document = format_nfw_yaml_document(yaml_body)?;
+
+        fs::write(&workspace_metadata_path, formatted_document).map_err(|error| {
+            format!(
+                "failed to write workspace metadata file '{}': {error}",
+                workspace_metadata_path.display()
+            )
+        })
     }
 
     fn copy_directory_recursive(
@@ -130,7 +227,7 @@ impl FileSystemWorkspaceWriter {
 impl WorkspaceWriter for FileSystemWorkspaceWriter {
     fn write_workspace(
         &self,
-        blueprint: &WorkspaceBlueprint,
+        _blueprint: &WorkspaceBlueprint,
         resolution: &NewCommandResolution,
     ) -> Result<(), String> {
         Self::assert_target_is_empty_or_missing(&resolution.output_path)?;
@@ -142,17 +239,15 @@ impl WorkspaceWriter for FileSystemWorkspaceWriter {
             )
         })?;
 
-        for root_directory in &blueprint.root_directories {
-            fs::create_dir_all(resolution.output_path.join(root_directory)).map_err(|error| {
-                format!("failed to create directory '{root_directory}': {error}")
-            })?;
-        }
-
         self.copy_template_content(
             &resolution.template_cache_path,
             &resolution.output_path,
             resolution,
-        )
+        )?;
+
+        self.ensure_workspace_metadata_file(&resolution.output_path, resolution)?;
+        self.normalize_workspace_metadata_file(&resolution.output_path)?;
+        self.ensure_workspace_metadata_banner_comments(&resolution.output_path)
     }
 }
 
@@ -185,6 +280,98 @@ fn render_text(text: &str, resolution: &NewCommandResolution) -> String {
         .replace("__ServiceName__", &resolution.workspace_name)
         .replace("__Namespace__", &resolution.namespace_base)
         .replace("__ProjectGuid__", &project_guid)
+}
+
+fn ensure_schema_key(root_mapping: &mut Mapping) {
+    let schema_key = Value::String("$schema".to_owned());
+    root_mapping.insert(schema_key, Value::String(NFW_SCHEMA_URL.to_owned()));
+}
+
+fn remove_workspace_project_guid(root_mapping: &mut Mapping) -> Result<(), String> {
+    let workspace_key = Value::String("workspace".to_owned());
+    let Some(workspace_value) = root_mapping.get_mut(&workspace_key) else {
+        return Ok(());
+    };
+
+    let workspace_mapping = workspace_value
+        .as_mapping_mut()
+        .ok_or_else(|| "'workspace' must be a YAML mapping".to_owned())?;
+    workspace_mapping.remove(Value::String("projectGuid".to_owned()));
+    Ok(())
+}
+
+fn split_leading_comments_and_body(content: &str) -> (&str, &str) {
+    let mut body_start = 0usize;
+
+    for line in content.split_inclusive('\n') {
+        let trimmed = line.trim_start();
+        let is_comment = trimmed.starts_with('#');
+        let is_empty = trimmed.trim().is_empty();
+
+        if is_comment || is_empty {
+            body_start += line.len();
+            continue;
+        }
+        break;
+    }
+
+    (&content[..body_start], &content[body_start..])
+}
+
+fn format_nfw_yaml_document(yaml_body: &str) -> Result<String, String> {
+    let mut root = serde_yaml::from_str::<Value>(yaml_body)
+        .map_err(|error| format!("failed to parse workspace metadata YAML body: {error}"))?;
+    let root_mapping = root
+        .as_mapping_mut()
+        .ok_or_else(|| "workspace metadata root must be a YAML mapping".to_owned())?;
+    reorder_root_keys(root_mapping);
+
+    let serialized = serde_yaml::to_string(&root)
+        .map_err(|error| format!("failed to serialize workspace metadata YAML body: {error}"))?;
+    let formatted_body = add_top_level_section_spacing(&serialized);
+
+    Ok(format!(
+        "{NFW_YAML_BANNER_COMMENTS}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body}"
+    ))
+}
+
+fn reorder_root_keys(root_mapping: &mut Mapping) {
+    let mut reordered = Mapping::new();
+    move_key_if_exists(root_mapping, &mut reordered, "$schema");
+    move_key_if_exists(root_mapping, &mut reordered, "workspace");
+    move_key_if_exists(root_mapping, &mut reordered, "services");
+
+    let remaining = std::mem::take(root_mapping);
+    for (key, value) in remaining {
+        reordered.insert(key, value);
+    }
+
+    *root_mapping = reordered;
+}
+
+fn move_key_if_exists(source: &mut Mapping, destination: &mut Mapping, key: &str) {
+    let key_value = Value::String(key.to_owned());
+    if let Some(value) = source.remove(&key_value) {
+        destination.insert(key_value, value);
+    }
+}
+
+fn add_top_level_section_spacing(content: &str) -> String {
+    let mut formatted = String::new();
+    let mut previous_was_empty = false;
+
+    for line in content.lines() {
+        let requires_leading_empty_line = line == "workspace:" || line == "services:";
+        if requires_leading_empty_line && !formatted.is_empty() && !previous_was_empty {
+            formatted.push('\n');
+        }
+
+        formatted.push_str(line);
+        formatted.push('\n');
+        previous_was_empty = line.trim().is_empty();
+    }
+
+    formatted
 }
 
 pub fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {

@@ -131,10 +131,41 @@ fn read_template_type(template_cache_path: &std::path::Path) -> Result<String, A
         ))
     })?;
 
-    Ok(value
+    let explicit_type = value
         .get("type")
         .and_then(Value::as_str)
-        .unwrap_or("unknown")
-        .trim()
-        .to_owned())
+        .map(str::trim)
+        .filter(|candidate| !candidate.is_empty())
+        .map(ToOwned::to_owned);
+
+    if let Some(explicit_type) = explicit_type {
+        return Ok(explicit_type);
+    }
+
+    let inferred_from_tags = value
+        .get("tags")
+        .and_then(Value::as_sequence)
+        .and_then(|tags| {
+            let has_service_tag = tags
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::trim)
+                .any(|tag| tag.eq_ignore_ascii_case("service"));
+            if has_service_tag {
+                return Some("service".to_owned());
+            }
+
+            let has_workspace_tag = tags
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::trim)
+                .any(|tag| tag.eq_ignore_ascii_case("workspace"));
+            if has_workspace_tag {
+                return Some("workspace".to_owned());
+            }
+
+            None
+        });
+
+    Ok(inferred_from_tags.unwrap_or_else(|| "unknown".to_owned()))
 }

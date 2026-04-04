@@ -84,6 +84,63 @@ fn resolve_service_template_rejects_wrong_template_type() {
     cleanup_sandbox_directory(&sandbox);
 }
 
+#[test]
+fn list_service_templates_accepts_service_tag_without_type_field() {
+    let sandbox = create_sandbox_directory("service-selection-list-tags");
+    let service_template_dir =
+        create_template_directory_with_tags(&sandbox, "dotnet-service", &["service", "dotnet"]);
+    let workspace_template_dir =
+        create_template_directory_with_tags(&sandbox, "blank-workspace", &["workspace"]);
+
+    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
+        catalogs: vec![TemplateCatalog::new(
+            "official".to_owned(),
+            vec![
+                descriptor("dotnet-service", service_template_dir),
+                descriptor("blank-workspace", workspace_template_dir),
+            ],
+        )],
+    });
+
+    let templates = service
+        .list_service_templates()
+        .expect("service template listing should succeed");
+
+    assert_eq!(templates.len(), 1);
+    assert_eq!(
+        templates[0].qualified_template_id(),
+        "official/dotnet-service"
+    );
+
+    cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn resolve_service_template_accepts_service_tag_without_type_field() {
+    let sandbox = create_sandbox_directory("service-selection-resolve-tags");
+    let service_template_dir =
+        create_template_directory_with_tags(&sandbox, "dotnet-service", &["service", "dotnet"]);
+
+    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
+        catalogs: vec![TemplateCatalog::new(
+            "official".to_owned(),
+            vec![descriptor("dotnet-service", service_template_dir)],
+        )],
+    });
+
+    let resolution = service
+        .resolve_service_template("official/dotnet-service")
+        .expect("service tag should classify template as service");
+
+    assert_eq!(resolution.template_type, "service");
+    assert_eq!(
+        resolution.qualified_template_id(),
+        "official/dotnet-service"
+    );
+
+    cleanup_sandbox_directory(&sandbox);
+}
+
 fn descriptor(id: &str, cache_path: PathBuf) -> TemplateDescriptor {
     let metadata = TemplateMetadata::builder()
         .id(id.to_owned())
@@ -105,6 +162,29 @@ fn create_template_directory(root: &std::path::Path, name: &str, template_type: 
         template_root.join("template.yaml"),
         format!(
             "id: {name}\nname: {name}\ndescription: test\nversion: 1.0.0\ntype: {template_type}\n"
+        ),
+    )
+    .expect("template metadata should be written");
+
+    template_root
+}
+
+fn create_template_directory_with_tags(
+    root: &std::path::Path,
+    name: &str,
+    tags: &[&str],
+) -> PathBuf {
+    let template_root = root.join(name);
+    fs::create_dir_all(template_root.join("content"))
+        .expect("template content directory should be created");
+    let rendered_tags = tags
+        .iter()
+        .map(|tag| format!("  - {tag}\n"))
+        .collect::<String>();
+    fs::write(
+        template_root.join("template.yaml"),
+        format!(
+            "id: {name}\nname: {name}\ndescription: test\nversion: 1.0.0\ntags:\n{rendered_tags}"
         ),
     )
     .expect("template metadata should be written");

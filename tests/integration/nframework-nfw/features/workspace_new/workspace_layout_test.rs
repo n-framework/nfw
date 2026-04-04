@@ -5,7 +5,16 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
 use nframework_nfw_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
-use nframework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::{FileSystemWorkspaceWriter, stable_project_guid};
+use nframework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
+
+const EXPECTED_NFW_YAML_PREFIX: &str = "\
+#    _  ______                                   __
+#   / |/ / __/______ ___ _  ___ _    _____  ____/ /__
+#  /    / _// __/ _ `/  ' \\/ -_) |/|/ / _ \\/ __/  '_/
+# /_/|_/_/ /_/  \\_,_/_/_/_/\\__/|__,__/\\___/_/ /_/\\_\\
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json
+";
 
 #[test]
 fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
@@ -35,6 +44,7 @@ fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
             .join("src/BillingPlatform/service.manifest")
             .is_file()
     );
+    assert!(!output_path.join("nfw.schema.json").exists());
     assert!(!output_path.join("BillingPlatform.sln").exists());
     assert!(
         !output_path
@@ -49,8 +59,8 @@ fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
     assert_eq!(
         yaml,
         format!(
-            "workspace:\n  name: BillingPlatform\n  template: official/blank-workspace\n  namespace: BillingPlatform\n  projectGuid: {}\n",
-            stable_project_guid("BillingPlatform", "official/blank-workspace")
+            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  template: official/blank-workspace\n  namespace: BillingPlatform\n",
+            EXPECTED_NFW_YAML_PREFIX
         )
     );
 
@@ -82,6 +92,65 @@ fn fails_when_target_directory_already_exists_and_is_not_empty() {
         error.contains("already exists and is not empty"),
         "unexpected error: {error}"
     );
+
+    cleanup_sandbox_directory(&sandbox_root);
+}
+
+#[test]
+fn creates_nfw_yaml_when_template_does_not_provide_it() {
+    let sandbox_root = create_sandbox_directory("workspace-layout-missing-yaml");
+    let template_root = create_template_directory_without_nfw_yaml(&sandbox_root);
+    let output_path = sandbox_root.join("BillingPlatform");
+    let blueprint = WorkspaceBlueprint::new("BillingPlatform");
+    let resolution = NewCommandResolution {
+        workspace_name: "BillingPlatform".to_owned(),
+        template_id: "official/blank-workspace".to_owned(),
+        template_cache_path: template_root,
+        namespace_base: "BillingPlatform".to_owned(),
+        output_path: output_path.clone(),
+    };
+
+    let writer = FileSystemWorkspaceWriter::new();
+    writer
+        .write_workspace(&blueprint, &resolution)
+        .expect("workspace generation should succeed");
+
+    let yaml =
+        fs::read_to_string(output_path.join("nfw.yaml")).expect("nfw.yaml should be readable");
+    assert_eq!(
+        yaml,
+        format!(
+            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  template: official/blank-workspace\n  namespace: BillingPlatform\n",
+            EXPECTED_NFW_YAML_PREFIX
+        )
+    );
+
+    cleanup_sandbox_directory(&sandbox_root);
+}
+
+#[test]
+fn does_not_create_default_root_directories_when_template_omits_them() {
+    let sandbox_root = create_sandbox_directory("workspace-layout-no-default-roots");
+    let template_root = create_template_directory_with_only_nfw_yaml(&sandbox_root);
+    let output_path = sandbox_root.join("BillingPlatform");
+    let blueprint = WorkspaceBlueprint::new("BillingPlatform");
+    let resolution = NewCommandResolution {
+        workspace_name: "BillingPlatform".to_owned(),
+        template_id: "official/blank-workspace".to_owned(),
+        template_cache_path: template_root,
+        namespace_base: "BillingPlatform".to_owned(),
+        output_path: output_path.clone(),
+    };
+
+    let writer = FileSystemWorkspaceWriter::new();
+    writer
+        .write_workspace(&blueprint, &resolution)
+        .expect("workspace generation should succeed");
+
+    assert!(!output_path.join("src").exists());
+    assert!(!output_path.join("tests").exists());
+    assert!(!output_path.join("docs").exists());
+    assert!(output_path.join("nfw.yaml").is_file());
 
     cleanup_sandbox_directory(&sandbox_root);
 }
@@ -128,7 +197,41 @@ fn create_template_directory(sandbox_root: &Path) -> PathBuf {
     .expect("template readme should be written");
     fs::write(
         content_root.join("nfw.yaml"),
-        "workspace:\n  name: __WorkspaceName__\n  template: official/blank-workspace\n  namespace: __Namespace__\n  projectGuid: __ProjectGuid__\n",
+        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: __WorkspaceName__\n  template: official/blank-workspace\n  namespace: __Namespace__\n",
+    )
+    .expect("template config should be written");
+
+    template_root
+}
+
+fn create_template_directory_without_nfw_yaml(sandbox_root: &Path) -> PathBuf {
+    let template_root = sandbox_root.join("templates/official/src/blank-workspace-no-yaml");
+    let content_root = template_root.join("content");
+
+    fs::create_dir_all(content_root.join("src/__WorkspaceName__"))
+        .expect("template source directory should be created");
+    fs::create_dir_all(content_root.join("tests"))
+        .expect("template tests directory should be created");
+    fs::create_dir_all(content_root.join("docs"))
+        .expect("template docs directory should be created");
+
+    fs::write(
+        content_root.join("workspace.manifest"),
+        "workspace for __WorkspaceName__",
+    )
+    .expect("template manifest should be written");
+
+    template_root
+}
+
+fn create_template_directory_with_only_nfw_yaml(sandbox_root: &Path) -> PathBuf {
+    let template_root = sandbox_root.join("templates/official/src/blank-workspace-only-yaml");
+    let content_root = template_root.join("content");
+
+    fs::create_dir_all(&content_root).expect("template content directory should be created");
+    fs::write(
+        content_root.join("nfw.yaml"),
+        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: __WorkspaceName__\n  template: official/blank-workspace\n  namespace: __Namespace__\n",
     )
     .expect("template config should be written");
 

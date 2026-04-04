@@ -123,7 +123,7 @@ fn create_template_directory(sandbox_root: &Path) -> PathBuf {
     .expect("template readme should be written");
     fs::write(
         content_root.join("nfw.yaml"),
-        "workspace:\n  name: __WorkspaceName__\n  template: official/blank-workspace\n  namespace: __Namespace__\n  projectGuid: __ProjectGuid__\n",
+        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: __WorkspaceName__\n  template: official/blank-workspace\n  namespace: __Namespace__\n",
     )
     .expect("template config should be written");
 
