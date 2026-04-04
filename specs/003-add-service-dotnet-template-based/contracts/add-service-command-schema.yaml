@@ -1,0 +1,55 @@
+name: nfw-add-service-command-contract
+version: 1.0.0
+summary: Contract for parsing and executing template-based service generation
+
+command:
+  path: "nfw add service"
+  description: Generate a service from a selected service template into current workspace
+
+inputs:
+  service_name:
+    type: string
+    required: true
+    description: Service name used for output path and placeholder rendering
+  template_id:
+    type: string
+    required: false
+    description: Service template identifier; required in non-interactive mode
+  no_input:
+    type: boolean
+    required: false
+    default: false
+    description: Disable interactive prompts
+
+behavior:
+  interactive_mode:
+    condition: terminal_is_interactive AND no_input=false AND template_id_missing
+    outcome: prompt_for_service_template_selection
+  non_interactive_mode:
+    condition: no_input=true OR terminal_is_not_interactive
+    outcome: fail_if_template_id_missing
+
+validation:
+  - service_name must satisfy naming convention
+  - template_id must resolve in template catalog when provided
+  - resolved template metadata type must equal service
+  - output path src/<ServiceName>/ must not conflict with existing service directory
+
+outputs:
+  success:
+    exit_code: 0
+    stdout: includes generated service summary
+    guarantees:
+      - service generated under src/<ServiceName>/
+      - generated layers: Domain, Application, Infrastructure, Api
+      - health endpoints are scaffolded
+      - template provenance written to nfw.yaml (template_id + version)
+  validation_error:
+    exit_code: non_zero
+    stderr: actionable error with remediation guidance
+  runtime_error:
+    exit_code: non_zero
+    stderr: actionable runtime failure with failing path/context
+  interrupted:
+    exit_code: 130
+    stderr: interrupted execution notice with cleanup confirmation

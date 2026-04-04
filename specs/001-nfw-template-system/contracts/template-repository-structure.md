@@ -176,7 +176,7 @@ nfw-templates/
 ├── microservice/                    # Template 1
 │   ├── template.yaml
 │   ├── content/
-│   │   ├── __ServiceName__.Api/
+│   │   ├── __ServiceName__.WebApi/
 │   │   │   ├── Controllers/
 │   │   │   └── Program.cs
 │   │   ├── __ServiceName__.Application/

@@ -1,0 +1,61 @@
+use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
+use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_application::features::service_management::services::abstraction::generated_api_contract_inspector::GeneratedApiContractInspector;
+use nframework_nfw_application::features::service_management::services::abstraction::generated_project_dependency_inspector::GeneratedProjectDependencyInspector;
+use nframework_nfw_application::features::service_management::services::abstraction::service_provenance_store::ServiceProvenanceStore;
+use nframework_nfw_application::features::service_management::services::abstraction::service_template_prompt::ServiceTemplatePrompt;
+use nframework_nfw_application::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
+use nframework_nfw_application::features::service_management::services::abstraction::service_template_selector::ServiceTemplateSelector;
+use nframework_nfw_application::features::service_management::services::add_service_orchestration_service::AddServiceOrchestrationService;
+use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
+use nframework_core_cli_abstraction::PromptService;
+
+#[derive(Debug, Clone)]
+pub struct AddServiceCliCommand<H> {
+    handler: H,
+}
+
+impl<H> AddServiceCliCommand<H> {
+    pub fn new(handler: H) -> Self {
+        Self { handler }
+    }
+}
+
+impl<D, S, P, Q, R, I, A, PS>
+    AddServiceCliCommand<AddServiceOrchestrationService<D, S, P, Q, R, I, A, PS>>
+where
+    D: WorkingDirectoryProvider,
+    S: ServiceTemplateSelector,
+    P: ServiceTemplatePrompt,
+    Q: PromptService,
+    R: ServiceTemplateRenderer,
+    I: GeneratedProjectDependencyInspector,
+    A: GeneratedApiContractInspector,
+    PS: ServiceProvenanceStore,
+{
+    pub fn execute(
+        &self,
+        service_name: Option<&str>,
+        template_id: Option<&str>,
+        no_input: bool,
+        is_interactive_terminal: bool,
+    ) -> Result<(), AddServiceError> {
+        let command = AddServiceCommand::new(
+            service_name.map(ToOwned::to_owned),
+            template_id.map(ToOwned::to_owned),
+            no_input,
+            is_interactive_terminal,
+        );
+
+        let result = self.handler.execute(&command)?;
+        println!(
+            "Created service '{}' at '{}'.",
+            result.service_name,
+            result.output_path.display()
+        );
+        println!("Template: {}", result.template_id);
+        println!("Template version: {}", result.template_version);
+
+        Ok(())
+    }
+}

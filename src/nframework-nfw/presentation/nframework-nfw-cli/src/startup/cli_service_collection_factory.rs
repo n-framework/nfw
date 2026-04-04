@@ -1,6 +1,11 @@
 use std::path::Path;
 
 use nframework_core_cli_inquire::InquirerPromptService;
+use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
+use nframework_nfw_application::features::service_management::services::add_service_orchestration_service::AddServiceOrchestrationService;
+use nframework_nfw_application::features::service_management::services::service_layer_dependency_validator::ServiceLayerDependencyValidator;
+use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
+use nframework_nfw_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
 use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
 use nframework_nfw_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
 use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
@@ -16,6 +21,10 @@ use nframework_nfw_application::features::workspace_management::services::templa
 use nframework_nfw_application::validation::is_kebab_case;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::dirs_path_resolver::DirsPathResolver;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
+use nframework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
+use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_api_contract_inspector::FileSystemGeneratedApiContractInspector;
+use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_project_dependency_inspector::FileSystemGeneratedProjectDependencyInspector;
+use nframework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::file_system_config_store::FileSystemWorkspaceArtifactWriter;
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::local_templates_catalog_source::LocalTemplatesCatalogSource;
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::placeholder_detector::PlaceholderDetector;
@@ -25,6 +34,9 @@ use nframework_nfw_infrastructure_git::features::template_management::services::
 use nframework_nfw_infrastructure_git::features::template_management::services::git_template_catalog_source::GitTemplateCatalogSource;
 use nframework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
 use nframework_nfw_infrastructure_yaml::features::template_management::services::serde_yaml_parser::SerdeYamlParser;
+use nframework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
+
+use crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt;
 
 pub type CliPathResolver = DirsPathResolver;
 pub type CliGitRepository = InfrastructureCliGitRepository;
@@ -58,6 +70,22 @@ pub type CliRemoveTemplateSourceCommandHandler =
     RemoveTemplateSourceCommandHandler<CliConfigStore, CliSourceSynchronizer>;
 pub type CliRefreshTemplatesCommandHandler = RefreshTemplatesCommandHandler<CliTemplatesService>;
 pub type CliEnsureDefaultSourceCommandHandler = EnsureDefaultSourceCommandHandler<CliConfigStore>;
+pub type CliServiceTemplateSelector = ServiceTemplateSelectionService<CliTemplatesService>;
+pub type CliServiceTemplatePrompt = InteractiveServiceTemplatePrompt<InquirerPromptService>;
+pub type CliServiceTemplateRenderer = FileSystemServiceTemplateRenderer;
+pub type CliGeneratedProjectDependencyInspector = FileSystemGeneratedProjectDependencyInspector;
+pub type CliGeneratedApiContractInspector = FileSystemGeneratedApiContractInspector;
+pub type CliServiceProvenanceStore = WorkspaceMetadataWriter;
+pub type CliAddServiceOrchestrationService = AddServiceOrchestrationService<
+    CliWorkingDirectoryProvider,
+    CliServiceTemplateSelector,
+    CliServiceTemplatePrompt,
+    InquirerPromptService,
+    CliServiceTemplateRenderer,
+    CliGeneratedProjectDependencyInspector,
+    CliGeneratedApiContractInspector,
+    CliServiceProvenanceStore,
+>;
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CliValidator;
 
@@ -101,6 +129,7 @@ impl CliValidator {
 #[derive(Clone)]
 pub struct CliServiceCollection {
     pub new_workspace_command_handler: CliNewWorkspaceCommandHandler,
+    pub add_service_orchestration_service: CliAddServiceOrchestrationService,
     pub list_templates_query_handler: CliListTemplatesQueryHandler,
     pub add_template_source_command_handler: CliAddTemplateSourceCommandHandler,
     pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,
@@ -142,12 +171,29 @@ impl CliServiceCollectionFactory {
             templates_service.clone(),
             InquirerPromptService::new(),
         );
+
         let new_workspace_command_handler = NewWorkspaceCommandHandler::new(
             InquirerPromptService::new(),
             CliValidator,
             template_selection_for_new_service,
             FileSystemWorkspaceWriter::new(),
             StandardWorkingDirectoryProvider::new(),
+        );
+
+        let add_service_input_resolution_service = AddServiceInputResolutionService::new(
+            ServiceTemplateSelectionService::new(templates_service.clone()),
+            InteractiveServiceTemplatePrompt::new(InquirerPromptService::new()),
+            InquirerPromptService::new(),
+        );
+        let add_service_orchestration_service = AddServiceOrchestrationService::new(
+            StandardWorkingDirectoryProvider::new(),
+            add_service_input_resolution_service,
+            FileSystemServiceTemplateRenderer::new(ServiceGenerationCleanup::new()),
+            ServiceLayerDependencyValidator::new(
+                FileSystemGeneratedProjectDependencyInspector::new(),
+            ),
+            FileSystemGeneratedApiContractInspector::new(),
+            ServiceTemplateProvenanceService::new(WorkspaceMetadataWriter::new()),
         );
 
         let add_template_source_command_handler = AddTemplateSourceCommandHandler::new(
@@ -169,6 +215,7 @@ impl CliServiceCollectionFactory {
 
         CliServiceCollection {
             new_workspace_command_handler,
+            add_service_orchestration_service,
             list_templates_query_handler,
             add_template_source_command_handler,
             remove_template_source_command_handler,

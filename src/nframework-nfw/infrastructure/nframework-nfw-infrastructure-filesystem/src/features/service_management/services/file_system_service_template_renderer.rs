@@ -1,0 +1,165 @@
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
+use nframework_nfw_application::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
+
+use crate::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
+
+#[derive(Debug, Clone)]
+pub struct FileSystemServiceTemplateRenderer {
+    cleanup: ServiceGenerationCleanup,
+}
+
+impl FileSystemServiceTemplateRenderer {
+    pub fn new(cleanup: ServiceGenerationCleanup) -> Self {
+        Self { cleanup }
+    }
+
+    fn render_template_content(
+        &self,
+        content_root: &Path,
+        current_path: &Path,
+        output_root: &Path,
+        placeholder_values: &BTreeMap<String, String>,
+    ) -> Result<(), AddServiceError> {
+        for entry in fs::read_dir(current_path).map_err(|error| {
+            AddServiceError::RenderFailed(format!(
+                "failed to read template content '{}': {error}",
+                current_path.display()
+            ))
+        })? {
+            let entry = entry.map_err(|error| {
+                AddServiceError::RenderFailed(format!(
+                    "failed to read an entry under '{}': {error}",
+                    current_path.display()
+                ))
+            })?;
+
+            let source_path = entry.path();
+            let relative_path = source_path.strip_prefix(content_root).map_err(|error| {
+                AddServiceError::RenderFailed(format!(
+                    "failed to compute template-relative path for '{}': {error}",
+                    source_path.display()
+                ))
+            })?;
+
+            let rendered_relative_path = render_path(relative_path, placeholder_values);
+            let destination_path = output_root.join(rendered_relative_path);
+
+            if source_path.is_dir() {
+                fs::create_dir_all(&destination_path).map_err(|error| {
+                    AddServiceError::RenderFailed(format!(
+                        "failed to create directory '{}': {error}",
+                        destination_path.display()
+                    ))
+                })?;
+
+                self.render_template_content(
+                    content_root,
+                    &source_path,
+                    output_root,
+                    placeholder_values,
+                )?;
+                continue;
+            }
+
+            if let Some(parent) = destination_path.parent() {
+                fs::create_dir_all(parent).map_err(|error| {
+                    AddServiceError::RenderFailed(format!(
+                        "failed to create parent directory '{}': {error}",
+                        parent.display()
+                    ))
+                })?;
+            }
+
+            let bytes = fs::read(&source_path).map_err(|error| {
+                AddServiceError::RenderFailed(format!(
+                    "failed to read template file '{}': {error}",
+                    source_path.display()
+                ))
+            })?;
+            let rendered_bytes = render_bytes(&bytes, placeholder_values);
+            fs::write(&destination_path, rendered_bytes).map_err(|error| {
+                AddServiceError::RenderFailed(format!(
+                    "failed to write generated file '{}': {error}",
+                    destination_path.display()
+                ))
+            })?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Default for FileSystemServiceTemplateRenderer {
+    fn default() -> Self {
+        Self::new(ServiceGenerationCleanup::new())
+    }
+}
+
+impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
+    fn render_service(&self, plan: &ServiceGenerationPlan) -> Result<(), AddServiceError> {
+        let content_root = plan.template_cache_path.join("content");
+        if !content_root.is_dir() {
+            return Err(AddServiceError::RenderFailed(format!(
+                "template '{}' is missing required 'content/' directory",
+                plan.template_cache_path.display()
+            )));
+        }
+
+        fs::create_dir_all(&plan.output_root).map_err(|error| {
+            AddServiceError::RenderFailed(format!(
+                "failed to create output directory '{}': {error}",
+                plan.output_root.display()
+            ))
+        })?;
+
+        match self.render_template_content(
+            &content_root,
+            &content_root,
+            &plan.output_root,
+            &plan.placeholder_values,
+        ) {
+            Ok(()) => Ok(()),
+            Err(error) => {
+                let _ = self.cleanup.cleanup_output(&plan.output_root);
+                Err(error)
+            }
+        }
+    }
+
+    fn cleanup_partial_output(&self, output_root: &Path) -> Result<(), AddServiceError> {
+        self.cleanup
+            .cleanup_output(output_root)
+            .map_err(AddServiceError::CleanupFailed)
+    }
+}
+
+fn render_path(relative_path: &Path, placeholders: &BTreeMap<String, String>) -> PathBuf {
+    let mut rendered_path = PathBuf::new();
+
+    for component in relative_path.components() {
+        let text = component.as_os_str().to_string_lossy();
+        rendered_path.push(render_text(&text, placeholders));
+    }
+
+    rendered_path
+}
+
+fn render_bytes(bytes: &[u8], placeholders: &BTreeMap<String, String>) -> Vec<u8> {
+    match String::from_utf8(bytes.to_vec()) {
+        Ok(text) => render_text(&text, placeholders).into_bytes(),
+        Err(_) => bytes.to_vec(),
+    }
+}
+
+fn render_text(value: &str, placeholders: &BTreeMap<String, String>) -> String {
+    let mut rendered = value.to_owned();
+    for (placeholder, replacement) in placeholders {
+        rendered = rendered.replace(placeholder, replacement);
+    }
+    rendered
+}

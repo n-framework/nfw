@@ -71,7 +71,7 @@ Add files to the `content/` directory. These files will be generated when users 
 # Example structure
 content/
 ├── src/
-│   ├── __ServiceName__.Api/
+│   ├── __ServiceName__.WebApi/
 │   │   └── Controllers/
 │   ├── __ServiceName__.Application/
 │   └── __ServiceName__.Domain/

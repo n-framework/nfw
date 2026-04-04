@@ -5,8 +5,10 @@ use nframework_core_cli_abstraction::{
 };
 use nframework_core_cli_clap::ClapCliRuntimeBuilder;
 use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
+use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
+use crate::commands::service::add_service::AddServiceCliCommand;
 use crate::commands::templates::add_source::AddSourceCliCommand;
 use crate::commands::templates::list_templates::TemplatesCliCommand;
 use crate::commands::templates::refresh::RefreshTemplatesCliCommand;
@@ -76,6 +78,27 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                         CliCommandSpec::new("refresh")
                             .with_about("Refresh template catalogs from sources"),
                     ),
+            )
+            .with_command(
+                CliCommandSpec::new("add")
+                    .with_about("Create workspace artifacts")
+                    .require_subcommand()
+                    .with_subcommand(
+                        CliCommandSpec::new("service")
+                            .with_about("Generate a service from a service template")
+                            .with_option(
+                                CliOptionSpec::positional("name", 1).with_help("Service name"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("template", "template")
+                                    .with_help("Service template identifier"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("no-input", "no-input")
+                                    .with_help("Disable all interactive prompts")
+                                    .flag(),
+                            ),
+                    ),
             ),
     )
 }
@@ -86,6 +109,7 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
 
     ClapCliRuntimeBuilder::new(build_nfw_cli_app_config(), services)
         .register_handler("new", handle_workspace_new)
+        .register_handler("add/service", handle_add_service)
         .register_handler("templates/list", handle_templates_list)
         .register_handler("templates/add", handle_templates_add)
         .register_handler("templates/remove", handle_templates_remove)
@@ -116,6 +140,26 @@ fn handle_workspace_new(
         )
         .map_err(|error| {
             let exit_code = ExitCodes::from_workspace_new_error(&error) as i32;
+            format!("[exit:{exit_code}] {error}")
+        })
+}
+
+fn handle_add_service(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
+    let no_input = command.option("no-input").is_some();
+    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+
+    AddServiceCliCommand::new(context.add_service_orchestration_service.clone())
+        .execute(
+            command.option("name"),
+            command.option("template"),
+            no_input,
+            is_interactive_terminal,
+        )
+        .map_err(|error| {
+            let exit_code = match error {
+                AddServiceError::Interrupted => 130,
+                _ => ExitCodes::from_add_service_error(&error) as i32,
+            };
             format!("[exit:{exit_code}] {error}")
         })
 }

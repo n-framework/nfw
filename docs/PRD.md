@@ -114,7 +114,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 **Acceptance Criteria:**
 
-- `nfw add service <name> --lang <language>` creates the standard layer structure for the target language.
+- `nfw add service <name> --template <id>` creates the standard layer structure from the selected service template.
 - Generated projects reference only allowed dependencies for their layer.
 - The service compiles immediately after generation without manual file edits.
 - The scaffold includes sample health or readiness endpoints.
@@ -182,7 +182,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 ### FR-4: Service Addition
 
-- `nfw add service <name> --lang <language>` must generate a complete service scaffold.
+- `nfw add service <name> --template <id>` must generate a complete service scaffold.
 - Generated projects must include the standard layer structure for the target language.
 - Each project must have correct references and allowed dependencies.
 - The service must compile immediately after generation.
