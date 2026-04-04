@@ -10,10 +10,7 @@ use nframework_nfw_application::features::service_management::models::service_ge
 use nframework_nfw_application::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
 use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use nframework_nfw_application::features::service_management::services::add_service_orchestration_service::AddServiceOrchestrationService;
-use nframework_nfw_application::features::service_management::services::service_layer_dependency_validator::ServiceLayerDependencyValidator;
 use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
-use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_api_contract_inspector::FileSystemGeneratedApiContractInspector;
-use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_project_dependency_inspector::FileSystemGeneratedProjectDependencyInspector;
 use nframework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
 
 #[derive(Debug, Clone)]
@@ -77,13 +74,8 @@ fn removes_partial_output_when_generation_fails_after_write_start() {
 #[test]
 fn removes_partial_output_when_generation_is_interrupted() {
     let workspace_root = support::create_workspace_root("service-cleanup-interrupt");
-    let template_root = support::create_service_template(
-        &workspace_root,
-        "dotnet-service-template",
-        "service",
-        true,
-        true,
-    );
+    let template_root =
+        support::create_service_template(&workspace_root, "dotnet-service-template", "service");
     let resolution =
         support::create_template_resolution(&template_root, "official", "dotnet-service");
     let input_resolution = AddServiceInputResolutionService::new(
@@ -97,8 +89,6 @@ fn removes_partial_output_when_generation_is_interrupted() {
         },
         input_resolution,
         InterruptingRenderer,
-        ServiceLayerDependencyValidator::new(FileSystemGeneratedProjectDependencyInspector::new()),
-        FileSystemGeneratedApiContractInspector::new(),
         ServiceTemplateProvenanceService::new(WorkspaceMetadataWriter::new()),
     );
 

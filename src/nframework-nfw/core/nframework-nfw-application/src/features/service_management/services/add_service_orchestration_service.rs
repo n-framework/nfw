@@ -2,7 +2,6 @@ use crate::features::service_management::commands::add_service::add_service_comm
     AddServiceCommand, AddServiceCommandResult,
 };
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
-use crate::features::service_management::services::abstraction::generated_api_contract_inspector::GeneratedApiContractInspector;
 use crate::features::service_management::services::abstraction::service_provenance_store::ServiceProvenanceStore;
 use crate::features::service_management::services::abstraction::service_template_prompt::ServiceTemplatePrompt;
 use crate::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
@@ -11,21 +10,18 @@ use crate::features::service_management::services::add_service_input_resolution_
 use crate::features::service_management::services::add_service_request_validator::AddServiceRequestValidator;
 use crate::features::service_management::services::add_service_workspace_context_guard::AddServiceWorkspaceContextGuard;
 use crate::features::service_management::services::service_generation_plan_builder::ServiceGenerationPlanBuilder;
-use crate::features::service_management::services::service_layer_dependency_validator::ServiceLayerDependencyValidator;
 use crate::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use crate::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
 use nframework_core_cli_abstraction::PromptService;
 
 #[derive(Debug, Clone)]
-pub struct AddServiceOrchestrationService<D, S, P, Q, R, I, A, PS>
+pub struct AddServiceOrchestrationService<D, S, P, Q, R, PS>
 where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
     Q: PromptService,
     R: ServiceTemplateRenderer,
-    I: crate::features::service_management::services::abstraction::generated_project_dependency_inspector::GeneratedProjectDependencyInspector,
-    A: GeneratedApiContractInspector,
     PS: ServiceProvenanceStore,
 {
     request_validator: AddServiceRequestValidator,
@@ -33,29 +29,23 @@ where
     input_resolution_service: AddServiceInputResolutionService<S, P, Q>,
     plan_builder: ServiceGenerationPlanBuilder,
     renderer: R,
-    dependency_validator: ServiceLayerDependencyValidator<I>,
-    api_contract_inspector: A,
     provenance_service: ServiceTemplateProvenanceService<PS>,
     working_directory_provider: D,
 }
 
-impl<D, S, P, Q, R, I, A, PS> AddServiceOrchestrationService<D, S, P, Q, R, I, A, PS>
+impl<D, S, P, Q, R, PS> AddServiceOrchestrationService<D, S, P, Q, R, PS>
 where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
     Q: PromptService,
     R: ServiceTemplateRenderer,
-    I: crate::features::service_management::services::abstraction::generated_project_dependency_inspector::GeneratedProjectDependencyInspector,
-    A: GeneratedApiContractInspector,
     PS: ServiceProvenanceStore,
 {
     pub fn new(
         working_directory_provider: D,
         input_resolution_service: AddServiceInputResolutionService<S, P, Q>,
         renderer: R,
-        dependency_validator: ServiceLayerDependencyValidator<I>,
-        api_contract_inspector: A,
         provenance_service: ServiceTemplateProvenanceService<PS>,
     ) -> Self {
         Self {
@@ -64,8 +54,6 @@ where
             input_resolution_service,
             plan_builder: ServiceGenerationPlanBuilder::new(),
             renderer,
-            dependency_validator,
-            api_contract_inspector,
             provenance_service,
             working_directory_provider,
         }
@@ -98,14 +86,6 @@ where
 
         if let Err(error) = self.renderer.render_service(&plan) {
             return Err(self.cleanup_and_wrap(&plan.output_root, error));
-        }
-
-        if let Err(error) = self.dependency_validator.validate(&plan.output_root) {
-            return Err(self.cleanup_and_wrap(&plan.output_root, error));
-        }
-
-        if let Err(error) = self.api_contract_inspector.assert_health_endpoints(&plan.output_root) {
-            return Err(self.cleanup_and_wrap(&plan.output_root, AddServiceError::HealthEndpointsMissing(error)));
         }
 
         if let Err(error) = self.provenance_service.persist(

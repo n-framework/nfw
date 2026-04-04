@@ -11,13 +11,10 @@ use nframework_nfw_application::features::service_management::services::abstract
 use nframework_nfw_application::features::service_management::services::abstraction::service_template_selector::ServiceTemplateSelector;
 use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use nframework_nfw_application::features::service_management::services::add_service_orchestration_service::AddServiceOrchestrationService;
-use nframework_nfw_application::features::service_management::services::service_layer_dependency_validator::ServiceLayerDependencyValidator;
 use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
 use nframework_nfw_domain::features::versioning::version::Version;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
-use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_api_contract_inspector::FileSystemGeneratedApiContractInspector;
-use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_project_dependency_inspector::FileSystemGeneratedProjectDependencyInspector;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 use nframework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
 
@@ -112,8 +109,6 @@ pub fn build_default_orchestration(
     FirstTemplatePrompt,
     FailingPromptService,
     FileSystemServiceTemplateRenderer,
-    FileSystemGeneratedProjectDependencyInspector,
-    FileSystemGeneratedApiContractInspector,
     WorkspaceMetadataWriter,
 > {
     let input_resolution = AddServiceInputResolutionService::new(
@@ -130,8 +125,6 @@ pub fn build_default_orchestration(
         },
         input_resolution,
         FileSystemServiceTemplateRenderer::new(ServiceGenerationCleanup::new()),
-        ServiceLayerDependencyValidator::new(FileSystemGeneratedProjectDependencyInspector::new()),
-        FileSystemGeneratedApiContractInspector::new(),
         ServiceTemplateProvenanceService::new(WorkspaceMetadataWriter::new()),
     )
 }
@@ -143,8 +136,6 @@ pub fn execute_non_interactive_add_service(
         FirstTemplatePrompt,
         FailingPromptService,
         FileSystemServiceTemplateRenderer,
-        FileSystemGeneratedProjectDependencyInspector,
-        FileSystemGeneratedApiContractInspector,
         WorkspaceMetadataWriter,
     >,
     service_name: &str,
@@ -195,8 +186,6 @@ pub fn create_service_template(
     root: &Path,
     template_name: &str,
     template_type: &str,
-    include_health_endpoints: bool,
-    valid_dependencies: bool,
 ) -> PathBuf {
     let template_root = root.join(template_name);
     let content_root = template_root.join("content");
@@ -228,16 +217,9 @@ pub fn create_service_template(
     )
     .expect("application csproj should be written");
 
-    let infrastructure_references = if valid_dependencies {
-        "<ProjectReference Include=\"../Application/__ServiceName__.Application.csproj\" /><ProjectReference Include=\"../Domain/__ServiceName__.Domain.csproj\" />"
-    } else {
-        "<ProjectReference Include=\"../Api/__ServiceName__.WebApi.csproj\" />"
-    };
     fs::write(
         content_root.join("Infrastructure/__ServiceName__.Infrastructure.csproj"),
-        format!(
-            "<Project Sdk=\"Microsoft.NET.Sdk\"><ItemGroup>{infrastructure_references}</ItemGroup></Project>\n"
-        ),
+        "<Project Sdk=\"Microsoft.NET.Sdk\"><ItemGroup><ProjectReference Include=\"../Application/__ServiceName__.Application.csproj\" /><ProjectReference Include=\"../Domain/__ServiceName__.Domain.csproj\" /></ItemGroup></Project>\n",
     )
     .expect("infrastructure csproj should be written");
 
@@ -247,13 +229,11 @@ pub fn create_service_template(
     )
     .expect("api csproj should be written");
 
-    let health_program = if include_health_endpoints {
-        "var app = builder.Build();\napp.MapGet(\"/health/live\", () => Results.Ok());\napp.MapGet(\"/health/ready\", () => Results.Ok());\napp.Run();\n"
-    } else {
-        "var app = builder.Build();\napp.Run();\n"
-    };
-    fs::write(content_root.join("Api/Program.cs"), health_program)
-        .expect("api program should be written");
+    fs::write(
+        content_root.join("Api/Program.cs"),
+        "var app = builder.Build();\napp.Run();\n",
+    )
+    .expect("api program should be written");
 
     template_root
 }

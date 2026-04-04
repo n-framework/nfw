@@ -51,17 +51,5 @@ name = "service_template_validation_test"
 path = "../../../../tests/integration/nframework-nfw/features/service_add/service_template_validation_test.rs"
 
 [[test]]
-name = "service_layer_dependency_contract_test"
-path = "../../../../tests/integration/nframework-nfw/features/service_add/service_layer_dependency_contract_test.rs"
-
-[[test]]
-name = "service_health_endpoint_mapping_test"
-path = "../../../../tests/integration/nframework-nfw/features/service_add/service_health_endpoint_mapping_test.rs"
-
-[[test]]
-name = "service_health_endpoint_response_test"
-path = "../../../../tests/integration/nframework-nfw/features/service_add/service_health_endpoint_response_test.rs"
-
-[[test]]
 name = "service_template_provenance_persistence_test"
 path = "../../../../tests/integration/nframework-nfw/features/service_add/service_template_provenance_persistence_test.rs"

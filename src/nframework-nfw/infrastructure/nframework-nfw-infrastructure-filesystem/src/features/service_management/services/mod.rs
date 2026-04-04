@@ -1,4 +1,2 @@
 pub mod file_system_service_template_renderer;
-pub mod generated_api_contract_inspector;
-pub mod generated_project_dependency_inspector;
 pub mod service_generation_cleanup;

@@ -93,47 +93,6 @@
 
 ---
 
-## Phase 5: User Story 2 - Enforce Layer Dependency Rules (Priority: P1)
-
-**Goal**: Ensure generated projects follow allowed reference matrix.
-
-**Independent Test**: Generated service references satisfy dependency contract with no forbidden edges.
-
-### Tests for User Story 2
-
-- [X] T026 [P] [US2] Add unit tests for layer dependency matrix evaluation in `tests/unit/nframework-nfw/core/nframework-nfw-domain/features/service_management/layer_dependency_matrix_tests.rs`
-- [X] T027 [P] [US2] Add integration test to verify generated `.csproj` references obey matrix in `tests/integration/nframework-nfw/features/service_add/service_layer_dependency_contract_test.rs`
-
-### Implementation for User Story 2
-
-- [X] T028 [P] [US2] Implement generated-project dependency inspector in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/generated_project_dependency_inspector.rs`
-- [X] T029 [US2] Implement dependency matrix validator service in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_layer_dependency_validator.rs`
-- [X] T030 [US2] Integrate dependency validation into add-service completion flow in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_orchestration_service.rs`
-
-**Checkpoint**: US2 enforces layer boundaries on generated output.
-
----
-
-## Phase 6: User Story 3 - Include Baseline Health Endpoints (Priority: P2)
-
-**Goal**: Ensure generated API includes default liveness/readiness endpoints and expected behavior.
-
-**Independent Test**: Generated API exposes `GET /health/live` and `GET /health/ready` returning HTTP 200.
-
-### Tests for User Story 3
-
-- [X] T031 [P] [US3] Add integration test to assert generated API includes health endpoint mappings in `tests/integration/nframework-nfw/features/service_add/service_health_endpoint_mapping_test.rs`
-- [X] T032 [P] [US3] Add integration smoke test for live/ready endpoint responses in `tests/integration/nframework-nfw/features/service_add/service_health_endpoint_response_test.rs`
-
-### Implementation for User Story 3
-
-- [X] T033 [US3] Add health-endpoint scaffold contract validation in template-render output checks within `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_orchestration_service.rs`
-- [X] T034 [US3] Add generated API startup verification helper for health routes in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/generated_api_contract_inspector.rs`
-
-**Checkpoint**: US3 guarantees health baseline in generated services.
-
----
-
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 **Purpose**: Persist provenance, align docs/contracts, and run end-to-end acceptance validation.

@@ -42,7 +42,7 @@ where
 
         let template_type = read_template_type(&selection.template.cache_path)
             .map_err(AddServiceError::Internal)?;
-        if template_type != "service" {
+        if !template_type.eq_ignore_ascii_case("service") {
             return Err(AddServiceError::InvalidTemplateType {
                 template_id: format!(
                     "{}/{}",
@@ -74,7 +74,7 @@ where
             for descriptor in catalog.templates {
                 let template_type = read_template_type(&descriptor.cache_path)
                     .map_err(AddServiceError::Internal)?;
-                if template_type != "service" {
+                if !template_type.eq_ignore_ascii_case("service") {
                     continue;
                 }
 

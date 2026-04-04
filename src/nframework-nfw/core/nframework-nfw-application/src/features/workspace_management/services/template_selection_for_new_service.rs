@@ -240,5 +240,5 @@ fn is_workspace_template(template: &TemplateDescriptor) -> Result<bool, Workspac
     let template_type = read_template_type(&template.cache_path)
         .map_err(|error| WorkspaceNewError::Internal(error.to_string()))?;
 
-    Ok(template_type == "workspace")
+    Ok(template_type.eq_ignore_ascii_case("workspace"))
 }

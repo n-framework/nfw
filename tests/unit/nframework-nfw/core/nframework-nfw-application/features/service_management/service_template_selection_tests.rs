@@ -141,6 +141,30 @@ fn resolve_service_template_accepts_service_tag_without_type_field() {
     cleanup_sandbox_directory(&sandbox);
 }
 
+#[test]
+fn resolve_service_template_accepts_case_insensitive_type_field() {
+    let sandbox = create_sandbox_directory("service-selection-resolve-case-insensitive-type");
+    let service_template_dir = create_template_directory(&sandbox, "dotnet-service", "Service");
+
+    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
+        catalogs: vec![TemplateCatalog::new(
+            "official".to_owned(),
+            vec![descriptor("dotnet-service", service_template_dir)],
+        )],
+    });
+
+    let resolution = service
+        .resolve_service_template("official/dotnet-service")
+        .expect("type field should be matched case-insensitively");
+
+    assert_eq!(
+        resolution.qualified_template_id(),
+        "official/dotnet-service"
+    );
+
+    cleanup_sandbox_directory(&sandbox);
+}
+
 fn descriptor(id: &str, cache_path: PathBuf) -> TemplateDescriptor {
     let metadata = TemplateMetadata::builder()
         .id(id.to_owned())

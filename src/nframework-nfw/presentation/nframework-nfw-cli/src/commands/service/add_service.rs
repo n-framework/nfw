@@ -1,7 +1,5 @@
 use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use nframework_nfw_application::features::service_management::services::abstraction::generated_api_contract_inspector::GeneratedApiContractInspector;
-use nframework_nfw_application::features::service_management::services::abstraction::generated_project_dependency_inspector::GeneratedProjectDependencyInspector;
 use nframework_nfw_application::features::service_management::services::abstraction::service_provenance_store::ServiceProvenanceStore;
 use nframework_nfw_application::features::service_management::services::abstraction::service_template_prompt::ServiceTemplatePrompt;
 use nframework_nfw_application::features::service_management::services::abstraction::service_template_renderer::ServiceTemplateRenderer;
@@ -21,16 +19,14 @@ impl<H> AddServiceCliCommand<H> {
     }
 }
 
-impl<D, S, P, Q, R, I, A, PS>
-    AddServiceCliCommand<AddServiceOrchestrationService<D, S, P, Q, R, I, A, PS>>
+impl<D, S, P, Q, R, PS>
+    AddServiceCliCommand<AddServiceOrchestrationService<D, S, P, Q, R, PS>>
 where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
     Q: PromptService,
     R: ServiceTemplateRenderer,
-    I: GeneratedProjectDependencyInspector,
-    A: GeneratedApiContractInspector,
     PS: ServiceProvenanceStore,
 {
     pub fn execute(

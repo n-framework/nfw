@@ -180,6 +180,39 @@ fn accepts_workspace_template_from_explicit_type_without_tags() {
     cleanup_sandbox_directory(&sandbox_root);
 }
 
+#[test]
+fn accepts_workspace_template_from_case_insensitive_type_without_tags() {
+    let sandbox_root = create_sandbox_directory("workspace-template-type-case-insensitive");
+    let workspace_template_path = sandbox_root.join("workspace-template");
+    fs::create_dir_all(&workspace_template_path).expect("template directory should be created");
+    fs::write(
+        workspace_template_path.join("template.yaml"),
+        "id: workspace-starter\nname: Workspace Starter\ndescription: workspace\nversion: 1.0.0\ntype: WORKSPACE\n",
+    )
+    .expect("template metadata should be written");
+
+    let service = TemplateSelectionForNewService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor_with_path(
+                    "workspace-starter",
+                    workspace_template_path.clone(),
+                    &[],
+                )],
+            )],
+        },
+        StubPromptService,
+    );
+
+    let selected_template_id = service
+        .resolve_template_id(None)
+        .expect("workspace template selection should succeed");
+
+    assert_eq!(selected_template_id, "official/workspace-starter");
+    cleanup_sandbox_directory(&sandbox_root);
+}
+
 fn descriptor(id: &str, path: &str, tags: &[&str]) -> TemplateDescriptor {
     descriptor_with_path(id, PathBuf::from(path), tags)
 }

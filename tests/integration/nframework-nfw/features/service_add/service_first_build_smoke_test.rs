@@ -6,13 +6,8 @@ use std::fs;
 #[test]
 fn generated_service_contains_build_ready_project_files() {
     let workspace_root = support::create_workspace_root("service-first-build");
-    let template_root = support::create_service_template(
-        &workspace_root,
-        "dotnet-service-template",
-        "service",
-        true,
-        true,
-    );
+    let template_root =
+        support::create_service_template(&workspace_root, "dotnet-service-template", "service");
     let template_resolution =
         support::create_template_resolution(&template_root, "official", "dotnet-service");
     let orchestration = support::build_default_orchestration(&workspace_root, template_resolution);

@@ -106,7 +106,7 @@ impl FileSystemWorkspaceWriter {
                 workspace_metadata_path.display()
             )
         })?;
-        let preserved_comments = extract_preserved_comment_block(&content);
+        let preserved_comments = extract_preserved_comments(&content);
 
         let mut root = serde_yaml::from_str::<Value>(&content).map_err(|error| {
             format!(
@@ -148,7 +148,7 @@ impl FileSystemWorkspaceWriter {
         })?;
 
         let (_, yaml_body) = split_leading_comments_and_body(&content);
-        let preserved_comments = extract_preserved_comment_block(&content);
+        let preserved_comments = extract_preserved_comments(&content);
         let formatted_document = format_nfw_yaml_document(yaml_body, &preserved_comments)?;
 
         fs::write(&workspace_metadata_path, formatted_document).map_err(|error| {
@@ -324,7 +324,7 @@ fn split_leading_comments_and_body(content: &str) -> (&str, &str) {
 
 fn format_nfw_yaml_document(
     yaml_body: &str,
-    preserved_comment_block: &str,
+    preserved_comments: &PreservedComments,
 ) -> Result<String, String> {
     let mut root = serde_yaml::from_str::<Value>(yaml_body)
         .map_err(|error| format!("failed to parse workspace metadata YAML body: {error}"))?;
@@ -336,15 +336,18 @@ fn format_nfw_yaml_document(
     let serialized = serde_yaml::to_string(&root)
         .map_err(|error| format!("failed to serialize workspace metadata YAML body: {error}"))?;
     let formatted_body = add_top_level_section_spacing(&serialized);
+    let formatted_body_with_comments =
+        insert_preserved_section_comments(&formatted_body, preserved_comments);
+    let header_comment_block = preserved_comments.header.join("\n");
 
-    if preserved_comment_block.is_empty() {
+    if header_comment_block.is_empty() {
         return Ok(format!(
-            "{NFW_YAML_BANNER_COMMENTS}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body}"
+            "{NFW_YAML_BANNER_COMMENTS}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body_with_comments}"
         ));
     }
 
     Ok(format!(
-        "{NFW_YAML_BANNER_COMMENTS}\n{preserved_comment_block}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body}"
+        "{NFW_YAML_BANNER_COMMENTS}\n{header_comment_block}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body_with_comments}"
     ))
 }
 
@@ -387,23 +390,93 @@ fn add_top_level_section_spacing(content: &str) -> String {
     formatted
 }
 
-fn extract_preserved_comment_block(content: &str) -> String {
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+struct PreservedComments {
+    header: Vec<String>,
+    before_workspace: Vec<String>,
+    before_services: Vec<String>,
+}
+
+fn extract_preserved_comments(content: &str) -> PreservedComments {
     let banner_lines = NFW_YAML_BANNER_COMMENTS
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty())
         .collect::<Vec<_>>();
+    let mut preserved = PreservedComments::default();
+    let mut pending_comments = Vec::<String>::new();
 
-    let preserved_lines = content
-        .lines()
-        .map(str::trim)
-        .filter(|line| line.starts_with('#'))
-        .filter(|line| !banner_lines.contains(line))
-        .filter(|line| *line != NFW_SCHEMA_DIRECTIVE_COMMENT)
-        .map(ToOwned::to_owned)
-        .collect::<Vec<_>>();
+    for line in content.lines() {
+        let trimmed = line.trim();
 
-    preserved_lines.join("\n")
+        if trimmed.starts_with('#') {
+            if !banner_lines.contains(&trimmed) && trimmed != NFW_SCHEMA_DIRECTIVE_COMMENT {
+                pending_comments.push(trimmed.to_owned());
+            }
+            continue;
+        }
+
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        if line.starts_with(' ') || line.starts_with('\t') {
+            pending_comments.clear();
+            continue;
+        }
+
+        if trimmed.starts_with("workspace:") {
+            preserved.before_workspace.append(&mut pending_comments);
+            continue;
+        }
+
+        if trimmed.starts_with("services:") {
+            preserved.before_services.append(&mut pending_comments);
+            continue;
+        }
+
+        if trimmed.starts_with("$schema:") {
+            preserved.header.append(&mut pending_comments);
+            continue;
+        }
+
+        pending_comments.clear();
+    }
+
+    if !pending_comments.is_empty() {
+        preserved.header.append(&mut pending_comments);
+    }
+
+    preserved
+}
+
+fn insert_preserved_section_comments(content: &str, preserved_comments: &PreservedComments) -> String {
+    let mut formatted = String::new();
+    let mut inserted_workspace = false;
+    let mut inserted_services = false;
+
+    for line in content.lines() {
+        if line == "workspace:" && !inserted_workspace {
+            for comment in &preserved_comments.before_workspace {
+                formatted.push_str(comment);
+                formatted.push('\n');
+            }
+            inserted_workspace = true;
+        }
+
+        if line == "services:" && !inserted_services {
+            for comment in &preserved_comments.before_services {
+                formatted.push_str(comment);
+                formatted.push('\n');
+            }
+            inserted_services = true;
+        }
+
+        formatted.push_str(line);
+        formatted.push('\n');
+    }
+
+    formatted
 }
 
 pub fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {

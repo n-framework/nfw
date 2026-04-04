@@ -3,7 +3,6 @@ use std::path::Path;
 use nframework_core_cli_inquire::InquirerPromptService;
 use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use nframework_nfw_application::features::service_management::services::add_service_orchestration_service::AddServiceOrchestrationService;
-use nframework_nfw_application::features::service_management::services::service_layer_dependency_validator::ServiceLayerDependencyValidator;
 use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use nframework_nfw_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
 use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
@@ -22,8 +21,6 @@ use nframework_nfw_application::validation::is_kebab_case;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::dirs_path_resolver::DirsPathResolver;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
-use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_api_contract_inspector::FileSystemGeneratedApiContractInspector;
-use nframework_nfw_infrastructure_filesystem::features::service_management::services::generated_project_dependency_inspector::FileSystemGeneratedProjectDependencyInspector;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::file_system_config_store::FileSystemWorkspaceArtifactWriter;
 use nframework_nfw_infrastructure_filesystem::features::template_management::services::local_templates_catalog_source::LocalTemplatesCatalogSource;
@@ -73,8 +70,6 @@ pub type CliEnsureDefaultSourceCommandHandler = EnsureDefaultSourceCommandHandle
 pub type CliServiceTemplateSelector = ServiceTemplateSelectionService<CliTemplatesService>;
 pub type CliServiceTemplatePrompt = InteractiveServiceTemplatePrompt<InquirerPromptService>;
 pub type CliServiceTemplateRenderer = FileSystemServiceTemplateRenderer;
-pub type CliGeneratedProjectDependencyInspector = FileSystemGeneratedProjectDependencyInspector;
-pub type CliGeneratedApiContractInspector = FileSystemGeneratedApiContractInspector;
 pub type CliServiceProvenanceStore = WorkspaceMetadataWriter;
 pub type CliAddServiceOrchestrationService = AddServiceOrchestrationService<
     CliWorkingDirectoryProvider,
@@ -82,8 +77,6 @@ pub type CliAddServiceOrchestrationService = AddServiceOrchestrationService<
     CliServiceTemplatePrompt,
     InquirerPromptService,
     CliServiceTemplateRenderer,
-    CliGeneratedProjectDependencyInspector,
-    CliGeneratedApiContractInspector,
     CliServiceProvenanceStore,
 >;
 #[derive(Debug, Default, Clone, Copy)]
@@ -189,10 +182,6 @@ impl CliServiceCollectionFactory {
             StandardWorkingDirectoryProvider::new(),
             add_service_input_resolution_service,
             FileSystemServiceTemplateRenderer::new(ServiceGenerationCleanup::new()),
-            ServiceLayerDependencyValidator::new(
-                FileSystemGeneratedProjectDependencyInspector::new(),
-            ),
-            FileSystemGeneratedApiContractInspector::new(),
             ServiceTemplateProvenanceService::new(WorkspaceMetadataWriter::new()),
         );
 
