@@ -29,7 +29,7 @@ fn generated_service_contains_build_ready_project_files() {
         service_root.join("Domain/Orders.Domain.csproj"),
         service_root.join("Application/Orders.Application.csproj"),
         service_root.join("Infrastructure/Orders.Infrastructure.csproj"),
-        service_root.join("Api/Orders.Api.csproj"),
+        service_root.join("Api/Orders.WebApi.csproj"),
     ];
 
     for project_file in project_files {

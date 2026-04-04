@@ -4,79 +4,10 @@
 //! when Git authentication fails, and that users are guided toward proper
 //! credential configuration.
 
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use nframework_nfw_application::features::cli::configuration::abstraction::config_store::ConfigStore;
-use nframework_nfw_application::features::cli::configuration::abstraction::path_resolver::PathResolver;
 use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
-use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
-use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 use nframework_nfw_infrastructure_git::features::template_management::services::cli_git_repository::CliGitRepository;
-
-/// Creates a temporary sandbox directory for testing
-fn create_sandbox_directory() -> PathBuf {
-    let timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_nanos();
-    let sandbox = std::env::temp_dir().join(format!("nfw-test-auth-{}", timestamp));
-    fs::create_dir_all(&sandbox).expect("failed to create sandbox directory");
-    sandbox
-}
-
-#[derive(Debug, Clone)]
-struct TestConfigStore {
-    sources: Vec<TemplateSource>,
-}
-
-impl ConfigStore for TestConfigStore {
-    fn load_sources(&self) -> Result<Vec<TemplateSource>, String> {
-        Ok(self.sources.clone())
-    }
-
-    fn save_sources(&self, _sources: &[TemplateSource]) -> Result<(), String> {
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone)]
-struct TestPathResolver {
-    cache_directory: PathBuf,
-    config_directory: PathBuf,
-}
-
-impl PathResolver for TestPathResolver {
-    fn cache_dir(&self) -> Result<PathBuf, String> {
-        Ok(self.cache_directory.clone())
-    }
-
-    fn config_dir(&self) -> Result<PathBuf, String> {
-        Ok(self.config_directory.clone())
-    }
-}
-
-#[derive(Debug, Default, Clone, Copy)]
-struct TestValidator;
-
-impl Validator for TestValidator {
-    fn is_kebab_case(&self, value: &str) -> bool {
-        if value.starts_with('-') || value.ends_with('-') || value.contains("--") {
-            return false;
-        }
-
-        value.chars().all(|character| {
-            character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
-        })
-    }
-
-    fn is_git_url(&self, value: &str) -> bool {
-        value.starts_with("http://")
-            || value.starts_with("https://")
-            || value.starts_with("git@")
-            || Path::new(value).exists()
-    }
-}
 
 #[test]
 fn provides_clear_error_for_authentication_failure() {
