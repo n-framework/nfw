@@ -1,6 +1,7 @@
 use crate::features::template_management::constants::source;
 use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::template_management::services::template_selection_result::TemplateSelectionResult;
+use crate::features::template_management::services::template_type_resolver::read_template_type;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use nframework_core_cli_abstraction::{PromptService, SelectOption};
 use nframework_nfw_domain::features::template_management::template_descriptor::TemplateDescriptor;
@@ -39,16 +40,14 @@ where
             .discover_catalogs()
             .map_err(|error| WorkspaceNewError::Internal(error.to_string()))?;
 
-        let templates = catalogs
-            .into_iter()
-            .flat_map(|catalog| {
-                catalog
-                    .templates
-                    .into_iter()
-                    .filter(is_workspace_template)
-                    .map(move |template| (catalog.source_name.clone(), template))
-            })
-            .collect::<Vec<_>>();
+        let mut templates = Vec::<(String, TemplateDescriptor)>::new();
+        for catalog in catalogs {
+            for template in catalog.templates {
+                if is_workspace_template(&template)? {
+                    templates.push((catalog.source_name.clone(), template));
+                }
+            }
+        }
 
         if templates.is_empty() {
             return Err(WorkspaceNewError::TemplateNotFound(
@@ -219,14 +218,14 @@ where
     }
 }
 
-fn is_workspace_template(template: &TemplateDescriptor) -> bool {
+fn is_workspace_template(template: &TemplateDescriptor) -> Result<bool, WorkspaceNewError> {
     let has_workspace_tag = template
         .metadata
         .tags
         .iter()
         .any(|tag| tag.eq_ignore_ascii_case("workspace"));
     if has_workspace_tag {
-        return true;
+        return Ok(true);
     }
 
     let has_service_tag = template
@@ -235,8 +234,11 @@ fn is_workspace_template(template: &TemplateDescriptor) -> bool {
         .iter()
         .any(|tag| tag.eq_ignore_ascii_case("service"));
     if has_service_tag {
-        return false;
+        return Ok(false);
     }
 
-    false
+    let template_type = read_template_type(&template.cache_path)
+        .map_err(|error| WorkspaceNewError::Internal(error.to_string()))?;
+
+    Ok(template_type == "workspace")
 }

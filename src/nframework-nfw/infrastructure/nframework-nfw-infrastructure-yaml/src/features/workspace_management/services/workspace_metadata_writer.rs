@@ -44,6 +44,7 @@ impl ServiceProvenanceStore for WorkspaceMetadataWriter {
                 workspace_file.display()
             )
         })?;
+        let preserved_comments = extract_preserved_comment_block(&content);
         let mut root = serde_yaml::from_str::<Value>(&content).map_err(|error| {
             format!(
                 "failed to parse workspace metadata file '{}': {error}",
@@ -103,7 +104,7 @@ impl ServiceProvenanceStore for WorkspaceMetadataWriter {
                 workspace_file.display()
             )
         })?;
-        let rewritten = format_nfw_yaml_document(&serialized);
+        let rewritten = format_nfw_yaml_document(&serialized, &preserved_comments);
 
         fs::write(&workspace_file, rewritten).map_err(|error| {
             format!(
@@ -154,9 +155,17 @@ fn move_key_if_exists(source: &mut Mapping, destination: &mut Mapping, key: &str
     }
 }
 
-fn format_nfw_yaml_document(serialized_yaml_body: &str) -> String {
+fn format_nfw_yaml_document(serialized_yaml_body: &str, preserved_comment_block: &str) -> String {
     let formatted_body = add_top_level_section_spacing(serialized_yaml_body);
-    format!("{NFW_YAML_BANNER_COMMENTS}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body}")
+    if preserved_comment_block.is_empty() {
+        return format!(
+            "{NFW_YAML_BANNER_COMMENTS}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body}"
+        );
+    }
+
+    format!(
+        "{NFW_YAML_BANNER_COMMENTS}\n{preserved_comment_block}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body}"
+    )
 }
 
 fn add_top_level_section_spacing(content: &str) -> String {
@@ -175,4 +184,23 @@ fn add_top_level_section_spacing(content: &str) -> String {
     }
 
     formatted
+}
+
+fn extract_preserved_comment_block(content: &str) -> String {
+    let banner_lines = NFW_YAML_BANNER_COMMENTS
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>();
+
+    let preserved_lines = content
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with('#'))
+        .filter(|line| !banner_lines.contains(line))
+        .filter(|line| *line != NFW_SCHEMA_DIRECTIVE_COMMENT)
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+
+    preserved_lines.join("\n")
 }

@@ -1,5 +1,7 @@
-use std::path::PathBuf;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
 use nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
@@ -145,10 +147,47 @@ fn filters_out_service_templates_when_workspace_templates_exist() {
     assert_eq!(selected_template_id, "official/workspace-starter");
 }
 
+#[test]
+fn accepts_workspace_template_from_explicit_type_without_tags() {
+    let sandbox_root = create_sandbox_directory("workspace-template-type");
+    let workspace_template_path = sandbox_root.join("workspace-template");
+    fs::create_dir_all(&workspace_template_path).expect("template directory should be created");
+    fs::write(
+        workspace_template_path.join("template.yaml"),
+        "id: workspace-starter\nname: Workspace Starter\ndescription: workspace\nversion: 1.0.0\ntype: workspace\n",
+    )
+    .expect("template metadata should be written");
+
+    let service = TemplateSelectionForNewService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor_with_path(
+                    "workspace-starter",
+                    workspace_template_path.clone(),
+                    &[],
+                )],
+            )],
+        },
+        StubPromptService,
+    );
+
+    let selected_template_id = service
+        .resolve_template_id(None)
+        .expect("workspace template selection should succeed");
+
+    assert_eq!(selected_template_id, "official/workspace-starter");
+    cleanup_sandbox_directory(&sandbox_root);
+}
+
 fn descriptor(id: &str, path: &str, tags: &[&str]) -> TemplateDescriptor {
+    descriptor_with_path(id, PathBuf::from(path), tags)
+}
+
+fn descriptor_with_path(path_id: &str, path: PathBuf, tags: &[&str]) -> TemplateDescriptor {
     let metadata = TemplateMetadata::builder()
-        .id(id.to_owned())
-        .name(format!("Template {id}"))
+        .id(path_id.to_owned())
+        .name(format!("Template {path_id}"))
         .description("Template description".to_owned())
         .version(Version::from_str("1.0.0").expect("version should parse"))
         .language(Language::Dotnet)
@@ -156,5 +195,19 @@ fn descriptor(id: &str, path: &str, tags: &[&str]) -> TemplateDescriptor {
         .build()
         .expect("metadata should be valid");
 
-    TemplateDescriptor::new(metadata, PathBuf::from(path))
+    TemplateDescriptor::new(metadata, path)
+}
+
+fn create_sandbox_directory(test_name: &str) -> PathBuf {
+    let unique = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock should be monotonic")
+        .as_nanos();
+    let path = std::env::temp_dir().join(format!("nfw-{test_name}-{unique}"));
+    fs::create_dir_all(&path).expect("sandbox directory should be created");
+    path
+}
+
+fn cleanup_sandbox_directory(path: &Path) {
+    let _ = fs::remove_dir_all(path);
 }
