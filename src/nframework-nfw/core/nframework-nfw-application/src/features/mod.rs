@@ -1,4 +1,4 @@
-pub mod architecture_validation;
+pub mod check;
 pub mod cli;
 pub mod service_management;
 pub mod template_management;

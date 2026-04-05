@@ -7,16 +7,19 @@ use std::time::{SystemTime, UNIX_EPOCH};
 fn violation_details_are_printed_to_stderr_not_stdout() {
     let sandbox_home = create_sandbox_directory("check-stdio-home");
     let workspace = create_sandbox_directory("check-stdio-workspace");
-    fs::write(workspace.join("nfw.yaml"), "workspace:\n  name: TestWorkspace\n")
-        .expect("workspace marker should be created");
+    fs::write(
+        workspace.join("nfw.yaml"),
+        "workspace:\n  name: TestWorkspace\n",
+    )
+    .expect("workspace marker should be created");
 
-    let project_dir = workspace.join("src/NFramework.Domain");
+    let project_dir = workspace.join("src/domain");
     fs::create_dir_all(&project_dir).expect("project directory should be created");
     fs::write(
         project_dir.join("NFramework.Domain.csproj"),
         "<Project Sdk=\"Microsoft.NET.Sdk\">
   <ItemGroup>
-    <ProjectReference Include=\"../NFramework.Application/NFramework.Application.csproj\" />
+    <ProjectReference Include=\"../application/NFramework.Application.csproj\" />
   </ItemGroup>
 </Project>\n",
     )

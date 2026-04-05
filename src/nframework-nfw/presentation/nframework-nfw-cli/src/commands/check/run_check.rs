@@ -1,14 +1,13 @@
-use nframework_nfw_application::features::architecture_validation::commands::check::check_command_handler::CheckCommandHandler;
-use nframework_nfw_application::features::architecture_validation::models::check_command_request::CheckCommandRequest;
-use nframework_nfw_application::features::architecture_validation::models::errors::ArchitectureValidationError;
-use nframework_nfw_application::features::architecture_validation::models::ExitOutcome;
+use nframework_nfw_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
+use nframework_nfw_application::features::check::models::ExitOutcome;
+use nframework_nfw_application::features::check::models::check_command_request::CheckCommandRequest;
 
 use crate::commands::check::check_output_formatter::CheckOutputFormatter;
 
 #[derive(Debug)]
 pub enum RunCheckError {
     ValidationFailed,
-    CommandError(ArchitectureValidationError),
+    CommandError(String),
     Interrupted,
     CurrentDirectoryUnavailable(String),
 }
@@ -26,14 +25,13 @@ impl std::fmt::Display for RunCheckError {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct RunCheckCliCommand {
-    handler: CheckCommandHandler,
+pub struct RunCheckCliCommand<'a> {
+    handler: &'a CheckCommandHandler,
     formatter: CheckOutputFormatter,
 }
 
-impl RunCheckCliCommand {
-    pub fn new(handler: CheckCommandHandler) -> Self {
+impl<'a> RunCheckCliCommand<'a> {
+    pub fn new(handler: &'a CheckCommandHandler) -> Self {
         Self {
             handler,
             formatter: CheckOutputFormatter::new(),
@@ -41,10 +39,9 @@ impl RunCheckCliCommand {
     }
 
     pub fn execute(&self) -> Result<(), RunCheckError> {
-        let start_directory = std::env::current_dir()
-            .map_err(|error| RunCheckError::CurrentDirectoryUnavailable(error.to_string()))?;
+        let request = CheckCommandRequest::current_dir()
+            .map_err(RunCheckError::CurrentDirectoryUnavailable)?;
 
-        let request = CheckCommandRequest::new(start_directory);
         let result = self
             .handler
             .execute(&request)

@@ -1,5 +1,5 @@
-use crate::features::architecture_validation::models::errors::ArchitectureValidationError;
-use crate::features::architecture_validation::models::{ExitOutcome, ValidationSummary};
+use crate::features::check::models::errors::CheckError;
+use crate::features::check::models::{ExitOutcome, ValidationSummary};
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 
@@ -52,15 +52,15 @@ impl ExitCodes {
         }
     }
 
-    pub fn from_architecture_validation_error(error: &ArchitectureValidationError) -> Self {
+    pub fn from_check_error(error: &CheckError) -> Self {
         match error {
-            ArchitectureValidationError::InvalidWorkspaceContext(_) => Self::ValidationError,
-            ArchitectureValidationError::Interrupted => Self::Interrupted,
-            ArchitectureValidationError::Internal(_) => Self::InternalError,
+            CheckError::InvalidWorkspaceContext(_) => Self::ValidationError,
+            CheckError::Interrupted => Self::Interrupted,
+            CheckError::Internal(_) => Self::InternalError,
         }
     }
 
-    pub fn from_architecture_validation_summary(summary: &ValidationSummary) -> Self {
+    pub fn from_check_summary(summary: &ValidationSummary) -> Self {
         match summary.exit_outcome {
             ExitOutcome::Success => Self::Success,
             ExitOutcome::ViolationFound => Self::ValidationError,

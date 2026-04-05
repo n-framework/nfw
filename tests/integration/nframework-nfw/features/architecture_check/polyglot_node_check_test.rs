@@ -8,8 +8,9 @@ use support::{cleanup_workspace, create_workspace, run_nfw_check};
 fn check_detects_node_forbidden_usage() {
     let workspace_root = create_workspace("polyglot-node");
 
-    let domain_dir = workspace_root.join("src/nframework-domain");
-    fs::create_dir_all(domain_dir.join("src")).expect("node domain src directory should be created");
+    let domain_dir = workspace_root.join("src/domain");
+    fs::create_dir_all(domain_dir.join("src"))
+        .expect("node domain src directory should be created");
     fs::write(
         domain_dir.join("package.json"),
         r#"{

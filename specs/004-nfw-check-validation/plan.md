@@ -65,16 +65,19 @@ src/nfw/
 ## Phase Plan
 
 ### Phase 0: Research
+
 - Finalize validation policy for unreadable artifacts and dependency scope (resolved in `research.md`).
 - Confirm single-run multi-finding reporting strategy and deterministic exit semantics.
 
 ### Phase 1: Design & Contracts
+
 - Define entities and rule/finding relationships in `data-model.md`.
 - Define command/exit/output contract in `contracts/nfw-check-cli-contract.md`.
 - Publish executable usage expectations in `quickstart.md`.
 - Update agent context for current technology surface.
 
 ### Phase 2: Task Planning (for `/speckit.tasks`)
+
 - Break implementation into command wiring, rule evaluation, output formatting, and fixture test tasks.
 - Sequence tasks to deliver failing fixture tests first, then command behavior, then output polish.
 - Include verification tasks for exit codes, unreadable artifact behavior, and direct-only package checks.

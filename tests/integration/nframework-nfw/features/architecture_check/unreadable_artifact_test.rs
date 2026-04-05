@@ -5,19 +5,24 @@ mod unix_only {
     use std::fs;
     use std::os::unix::fs::PermissionsExt;
 
-    use super::support::{add_project, cleanup_workspace, create_workspace, run_nfw_check};
+    use super::support::{
+        ProjectConfig, add_project, cleanup_workspace, create_workspace, run_nfw_check,
+    };
 
     #[test]
     fn check_reports_unreadable_artifact_and_fails() {
         let workspace_root = create_workspace("unreadable");
-        add_project(
-            &workspace_root,
-            "src/NFramework.Domain",
-            "NFramework.Domain",
-            &[],
-            &[],
-            &[("DomainModel.cs", "namespace NFramework.Domain;\npublic class DomainModel {}\n")],
-        );
+        add_project(ProjectConfig {
+            workspace_root: &workspace_root,
+            relative_project_dir: "src/NFramework.Domain",
+            project_name: "NFramework.Domain",
+            project_references: &[],
+            package_references: &[],
+            source_files: &[(
+                "DomainModel.cs",
+                "namespace NFramework.Domain;\npublic class DomainModel {}\n",
+            )],
+        });
 
         let unreadable_file = workspace_root.join("src/NFramework.Domain/DomainModel.cs");
         let mut permissions = fs::metadata(&unreadable_file)

@@ -1,21 +1,21 @@
 mod support;
 
-use support::{add_project, cleanup_workspace, create_workspace, run_nfw_check};
+use support::{ProjectConfig, add_project, cleanup_workspace, create_workspace, run_nfw_check};
 
 #[test]
 fn check_reports_multiple_violation_types_in_single_run() {
     let workspace_root = create_workspace("multi-violation");
-    add_project(
-        &workspace_root,
-        "src/NFramework.Domain",
-        "NFramework.Domain",
-        &["../NFramework.Application/NFramework.Application.csproj"],
-        &["Microsoft.AspNetCore.App"],
-        &[(
+    add_project(ProjectConfig {
+        workspace_root: &workspace_root,
+        relative_project_dir: "src/domain",
+        project_name: "NFramework.Domain",
+        project_references: &["../application/NFramework.Application.csproj"],
+        package_references: &["Microsoft.AspNetCore.App"],
+        source_files: &[(
             "DomainModel.cs",
             "using NFramework.Infrastructure.Persistence;\nnamespace NFramework.Domain;\npublic class DomainModel {}\n",
         )],
-    );
+    });
 
     let output = run_nfw_check(&workspace_root);
     let stderr = String::from_utf8_lossy(&output.stderr);

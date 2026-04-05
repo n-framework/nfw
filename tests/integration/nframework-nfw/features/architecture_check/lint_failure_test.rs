@@ -2,7 +2,7 @@ mod support;
 
 use std::fs;
 
-use support::{add_project, cleanup_workspace, create_workspace, run_nfw_check};
+use support::{ProjectConfig, add_project, cleanup_workspace, create_workspace, run_nfw_check};
 
 #[test]
 fn check_reports_lint_issue_when_make_lint_fails() {
@@ -13,14 +13,17 @@ fn check_reports_lint_issue_when_make_lint_fails() {
     )
     .expect("failing Makefile should be written");
 
-    add_project(
-        &workspace_root,
-        "src/NFramework.Domain",
-        "NFramework.Domain",
-        &[],
-        &[],
-        &[("DomainModel.cs", "namespace NFramework.Domain;\npublic class DomainModel {}\n")],
-    );
+    add_project(ProjectConfig {
+        workspace_root: &workspace_root,
+        relative_project_dir: "src/NFramework.Domain",
+        project_name: "NFramework.Domain",
+        project_references: &[],
+        package_references: &[],
+        source_files: &[(
+            "DomainModel.cs",
+            "namespace NFramework.Domain;\npublic class DomainModel {}\n",
+        )],
+    });
 
     let output = run_nfw_check(&workspace_root);
     let stderr = String::from_utf8_lossy(&output.stderr);

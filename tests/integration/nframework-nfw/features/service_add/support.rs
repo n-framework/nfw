@@ -180,11 +180,7 @@ pub fn create_workspace_root(test_name: &str) -> PathBuf {
     root
 }
 
-pub fn create_service_template(
-    root: &Path,
-    template_name: &str,
-    template_type: &str,
-) -> PathBuf {
+pub fn create_service_template(root: &Path, template_name: &str, template_type: &str) -> PathBuf {
     let template_root = root.join(template_name);
     let content_root = template_root.join("content");
     fs::create_dir_all(content_root.join("Domain"))

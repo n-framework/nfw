@@ -65,9 +65,9 @@ name = "exit_codes_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes_tests.rs"
 
 [[test]]
-name = "architecture_validation_services_tests"
-path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/validation_services_tests.rs"
+name = "check_services_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/check/validation_services_tests.rs"
 
 [[test]]
-name = "architecture_validation_remediation_hint_tests"
-path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/remediation_hint_tests.rs"
+name = "check_remediation_hint_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/check/remediation_hint_tests.rs"

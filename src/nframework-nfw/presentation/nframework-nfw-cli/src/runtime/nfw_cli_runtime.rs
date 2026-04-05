@@ -5,7 +5,6 @@ use nframework_core_cli_abstraction::{
 };
 use nframework_core_cli_clap::ClapCliRuntimeBuilder;
 use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
-use nframework_nfw_application::features::architecture_validation::models::errors::ArchitectureValidationError;
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
@@ -172,22 +171,14 @@ fn handle_add_service(command: &dyn Command, context: &CliServiceCollection) -> 
 }
 
 fn handle_check(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    RunCheckCliCommand::new(context.check_command_handler.clone())
+    RunCheckCliCommand::new(&context.check_command_handler)
         .execute()
         .map_err(|error| {
             let exit_code = match error {
                 RunCheckError::ValidationFailed => ExitCodes::ValidationError as i32,
                 RunCheckError::Interrupted => ExitCodes::Interrupted as i32,
                 RunCheckError::CurrentDirectoryUnavailable(_) => ExitCodes::InternalError as i32,
-                RunCheckError::CommandError(ref validation_error) => {
-                    match validation_error {
-                        ArchitectureValidationError::InvalidWorkspaceContext(_) => {
-                            ExitCodes::ValidationError as i32
-                        }
-                        ArchitectureValidationError::Interrupted => ExitCodes::Interrupted as i32,
-                        ArchitectureValidationError::Internal(_) => ExitCodes::InternalError as i32,
-                    }
-                }
+                RunCheckError::CommandError(_) => ExitCodes::InternalError as i32,
             };
 
             format!("[exit:{exit_code}] {error}")

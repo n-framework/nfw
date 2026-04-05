@@ -8,7 +8,8 @@ use nframework_nfw_application::features::service_management::models::errors::ad
 #[test]
 fn rejects_rendered_paths_that_escape_service_output_root() {
     let workspace_root = support::create_sandbox_directory("service-path-safety");
-    fs::create_dir_all(workspace_root.join("src")).expect("workspace src directory should be created");
+    fs::create_dir_all(workspace_root.join("src"))
+        .expect("workspace src directory should be created");
     fs::write(
         workspace_root.join("nfw.yaml"),
         "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: ../escaped\n  namespace: BillingPlatform\n",

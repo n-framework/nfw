@@ -1,7 +1,5 @@
-use nframework_nfw_application::features::architecture_validation::models::errors::ArchitectureValidationError;
-use nframework_nfw_application::features::architecture_validation::models::{
-    ExitOutcome, ValidationSummary,
-};
+use nframework_nfw_application::features::check::models::errors::CheckError;
+use nframework_nfw_application::features::check::models::{ExitOutcome, ValidationSummary};
 use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
@@ -13,16 +11,16 @@ fn maps_add_service_interrupted_to_sigint_exit_code() {
 }
 
 #[test]
-fn maps_architecture_validation_error_to_validation_exit_code() {
-    let exit_code = ExitCodes::from_architecture_validation_error(
-        &ArchitectureValidationError::InvalidWorkspaceContext("missing workspace".to_owned()),
-    ) as i32;
+fn maps_check_error_to_validation_exit_code() {
+    let exit_code = ExitCodes::from_check_error(&CheckError::InvalidWorkspaceContext(
+        "missing workspace".to_owned(),
+    )) as i32;
 
     assert_eq!(exit_code, ExitCodes::ValidationError as i32);
 }
 
 #[test]
-fn maps_architecture_validation_summary_to_success_exit_code() {
+fn maps_check_summary_to_success_exit_code() {
     let summary = ValidationSummary {
         total_findings: 0,
         project_reference_count: 0,
@@ -34,7 +32,7 @@ fn maps_architecture_validation_summary_to_success_exit_code() {
         exit_outcome: ExitOutcome::Success,
     };
 
-    let exit_code = ExitCodes::from_architecture_validation_summary(&summary) as i32;
+    let exit_code = ExitCodes::from_check_summary(&summary) as i32;
 
     assert_eq!(exit_code, ExitCodes::Success as i32);
 }

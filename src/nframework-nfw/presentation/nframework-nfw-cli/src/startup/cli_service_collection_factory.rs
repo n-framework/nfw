@@ -1,5 +1,5 @@
 use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
-use nframework_nfw_application::features::architecture_validation::commands::check::check_command_handler::CheckCommandHandler;
+use nframework_nfw_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
 use nframework_core_cli_inquire::InquirerPromptService;
 use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
@@ -49,13 +49,15 @@ impl CliServiceCollectionFactory {
             check_command_handler: CheckCommandHandler::default(),
             list_templates_query_handler: templates.list_templates_query_handler,
             add_template_source_command_handler: templates.add_template_source_command_handler,
-            remove_template_source_command_handler: templates.remove_template_source_command_handler,
+            remove_template_source_command_handler: templates
+                .remove_template_source_command_handler,
             refresh_templates_command_handler: templates.refresh_templates_command_handler,
             ensure_default_source_command_handler: templates.ensure_default_source_command_handler,
         }
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 struct TemplateFeatureServices {
     templates_service: TemplatesService<
@@ -150,6 +152,7 @@ impl TemplateFeatureFactory {
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 struct WorkspaceFeatureServices {
     new_workspace_command_handler: NewWorkspaceCommandHandler<
@@ -172,6 +175,7 @@ struct WorkspaceFeatureServices {
 
 struct WorkspaceFeatureFactory;
 
+#[allow(clippy::type_complexity)]
 impl WorkspaceFeatureFactory {
     fn build(
         templates_service: TemplatesService<
@@ -199,6 +203,7 @@ impl WorkspaceFeatureFactory {
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 struct ServiceFeatureServices {
     add_service_command_handler: AddServiceCommandHandler<
@@ -210,7 +215,9 @@ struct ServiceFeatureServices {
                 SerdeYamlParser,
                 CliValidator,
                 SemverVersionComparator,
-                FileSystemWorkspaceArtifactWriter<NfwFileSystemConfigurationLoader<DirsPathResolver>>,
+                FileSystemWorkspaceArtifactWriter<
+                    NfwFileSystemConfigurationLoader<DirsPathResolver>,
+                >,
                 InfrastructureCliGitRepository,
             >,
         >,
@@ -223,6 +230,7 @@ struct ServiceFeatureServices {
 
 struct ServiceFeatureFactory;
 
+#[allow(clippy::type_complexity)]
 impl ServiceFeatureFactory {
     fn build(
         templates_service: TemplatesService<

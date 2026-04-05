@@ -19,8 +19,7 @@ impl<H> AddServiceCliCommand<H> {
     }
 }
 
-impl<D, S, P, Q, R, PS>
-    AddServiceCliCommand<AddServiceCommandHandler<D, S, P, Q, R, PS>>
+impl<D, S, P, Q, R, PS> AddServiceCliCommand<AddServiceCommandHandler<D, S, P, Q, R, PS>>
 where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,

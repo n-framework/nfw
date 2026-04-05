@@ -59,14 +59,18 @@ where
         }
     }
 
-    pub fn handle(&self, command: &AddServiceCommand) -> Result<AddServiceCommandResult, AddServiceError> {
+    pub fn handle(
+        &self,
+        command: &AddServiceCommand,
+    ) -> Result<AddServiceCommandResult, AddServiceError> {
         let request = command.to_request();
         self.request_validator.validate_request(&request)?;
 
         let service_name = self
             .input_resolution_service
             .resolve_service_name(&request)?;
-        self.request_validator.validate_service_name(&service_name)?;
+        self.request_validator
+            .validate_service_name(&service_name)?;
 
         let current_directory = self
             .working_directory_provider
@@ -105,11 +109,18 @@ where
         })
     }
 
-    pub fn execute(&self, command: &AddServiceCommand) -> Result<AddServiceCommandResult, AddServiceError> {
+    pub fn execute(
+        &self,
+        command: &AddServiceCommand,
+    ) -> Result<AddServiceCommandResult, AddServiceError> {
         self.handle(command)
     }
 
-    fn cleanup_and_wrap(&self, output_root: &std::path::Path, error: AddServiceError) -> AddServiceError {
+    fn cleanup_and_wrap(
+        &self,
+        output_root: &std::path::Path,
+        error: AddServiceError,
+    ) -> AddServiceError {
         match self.renderer.cleanup_partial_output(output_root) {
             Ok(()) => error,
             Err(cleanup_error) => AddServiceError::CleanupFailed(format!(

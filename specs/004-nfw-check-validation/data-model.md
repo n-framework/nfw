@@ -1,6 +1,7 @@
 # Data Model: `nfw check` Architecture Validation
 
 ## Entity: Architecture Rule Set
+
 - Purpose: Canonical policy definition of allowed and forbidden dependencies across architecture layers.
 - Fields:
   - `rule_id` (string, unique): Stable identifier for each rule.
@@ -15,6 +16,7 @@
   - `target_pattern` must be non-empty.
 
 ## Entity: Validation Finding
+
 - Purpose: One concrete violation (or unreadable-artifact/lint/test error) produced by a check run.
 - Fields:
   - `finding_id` (string, unique within run): Deterministic key per location+rule.
@@ -28,6 +30,7 @@
   - Duplicate `finding_id` values are not allowed in one run.
 
 ## Entity: Validation Summary
+
 - Purpose: Aggregate result for command output and exit behavior.
 - Fields:
   - `total_findings` (integer >= 0)
@@ -44,6 +47,7 @@
   - `execution_interrupted` when run is interrupted.
 
 ## Entity: Architecture Fixture Workspace
+
 - Purpose: Deterministic workspace input used by tests to prove valid/invalid detection behavior.
 - Fields:
   - `fixture_id` (string, unique)
@@ -55,6 +59,7 @@
   - Invalid fixtures require at least one expected finding type.
 
 ## Relationships
+
 - Architecture Rule Set (1..*) -> (0..*) Validation Finding via `violated_rule_id`.
 - Architecture Fixture Workspace (1) -> (0..*) Validation Finding as expected outcomes.
 - Validation Summary aggregates counts from Validation Finding.
