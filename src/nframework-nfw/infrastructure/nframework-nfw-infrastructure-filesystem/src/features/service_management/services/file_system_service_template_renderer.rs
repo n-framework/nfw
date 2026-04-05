@@ -13,6 +13,12 @@ pub struct FileSystemServiceTemplateRenderer {
     cleanup: ServiceGenerationCleanup,
 }
 
+struct RenderContext<'a> {
+    content_root: &'a Path,
+    output_root: &'a Path,
+    placeholder_values: &'a BTreeMap<String, String>,
+}
+
 impl FileSystemServiceTemplateRenderer {
     pub fn new(cleanup: ServiceGenerationCleanup) -> Self {
         Self { cleanup }
@@ -20,10 +26,8 @@ impl FileSystemServiceTemplateRenderer {
 
     fn render_template_content(
         &self,
-        content_root: &Path,
         current_path: &Path,
-        output_root: &Path,
-        placeholder_values: &BTreeMap<String, String>,
+        context: &RenderContext<'_>,
     ) -> Result<(), AddServiceError> {
         for entry in fs::read_dir(current_path).map_err(|error| {
             AddServiceError::RenderFailed(format!(
@@ -39,16 +43,18 @@ impl FileSystemServiceTemplateRenderer {
             })?;
 
             let source_path = entry.path();
-            let relative_path = source_path.strip_prefix(content_root).map_err(|error| {
-                AddServiceError::RenderFailed(format!(
-                    "failed to compute template-relative path for '{}': {error}",
-                    source_path.display()
-                ))
-            })?;
+            let relative_path = source_path
+                .strip_prefix(context.content_root)
+                .map_err(|error| {
+                    AddServiceError::RenderFailed(format!(
+                        "failed to compute template-relative path for '{}': {error}",
+                        source_path.display()
+                    ))
+                })?;
 
-            let rendered_relative_path = render_path(relative_path, placeholder_values);
+            let rendered_relative_path = render_path(relative_path, context.placeholder_values);
             ensure_safe_relative_path(&rendered_relative_path)?;
-            let destination_path = output_root.join(rendered_relative_path);
+            let destination_path = context.output_root.join(rendered_relative_path);
 
             if source_path.is_dir() {
                 fs::create_dir_all(&destination_path).map_err(|error| {
@@ -58,12 +64,7 @@ impl FileSystemServiceTemplateRenderer {
                     ))
                 })?;
 
-                self.render_template_content(
-                    content_root,
-                    &source_path,
-                    output_root,
-                    placeholder_values,
-                )?;
+                self.render_template_content(&source_path, context)?;
                 continue;
             }
 
@@ -82,7 +83,7 @@ impl FileSystemServiceTemplateRenderer {
                     source_path.display()
                 ))
             })?;
-            let rendered_bytes = render_bytes(&bytes, placeholder_values);
+            let rendered_bytes = render_bytes(&bytes, context.placeholder_values);
             fs::write(&destination_path, rendered_bytes).map_err(|error| {
                 AddServiceError::RenderFailed(format!(
                     "failed to write generated file '{}': {error}",
@@ -118,17 +119,19 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
             ))
         })?;
 
-        match self.render_template_content(
-            &content_root,
-            &content_root,
-            &plan.output_root,
-            &plan.placeholder_values,
-        ) {
+        let context = RenderContext {
+            content_root: &content_root,
+            output_root: &plan.output_root,
+            placeholder_values: &plan.placeholder_values,
+        };
+
+        match self.render_template_content(&content_root, &context) {
             Ok(()) => Ok(()),
-            Err(error) => {
-                let _ = self.cleanup.cleanup_output(&plan.output_root);
-                Err(error)
-            }
+            Err(error) => self
+                .cleanup
+                .cleanup_output(&plan.output_root)
+                .map_err(|cleanup_error| merge_cleanup_error(cleanup_error, &error))
+                .and(Err(error)),
         }
     }
 
@@ -189,4 +192,10 @@ fn ensure_safe_relative_path(relative_path: &Path) -> Result<(), AddServiceError
     }
 
     Ok(())
+}
+
+fn merge_cleanup_error(cleanup_error: String, original_error: &AddServiceError) -> AddServiceError {
+    AddServiceError::CleanupFailed(format!(
+        "{cleanup_error}; original error: {original_error}"
+    ))
 }
