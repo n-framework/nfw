@@ -1,6 +1,6 @@
-use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query::ListTemplatesQuery;
-use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
-use nframework_nfw_application::features::template_management::services::abstractions::template_listing_service::TemplateListingService;
+use nframework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query::ListTemplatesQuery;
+use nframework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
+use nframework_nfw_core_application::features::template_management::services::abstractions::template_listing_service::TemplateListingService;
 
 /// Thin CLI presentation layer for listing templates.
 /// Delegates all business logic to the application layer query handler.
@@ -52,8 +52,8 @@ pub trait TemplateListingQueryHandler {
     fn handle_list_templates(
         &self,
     ) -> Result<
-        nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult,
-        nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError,
+        nframework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult,
+        nframework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError,
     >;
 }
 
@@ -64,8 +64,8 @@ where
     fn handle_list_templates(
         &self,
     ) -> Result<
-        nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult,
-        nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError,
+        nframework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult,
+        nframework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError,
     >{
         self.handle(ListTemplatesQuery)
     }

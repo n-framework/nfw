@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
-use nframework_nfw_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
-use nframework_nfw_application::validation::is_kebab_case;
+use nframework_nfw_core_application::features::template_management::services::abstractions::validator::Validator;
+use nframework_nfw_core_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
+use nframework_nfw_core_application::validation::is_kebab_case;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CliValidator;

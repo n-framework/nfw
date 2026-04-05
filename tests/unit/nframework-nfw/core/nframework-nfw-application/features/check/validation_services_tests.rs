@@ -1,14 +1,14 @@
 use std::path::Path;
 
-use nframework_nfw_application::features::check::models::{CheckLayer, FindingType};
-use nframework_nfw_application::features::check::services::abstractions::{
+use nframework_nfw_core_application::features::check::models::{CheckLayer, FindingType};
+use nframework_nfw_core_application::features::check::services::abstractions::{
     NamespaceUsageValidator, PackageUsageValidator, ProjectReferenceValidator, RuleSetLoader,
 };
-use nframework_nfw_application::features::check::services::namespace_usage_validator::NamespaceUsageValidatorService;
-use nframework_nfw_application::features::check::services::package_usage_validator::PackageUsageValidatorService;
-use nframework_nfw_application::features::check::services::project_reference_validator::ProjectReferenceValidatorService;
-use nframework_nfw_application::features::check::services::remediation_hint_service::RemediationHintService;
-use nframework_nfw_application::features::check::services::rule_set_loader::RuleSetLoaderService;
+use nframework_nfw_core_application::features::check::services::namespace_usage_validator::NamespaceUsageValidatorService;
+use nframework_nfw_core_application::features::check::services::package_usage_validator::PackageUsageValidatorService;
+use nframework_nfw_core_application::features::check::services::project_reference_validator::ProjectReferenceValidatorService;
+use nframework_nfw_core_application::features::check::services::remediation_hint_service::RemediationHintService;
+use nframework_nfw_core_application::features::check::services::rule_set_loader::RuleSetLoaderService;
 
 #[test]
 fn project_reference_validator_detects_forbidden_reference() {

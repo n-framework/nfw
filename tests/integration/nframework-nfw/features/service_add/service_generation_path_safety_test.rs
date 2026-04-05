@@ -3,7 +3,7 @@ mod support;
 
 use std::fs;
 
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 #[test]
 fn rejects_rendered_paths_that_escape_service_output_root() {

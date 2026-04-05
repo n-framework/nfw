@@ -1,6 +1,6 @@
-use nframework_nfw_application::features::cli::configuration::abstractions::config_store::ConfigStore;
-use nframework_nfw_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
-use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::config_store::ConfigStore;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
+use nframework_nfw_core_domain::features::template_management::template_source::TemplateSource;
 
 #[derive(Debug, Clone)]
 pub struct FileSystemWorkspaceArtifactWriter<L>

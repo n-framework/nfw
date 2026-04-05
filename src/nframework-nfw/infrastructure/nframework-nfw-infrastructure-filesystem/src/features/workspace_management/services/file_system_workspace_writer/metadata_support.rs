@@ -1,4 +1,4 @@
-use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
+use nframework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use nframework_nfw_infrastructure_workspace_metadata::{
     NFW_SCHEMA_URL, ensure_schema_key, extract_preserved_comments, format_nfw_yaml_document,
     remove_workspace_project_guid, reorder_root_keys, split_leading_comments_and_body,

@@ -4,8 +4,8 @@ use nframework_core_cli_abstraction::{
     CliAppConfig, CliCommandSpec, CliOptionSpec, CliRuntime, CliSpec, Command,
 };
 use nframework_core_cli_clap::ClapCliRuntimeBuilder;
-use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::cli::exit_codes::ExitCodes;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
 use crate::commands::check::run_check::{RunCheckCliCommand, RunCheckError};

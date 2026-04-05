@@ -1,7 +1,7 @@
-use nframework_nfw_application::features::check::models::errors::CheckError;
-use nframework_nfw_application::features::check::models::{ExitOutcome, ValidationSummary};
-use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::check::models::errors::CheckError;
+use nframework_nfw_core_application::features::check::models::{ExitOutcome, ValidationSummary};
+use nframework_nfw_core_application::features::cli::exit_codes::ExitCodes;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 #[test]
 fn maps_add_service_interrupted_to_sigint_exit_code() {

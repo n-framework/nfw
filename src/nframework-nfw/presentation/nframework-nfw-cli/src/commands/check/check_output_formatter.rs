@@ -1,4 +1,6 @@
-use nframework_nfw_application::features::check::models::{CheckCommandResult, ValidationFinding};
+use nframework_nfw_core_application::features::check::models::{
+    CheckCommandResult, ValidationFinding,
+};
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CheckOutputFormatter;

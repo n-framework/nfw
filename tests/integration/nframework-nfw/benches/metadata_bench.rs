@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::time::{Duration, Instant};
 
-use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
-use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
+use nframework_nfw_core_application::features::template_management::services::abstractions::validator::Validator;
+use nframework_nfw_core_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use nframework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
 use nframework_nfw_infrastructure_yaml::features::template_management::services::serde_yaml_parser::SerdeYamlParser;
 

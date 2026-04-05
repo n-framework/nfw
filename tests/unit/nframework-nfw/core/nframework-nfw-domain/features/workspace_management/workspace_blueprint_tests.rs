@@ -1,5 +1,5 @@
-use nframework_nfw_domain::features::workspace_management::namespace_convention::NamespaceConvention;
-use nframework_nfw_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
+use nframework_nfw_core_domain::features::workspace_management::namespace_convention::NamespaceConvention;
+use nframework_nfw_core_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 
 #[test]
 fn creates_layered_workspace_blueprint_with_solution_files() {

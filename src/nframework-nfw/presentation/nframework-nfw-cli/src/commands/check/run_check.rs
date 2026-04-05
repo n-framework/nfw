@@ -1,6 +1,6 @@
-use nframework_nfw_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
-use nframework_nfw_application::features::check::models::ExitOutcome;
-use nframework_nfw_application::features::check::models::check_command_request::CheckCommandRequest;
+use nframework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
+use nframework_nfw_core_application::features::check::models::ExitOutcome;
+use nframework_nfw_core_application::features::check::models::check_command_request::CheckCommandRequest;
 
 use crate::commands::check::check_output_formatter::CheckOutputFormatter;
 

@@ -1,7 +1,7 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use nframework_nfw_application::features::template_management::services::abstractions::yaml_parser::YamlParser;
+use nframework_nfw_core_application::features::template_management::services::abstractions::yaml_parser::YamlParser;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct SerdeYamlParser;

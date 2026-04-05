@@ -1,11 +1,11 @@
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use nframework_nfw_application::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
-use nframework_nfw_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
+use nframework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use nframework_core_cli_abstraction::PromptService;
 
 #[derive(Debug, Clone)]

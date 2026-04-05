@@ -5,17 +5,17 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use nframework_nfw_application::features::cli::configuration::abstractions::config_store::ConfigStore;
-use nframework_nfw_application::features::template_management::services::abstractions::git_repository::GitRepository;
-use nframework_nfw_application::features::template_management::services::abstractions::template_catalog_source::TemplateCatalogSource;
-use nframework_nfw_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
-use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
-use nframework_nfw_application::features::template_management::services::abstractions::yaml_parser::YamlParser;
-use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
-use nframework_nfw_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
-use nframework_nfw_application::features::template_management::services::templates_service::TemplatesService;
-use nframework_nfw_application::features::versioning::abstractions::version_comparator::VersionComparator;
-use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::config_store::ConfigStore;
+use nframework_nfw_core_application::features::template_management::services::abstractions::git_repository::GitRepository;
+use nframework_nfw_core_application::features::template_management::services::abstractions::template_catalog_source::TemplateCatalogSource;
+use nframework_nfw_core_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
+use nframework_nfw_core_application::features::template_management::services::abstractions::validator::Validator;
+use nframework_nfw_core_application::features::template_management::services::abstractions::yaml_parser::YamlParser;
+use nframework_nfw_core_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
+use nframework_nfw_core_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
+use nframework_nfw_core_application::features::template_management::services::templates_service::TemplatesService;
+use nframework_nfw_core_application::features::versioning::abstractions::version_comparator::VersionComparator;
+use nframework_nfw_core_domain::features::template_management::template_source::TemplateSource;
 
 #[derive(Debug, Default, Clone)]
 struct MockConfigStore {

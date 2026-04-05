@@ -1,5 +1,5 @@
-use nframework_nfw_application::features::check::models::FindingType;
-use nframework_nfw_application::features::check::services::remediation_hint_service::RemediationHintService;
+use nframework_nfw_core_application::features::check::models::FindingType;
+use nframework_nfw_core_application::features::check::services::remediation_hint_service::RemediationHintService;
 
 #[test]
 fn remediation_hint_service_returns_hint_for_each_finding_type() {

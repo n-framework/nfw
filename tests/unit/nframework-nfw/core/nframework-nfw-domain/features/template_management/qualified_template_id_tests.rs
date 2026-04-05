@@ -1,4 +1,4 @@
-use nframework_nfw_domain::features::template_management::qualified_template_id::QualifiedTemplateId;
+use nframework_nfw_core_domain::features::template_management::qualified_template_id::QualifiedTemplateId;
 
 #[test]
 fn creates_qualified_identifier() {

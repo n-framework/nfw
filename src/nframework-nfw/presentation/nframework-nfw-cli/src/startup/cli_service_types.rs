@@ -1,13 +1,13 @@
 use nframework_core_cli_inquire::InquirerPromptService;
-use nframework_nfw_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
-use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
-use nframework_nfw_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
-use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
-use nframework_nfw_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
-use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
-use nframework_nfw_application::features::template_management::services::templates_service::TemplatesService;
-use nframework_nfw_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
+use nframework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
+use nframework_nfw_core_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
+use nframework_nfw_core_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
+use nframework_nfw_core_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
+use nframework_nfw_core_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
+use nframework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
+use nframework_nfw_core_application::features::template_management::services::templates_service::TemplatesService;
+use nframework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::dirs_path_resolver::DirsPathResolver;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
@@ -56,7 +56,7 @@ pub type CliRefreshTemplatesCommandHandler = RefreshTemplatesCommandHandler<CliT
 pub type CliEnsureDefaultSourceCommandHandler = EnsureDefaultSourceCommandHandler<CliConfigStore>;
 pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     CliWorkingDirectoryProvider,
-    nframework_nfw_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService<CliTemplatesService>,
+    nframework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService<CliTemplatesService>,
     crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt<InquirerPromptService>,
     InquirerPromptService,
     FileSystemServiceTemplateRenderer,

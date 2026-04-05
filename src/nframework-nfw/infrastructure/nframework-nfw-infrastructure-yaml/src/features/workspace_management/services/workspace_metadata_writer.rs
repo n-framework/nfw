@@ -5,8 +5,8 @@ use nframework_nfw_infrastructure_workspace_metadata::{
     ensure_schema_key, extract_preserved_comments, format_nfw_yaml_document,
     remove_workspace_project_guid, reorder_root_keys,
 };
-use nframework_nfw_application::features::service_management::models::service_template_provenance_record::ServiceTemplateProvenanceRecord;
-use nframework_nfw_application::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
+use nframework_nfw_core_application::features::service_management::models::service_template_provenance_record::ServiceTemplateProvenanceRecord;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
 use serde_yaml::{Mapping, Value};
 
 #[derive(Debug, Default, Clone, Copy)]

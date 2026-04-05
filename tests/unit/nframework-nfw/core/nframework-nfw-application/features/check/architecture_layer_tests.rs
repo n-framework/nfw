@@ -1,4 +1,4 @@
-use nframework_nfw_application::features::check::models::CheckLayer;
+use nframework_nfw_core_application::features::check::models::CheckLayer;
 
 #[test]
 fn architecture_layer_from_path_handles_domain_layer() {
@@ -66,10 +66,7 @@ fn architecture_layer_from_path_handles_unknown_layer() {
         CheckLayer::from_path("src/shared/utils.rs"),
         CheckLayer::Unknown
     );
-    assert_eq!(
-        CheckLayer::from_path("src/lib.rs"),
-        CheckLayer::Unknown
-    );
+    assert_eq!(CheckLayer::from_path("src/lib.rs"), CheckLayer::Unknown);
 }
 
 #[test]
@@ -128,5 +125,57 @@ fn architecture_layer_from_path_windows_paths() {
     assert_eq!(
         CheckLayer::from_path("core\\application\\commands.rs"),
         CheckLayer::Application
+    );
+}
+
+#[test]
+fn architecture_layer_from_path_core_compound_names() {
+    assert_eq!(
+        CheckLayer::from_path("src/nframework-nfw-core-domain/Cargo.toml"),
+        CheckLayer::Domain
+    );
+    assert_eq!(
+        CheckLayer::from_path("src/nframework-nfw-core-application/Cargo.toml"),
+        CheckLayer::Application
+    );
+    assert_eq!(
+        CheckLayer::from_path("src/MyProject.Core.Domain/MyProject.Core.Domain.csproj"),
+        CheckLayer::Domain
+    );
+    assert_eq!(
+        CheckLayer::from_path("src/MyProject.Core.Application/MyProject.Core.Application.csproj"),
+        CheckLayer::Application
+    );
+    assert_eq!(
+        CheckLayer::from_path(
+            "src/MyProject.Core.Infrastructure/MyProject.Core.Infrastructure.csproj"
+        ),
+        CheckLayer::Infrastructure
+    );
+    assert_eq!(
+        CheckLayer::from_path("src/MyProject.Core.Presentation/MyProject.Core.Presentation.csproj"),
+        CheckLayer::Presentation
+    );
+}
+
+#[test]
+fn architecture_layer_from_path_presentation_webapi_compound_names() {
+    assert_eq!(
+        CheckLayer::from_path(
+            "src/__ServiceName__.Presentation.WebApi/__ServiceName__.Presentation.WebApi.csproj"
+        ),
+        CheckLayer::Presentation
+    );
+    assert_eq!(
+        CheckLayer::from_path("src/MyProject.Presentation.WebApi/Program.cs"),
+        CheckLayer::Presentation
+    );
+    assert_eq!(
+        CheckLayer::from_path("src/MyProject.Presentation.WebApi/Shared/OpenApi/Extensions/OpenApiConfigurationExtensions.cs"),
+        CheckLayer::Presentation
+    );
+    assert_eq!(
+        CheckLayer::from_path("presentation/__ServiceName__.Presentation.WebApi/__ServiceName__.Presentation.WebApi.csproj"),
+        CheckLayer::Presentation
     );
 }

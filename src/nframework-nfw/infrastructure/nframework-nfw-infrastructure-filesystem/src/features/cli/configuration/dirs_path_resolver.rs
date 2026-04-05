@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct DirsPathResolver;

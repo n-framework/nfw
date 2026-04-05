@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use nframework_nfw_domain::features::versioning::version::Version;
+use nframework_nfw_core_domain::features::versioning::version::Version;
 
 #[test]
 fn parses_basic_version() {
