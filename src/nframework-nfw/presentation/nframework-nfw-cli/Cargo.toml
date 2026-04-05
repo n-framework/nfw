@@ -103,6 +103,10 @@ name = "architecture_check_lint_failure_test"
 path = "../../../../tests/integration/nframework-nfw/features/architecture_check/lint_failure_test.rs"
 
 [[test]]
+name = "architecture_check_service_lint_scope_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/service_lint_scope_test.rs"
+
+[[test]]
 name = "architecture_check_service_test_failure_test"
 path = "../../../../tests/integration/nframework-nfw/features/architecture_check/service_test_failure_test.rs"
 

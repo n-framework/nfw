@@ -8,7 +8,7 @@
 - Forbidden namespace usage in source files
 - Forbidden direct package references in project files
 - Unreadable artifacts as validation errors
-- Workspace lint health by executing `make lint`
+- Service lint health by executing `make lint` in each declared service path
 - Service test health by executing `make test` in each declared service path
 
 ## Polyglot Scope

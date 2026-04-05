@@ -77,7 +77,7 @@ As a developer, I want clear, actionable output from `nfw check` so that I can c
 - **FR-014**: Validation rules and command behavior MUST align with documented NFramework architecture boundaries.
 - **FR-015**: If project or source artifacts are unreadable, `nfw check` MUST report each unreadable path as a validation error, continue scanning remaining readable artifacts, and exit with a non-zero status.
 - **FR-016**: Forbidden package validation MUST evaluate only direct package references declared by each project and MUST NOT fail solely due to transitive dependencies.
-- **FR-017**: `nfw check` MUST execute `make lint` at workspace root as part of validation and MUST report lint failures as validation findings with actionable remediation.
+- **FR-017**: `nfw check` MUST execute `make lint` in every declared service path under `src/` and MUST report lint failures as validation findings with actionable remediation.
 - **FR-018**: `nfw check` MUST execute `make test` inside each declared service path (`services.*.path` in `nfw.yaml`) and MUST report failing service test runs as validation findings with actionable remediation.
 
 ### Key Entities

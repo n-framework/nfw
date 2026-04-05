@@ -87,15 +87,7 @@ impl CheckCommandHandler {
             findings.extend(self.validate_manifest(&manifest, &rules));
         }
 
-        if let Some(lint_finding) = self
-            .services
-            .external_tool_runner
-            .run_make_lint(&workspace_root)
-        {
-            findings.push(lint_finding);
-        }
-
-        findings.extend(self.run_service_make_test_checks(&workspace_root));
+        findings.extend(self.run_service_make_checks(&workspace_root));
 
         let (deduplicated, summary) = self
             .services
@@ -176,7 +168,7 @@ impl CheckCommandHandler {
         findings
     }
 
-    fn run_service_make_test_checks(&self, workspace_root: &Path) -> Vec<ValidationFinding> {
+    fn run_service_make_checks(&self, workspace_root: &Path) -> Vec<ValidationFinding> {
         let mut findings = Vec::new();
         let service_roots = match self
             .services
@@ -194,6 +186,14 @@ impl CheckCommandHandler {
         };
 
         for service_root in service_roots {
+            if let Some(lint_finding) = self
+                .services
+                .external_tool_runner
+                .run_make_lint(&service_root)
+            {
+                findings.push(lint_finding);
+            }
+
             if let Some(test_finding) = self
                 .services
                 .external_tool_runner

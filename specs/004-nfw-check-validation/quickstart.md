@@ -19,7 +19,7 @@
 2. Expected result:
    - Success message.
    - Exit code `0`.
-   - `make lint` is executed by `nfw check` as part of the validation run.
+   - `make lint` is executed by `nfw check` in each declared service path.
    - `make test` is also executed for each service declared in `nfw.yaml` under `services.*.path`.
    - Example output:
      - `architecture validation passed in '<workspace-root>': no forbidden project references, namespaces, direct packages, lint issues, or service test issues found`
@@ -30,7 +30,7 @@
 2. Confirm expected behavior:
    - Valid fixture exits `0` with no findings.
    - Invalid fixtures exit non-zero and include actionable findings.
-   - Lint failures from `make lint` are reported as `lint_issue` findings.
+   - Lint failures from service-scoped `make lint` are reported as `lint_issue` findings.
    - Service `make test` failures are reported as `test_issue` findings.
    - Unreadable-artifact fixture exits non-zero while still reporting other readable findings.
    - Example failure line:

@@ -7,11 +7,18 @@ use support::{ProjectConfig, add_project, cleanup_workspace, create_workspace, r
 #[test]
 fn check_reports_lint_issue_when_make_lint_fails() {
     let workspace_root = create_workspace("lint-failure");
+    fs::create_dir_all(workspace_root.join("src/Orders"))
+        .expect("service directory should be created");
     fs::write(
-        workspace_root.join("Makefile"),
-        ".PHONY: lint\nlint:\n\t@echo \"lint violation\" >&2\n\t@exit 1\n",
+        workspace_root.join("nfw.yaml"),
+        "workspace:\n  name: TestWorkspace\nservices:\n  Orders:\n    path: src/Orders\n",
     )
-    .expect("failing Makefile should be written");
+    .expect("workspace metadata should be written");
+    fs::write(
+        workspace_root.join("src/Orders/Makefile"),
+        ".PHONY: lint test\nlint:\n\t@echo \"lint violation\" >&2\n\t@exit 1\n\ntest:\n\t@echo \"tests ok\"\n",
+    )
+    .expect("failing service Makefile should be written");
 
     add_project(ProjectConfig {
         workspace_root: &workspace_root,
