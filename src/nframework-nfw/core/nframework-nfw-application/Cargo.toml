@@ -7,6 +7,7 @@ edition = "2024"
 nframework-core-cli-abstraction = { path = "../../../../packages/nframework-core-cli/src/nframework-core-cli-abstraction" }
 nframework-nfw-domain = { path = "../nframework-nfw-domain" }
 serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
 
 [dev-dependencies]
 semver = "1"
@@ -48,3 +49,15 @@ path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/fe
 [[test]]
 name = "workspace_initialization_service_test"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/workspace_initialization_service_test.rs"
+
+[[test]]
+name = "add_service_request_validation_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/add_service_request_validation_tests.rs"
+
+[[test]]
+name = "service_template_selection_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_template_selection_tests.rs"
+
+[[test]]
+name = "exit_codes_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes_tests.rs"

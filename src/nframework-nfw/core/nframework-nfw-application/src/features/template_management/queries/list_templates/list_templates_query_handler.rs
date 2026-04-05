@@ -1,7 +1,7 @@
 use crate::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use crate::features::template_management::queries::list_templates::list_templates_query::ListTemplatesQuery;
 use crate::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult;
-use crate::features::template_management::services::abstraction::template_listing_service::TemplateListingService;
+use crate::features::template_management::services::abstractions::template_listing_service::TemplateListingService;
 
 #[derive(Debug, Clone)]
 pub struct ListTemplatesQueryHandler<S>

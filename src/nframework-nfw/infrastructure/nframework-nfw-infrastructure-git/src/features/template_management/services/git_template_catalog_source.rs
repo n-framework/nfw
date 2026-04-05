@@ -1,9 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use nframework_nfw_application::features::cli::configuration::abstraction::path_resolver::PathResolver;
-use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
-use nframework_nfw_application::features::template_management::services::abstraction::template_source_synchronizer::TemplateSourceSynchronizer;
+use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
+use nframework_nfw_application::features::template_management::services::abstractions::git_repository::GitRepository;
+use nframework_nfw_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
 use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 
 #[derive(Debug, Clone)]

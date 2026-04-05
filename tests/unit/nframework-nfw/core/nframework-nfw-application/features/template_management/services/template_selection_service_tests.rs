@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use nframework_nfw_application::features::template_management::models::errors::template_selection_error::TemplateSelectionError;
 use nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
-use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use nframework_nfw_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_application::features::template_management::services::template_selection_service::TemplateSelectionService;
 use nframework_nfw_domain::features::template_management::language::Language;
 use nframework_nfw_domain::features::template_management::template_catalog::TemplateCatalog;

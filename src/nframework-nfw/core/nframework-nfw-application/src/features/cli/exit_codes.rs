@@ -1,9 +1,11 @@
+use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExitCodes {
     Success = 0,
+    Interrupted = 130,
     ValidationError = 2,
     NotFound = 3,
     Conflict = 4,
@@ -25,6 +27,26 @@ impl ExitCodes {
                 Self::ExternalDependencyFailure
             }
             WorkspaceNewError::Internal(_) => Self::InternalError,
+        }
+    }
+
+    pub fn from_add_service_error(error: &AddServiceError) -> Self {
+        match error {
+            AddServiceError::MissingRequiredInput(_)
+            | AddServiceError::InvalidServiceName(_)
+            | AddServiceError::InvalidTemplateType { .. } => Self::ValidationError,
+            AddServiceError::InvalidWorkspaceContext(_)
+            | AddServiceError::TargetDirectoryAlreadyExists(_)
+            | AddServiceError::AmbiguousTemplate(_) => Self::Conflict,
+            AddServiceError::TemplateNotFound(_) => Self::NotFound,
+            AddServiceError::PromptFailed(_)
+            | AddServiceError::RenderFailed(_)
+            | AddServiceError::ProvenanceWriteFailed(_)
+            | AddServiceError::CleanupFailed(_) => Self::ExternalDependencyFailure,
+            AddServiceError::DependencyRuleViolation(_)
+            | AddServiceError::HealthEndpointsMissing(_)
+            | AddServiceError::Internal(_) => Self::InternalError,
+            AddServiceError::Interrupted => Self::Interrupted,
         }
     }
 }

@@ -2,11 +2,11 @@ use std::path::PathBuf;
 
 use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
 use nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
-use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use nframework_nfw_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_application::features::workspace_management::models::new_command_request::NewCommandRequest;
-use nframework_nfw_application::features::workspace_management::services::abstraction::working_directory_provider::WorkingDirectoryProvider;
-use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_name_validator::WorkspaceNameValidator;
-use nframework_nfw_application::features::workspace_management::services::abstraction::workspace_writer::WorkspaceWriter;
+use nframework_nfw_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use nframework_nfw_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
+use nframework_nfw_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
 use nframework_nfw_application::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
 use nframework_nfw_application::features::workspace_management::services::workspace_initialization_service::WorkspaceInitializationService;
 use nframework_nfw_domain::features::template_management::template_catalog::TemplateCatalog;

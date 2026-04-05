@@ -8,6 +8,7 @@ nframework-core-cli-abstraction = { workspace = true }
 nframework-core-cli-clap = { workspace = true }
 nframework-core-cli-inquire = { workspace = true }
 nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+nframework-nfw-domain = { path = "../../core/nframework-nfw-domain" }
 nframework-nfw-infrastructure-filesystem = { path = "../../infrastructure/nframework-nfw-infrastructure-filesystem" }
 nframework-nfw-infrastructure-git = { path = "../../infrastructure/nframework-nfw-infrastructure-git" }
 nframework-nfw-infrastructure-versioning = { path = "../../infrastructure/nframework-nfw-infrastructure-versioning" }
@@ -18,9 +19,41 @@ name = "new_command_routing_tests"
 path = "../../../../tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing_tests.rs"
 
 [[test]]
+name = "add_service_command_routing_tests"
+path = "../../../../tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/add_service_command_routing_tests.rs"
+
+[[test]]
 name = "no_input_validation_test"
 path = "../../../../tests/integration/nframework-nfw/features/workspace_new/no_input_validation_test.rs"
 
 [[test]]
 name = "cli_routing_errors_test"
 path = "../../../../tests/integration/nframework-nfw/features/workspace_new/cli_routing_errors_test.rs"
+
+[[test]]
+name = "service_generation_layout_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_generation_layout_test.rs"
+
+[[test]]
+name = "service_workspace_context_validation_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_workspace_context_validation_test.rs"
+
+[[test]]
+name = "service_first_build_smoke_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_first_build_smoke_test.rs"
+
+[[test]]
+name = "service_generation_cleanup_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_generation_cleanup_test.rs"
+
+[[test]]
+name = "service_generation_path_safety_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_generation_path_safety_test.rs"
+
+[[test]]
+name = "service_template_validation_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_template_validation_test.rs"
+
+[[test]]
+name = "service_template_provenance_persistence_test"
+path = "../../../../tests/integration/nframework-nfw/features/service_add/service_template_provenance_persistence_test.rs"

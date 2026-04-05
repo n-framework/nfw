@@ -2,7 +2,7 @@ use nframework_nfw_domain::features::template_management::qualified_template_id:
 use nframework_nfw_domain::features::template_management::template_descriptor::TemplateDescriptor;
 
 use crate::features::template_management::models::errors::template_selection_error::TemplateSelectionError;
-use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::template_management::services::template_selection_result::TemplateSelectionResult;
 
 /// Maximum number of unique template matches before considering the identifier ambiguous

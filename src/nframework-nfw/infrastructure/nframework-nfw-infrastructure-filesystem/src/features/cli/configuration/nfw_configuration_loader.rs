@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use nframework_nfw_application::features::cli::configuration::abstraction::nfw_configuration_loader::NfwConfigurationLoader;
-use nframework_nfw_application::features::cli::configuration::abstraction::path_resolver::PathResolver;
+use nframework_nfw_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
+use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
 use nframework_nfw_application::features::cli::configuration::nfw_configuration::NfwConfiguration;
 use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 

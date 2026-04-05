@@ -2,8 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use nframework_nfw_application::features::cli::configuration::abstraction::nfw_configuration_loader::NfwConfigurationLoader;
-use nframework_nfw_application::features::cli::configuration::abstraction::path_resolver::PathResolver;
+use nframework_nfw_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
+use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
 use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
 

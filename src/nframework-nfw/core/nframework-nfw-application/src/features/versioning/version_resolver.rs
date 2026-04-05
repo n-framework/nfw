@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use nframework_nfw_domain::features::versioning::version::Version;
 use nframework_nfw_domain::features::versioning::version_info::VersionInfo;
 
-use crate::features::versioning::abstraction::version_provider::VersionProvider;
+use crate::features::versioning::abstractions::version_provider::VersionProvider;
 
 #[derive(Debug, Clone)]
 pub struct VersionResolver<P>

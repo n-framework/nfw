@@ -1,4 +1,4 @@
-pub mod abstraction;
+pub mod abstractions;
 pub mod input_resolution_service;
 pub mod namespace_resolver;
 pub mod new_command_validator;

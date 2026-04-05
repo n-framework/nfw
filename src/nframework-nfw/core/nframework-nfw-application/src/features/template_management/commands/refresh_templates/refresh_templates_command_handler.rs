@@ -2,7 +2,7 @@ use crate::features::template_management::commands::refresh_templates::refresh_t
     RefreshTemplatesCommand, RefreshTemplatesCommandResult,
 };
 use crate::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
-use crate::features::template_management::services::abstraction::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 
 /// Command handler for refreshing template catalogs.
 ///

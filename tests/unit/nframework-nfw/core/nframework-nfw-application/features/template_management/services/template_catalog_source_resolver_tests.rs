@@ -6,12 +6,12 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use nframework_nfw_application::features::template_management::models::errors::TemplateCatalogSourceResolverError;
-use nframework_nfw_application::features::template_management::services::abstraction::template_catalog_source::TemplateCatalogSource;
-use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
-use nframework_nfw_application::features::template_management::services::abstraction::yaml_parser::YamlParser;
+use nframework_nfw_application::features::template_management::services::abstractions::template_catalog_source::TemplateCatalogSource;
+use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
+use nframework_nfw_application::features::template_management::services::abstractions::yaml_parser::YamlParser;
 use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use nframework_nfw_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
-use nframework_nfw_application::features::versioning::abstraction::version_comparator::VersionComparator;
+use nframework_nfw_application::features::versioning::abstractions::version_comparator::VersionComparator;
 
 #[derive(Debug, Default, Clone)]
 struct TestCatalogSource {

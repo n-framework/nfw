@@ -6,9 +6,9 @@ use nframework_nfw_domain::features::versioning::version::Version;
 
 use crate::features::template_management::models::errors::TemplateCatalogError;
 use crate::features::template_management::models::raw_template_metadata::RawTemplateMetadata;
-use crate::features::template_management::services::abstraction::validator::Validator;
-use crate::features::template_management::services::abstraction::yaml_parser::YamlParser;
-use crate::features::versioning::abstraction::version_comparator::VersionComparator;
+use crate::features::template_management::services::abstractions::validator::Validator;
+use crate::features::template_management::services::abstractions::yaml_parser::YamlParser;
+use crate::features::versioning::abstractions::version_comparator::VersionComparator;
 
 #[derive(Debug, Clone)]
 pub struct TemplateCatalogParser<Y, V, C>

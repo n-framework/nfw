@@ -4,11 +4,11 @@ use nframework_nfw_domain::features::template_management::template_catalog::Temp
 use nframework_nfw_domain::features::template_management::template_descriptor::TemplateDescriptor;
 
 use crate::features::template_management::models::errors::TemplateCatalogSourceResolverError;
-use crate::features::template_management::services::abstraction::template_catalog_source::TemplateCatalogSource;
-use crate::features::template_management::services::abstraction::validator::Validator;
-use crate::features::template_management::services::abstraction::yaml_parser::YamlParser;
+use crate::features::template_management::services::abstractions::template_catalog_source::TemplateCatalogSource;
+use crate::features::template_management::services::abstractions::validator::Validator;
+use crate::features::template_management::services::abstractions::yaml_parser::YamlParser;
 use crate::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
-use crate::features::versioning::abstraction::version_comparator::VersionComparator;
+use crate::features::versioning::abstractions::version_comparator::VersionComparator;
 
 #[derive(Debug, Clone)]
 pub struct TemplateCatalogSourceResolver<S, Y, V, C>

@@ -2,10 +2,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use nframework_nfw_application::features::cli::configuration::abstraction::config_store::ConfigStore;
-use nframework_nfw_application::features::template_management::services::abstraction::git_repository::GitRepository;
-use nframework_nfw_application::features::template_management::services::abstraction::template_source_synchronizer::TemplateSourceSynchronizer;
-use nframework_nfw_application::features::template_management::services::abstraction::validator::Validator;
+use nframework_nfw_application::features::cli::configuration::abstractions::config_store::ConfigStore;
+use nframework_nfw_application::features::template_management::services::abstractions::git_repository::GitRepository;
+use nframework_nfw_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
+use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
 use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use nframework_nfw_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
 use nframework_nfw_application::features::template_management::services::templates_service::TemplatesService;
