@@ -1,0 +1,22 @@
+[package]
+name = "nframework-nfw-core-domain"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[[test]]
+name = "template_metadata_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-domain/features/template_management/template_metadata_tests.rs"
+
+[[test]]
+name = "qualified_template_id_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-domain/features/template_management/qualified_template_id_tests.rs"
+
+[[test]]
+name = "version_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-domain/features/versioning/version_tests.rs"
+
+[[test]]
+name = "workspace_blueprint_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-domain/features/workspace_management/workspace_blueprint_tests.rs"

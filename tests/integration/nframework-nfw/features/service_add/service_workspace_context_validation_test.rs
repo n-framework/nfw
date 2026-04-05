@@ -1,7 +1,7 @@
 #[path = "support.rs"]
 mod support;
 
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 #[test]
 fn fails_when_current_directory_is_not_inside_workspace() {

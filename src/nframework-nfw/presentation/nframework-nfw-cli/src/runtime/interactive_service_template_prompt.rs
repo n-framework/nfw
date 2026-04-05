@@ -1,6 +1,6 @@
 use nframework_core_cli_abstraction::{PromptService, SelectOption};
-use nframework_nfw_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
+use nframework_nfw_core_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
 
 #[derive(Debug, Clone)]
 pub struct InteractiveServiceTemplatePrompt<P>

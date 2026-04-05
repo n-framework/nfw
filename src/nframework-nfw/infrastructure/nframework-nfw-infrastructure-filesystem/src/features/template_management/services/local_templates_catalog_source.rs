@@ -3,8 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use glob::Pattern;
-use nframework_nfw_application::features::template_management::constants::{source, template};
-use nframework_nfw_application::features::template_management::services::abstractions::template_catalog_source::TemplateCatalogSource;
+use nframework_nfw_core_application::features::template_management::constants::{source, template};
+use nframework_nfw_core_application::features::template_management::services::abstractions::template_catalog_source::TemplateCatalogSource;
 
 use crate::features::template_management::services::placeholder_detector::PlaceholderDetector;
 

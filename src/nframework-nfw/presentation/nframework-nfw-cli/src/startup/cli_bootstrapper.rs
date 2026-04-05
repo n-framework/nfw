@@ -1,7 +1,7 @@
 use crate::startup::cli_service_collection_factory::{
     CliServiceCollection, CliServiceCollectionFactory,
 };
-use nframework_nfw_application::features::template_management::commands::ensure_default_source::ensure_default_source_command::EnsureDefaultSourceCommand;
+use nframework_nfw_core_application::features::template_management::commands::ensure_default_source::ensure_default_source_command::EnsureDefaultSourceCommand;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CliBootstrapper;

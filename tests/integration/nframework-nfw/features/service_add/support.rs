@@ -4,17 +4,17 @@ use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommandResult;
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use nframework_nfw_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
-use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
-use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
-use nframework_nfw_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
-use nframework_nfw_domain::features::versioning::version::Version;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommandResult;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
+use nframework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
+use nframework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
+use nframework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use nframework_nfw_core_domain::features::versioning::version::Version;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 use nframework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
@@ -180,11 +180,7 @@ pub fn create_workspace_root(test_name: &str) -> PathBuf {
     root
 }
 
-pub fn create_service_template(
-    root: &Path,
-    template_name: &str,
-    template_type: &str,
-) -> PathBuf {
+pub fn create_service_template(root: &Path, template_name: &str, template_type: &str) -> PathBuf {
     let template_root = root.join(template_name);
     let content_root = template_root.join("content");
     fs::create_dir_all(content_root.join("Domain"))

@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use nframework_nfw_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
 
 use crate::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 
@@ -43,14 +43,15 @@ impl FileSystemServiceTemplateRenderer {
             })?;
 
             let source_path = entry.path();
-            let relative_path = source_path
-                .strip_prefix(context.content_root)
-                .map_err(|error| {
-                    AddServiceError::RenderFailed(format!(
-                        "failed to compute template-relative path for '{}': {error}",
-                        source_path.display()
-                    ))
-                })?;
+            let relative_path =
+                source_path
+                    .strip_prefix(context.content_root)
+                    .map_err(|error| {
+                        AddServiceError::RenderFailed(format!(
+                            "failed to compute template-relative path for '{}': {error}",
+                            source_path.display()
+                        ))
+                    })?;
 
             let rendered_relative_path = render_path(relative_path, context.placeholder_values);
             ensure_safe_relative_path(&rendered_relative_path)?;
@@ -195,7 +196,5 @@ fn ensure_safe_relative_path(relative_path: &Path) -> Result<(), AddServiceError
 }
 
 fn merge_cleanup_error(cleanup_error: String, original_error: &AddServiceError) -> AddServiceError {
-    AddServiceError::CleanupFailed(format!(
-        "{cleanup_error}; original error: {original_error}"
-    ))
+    AddServiceError::CleanupFailed(format!("{cleanup_error}; original error: {original_error}"))
 }

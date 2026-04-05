@@ -1,8 +1,8 @@
-use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command::AddTemplateSourceCommand;
-use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
-use nframework_nfw_application::features::cli::configuration::abstractions::config_store::ConfigStore;
-use nframework_nfw_application::features::template_management::services::abstractions::git_repository::GitRepository;
-use nframework_nfw_application::features::template_management::services::abstractions::validator::Validator;
+use nframework_nfw_core_application::features::template_management::commands::add_template_source::add_template_source_command::AddTemplateSourceCommand;
+use nframework_nfw_core_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::config_store::ConfigStore;
+use nframework_nfw_core_application::features::template_management::services::abstractions::git_repository::GitRepository;
+use nframework_nfw_core_application::features::template_management::services::abstractions::validator::Validator;
 
 /// Thin CLI presentation layer for adding a template source.
 /// Delegates all business logic to the application layer command handler.

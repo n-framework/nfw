@@ -1,8 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-  "src/nframework-nfw/core/nframework-nfw-domain",
-  "src/nframework-nfw/core/nframework-nfw-application",
+  "src/nframework-nfw/core/nframework-nfw-core-domain",
+  "src/nframework-nfw/core/nframework-nfw-core-application",
   "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem",
   "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-git",
   "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-workspace-metadata",

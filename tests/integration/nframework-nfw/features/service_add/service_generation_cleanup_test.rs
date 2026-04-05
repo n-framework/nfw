@@ -4,13 +4,13 @@ mod support;
 use std::fs;
 use std::path::Path;
 
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use nframework_nfw_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
-use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
-use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
+use nframework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
+use nframework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use nframework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
 
 #[derive(Debug, Clone)]

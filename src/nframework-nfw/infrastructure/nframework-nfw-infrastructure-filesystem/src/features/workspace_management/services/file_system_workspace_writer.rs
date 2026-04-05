@@ -2,9 +2,9 @@ mod metadata_support;
 mod render_support;
 mod template_copy;
 
-use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
-use nframework_nfw_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
-use nframework_nfw_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
+use nframework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
+use nframework_nfw_core_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
+use nframework_nfw_core_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 use std::fs;
 use std::path::Path;
 

@@ -1,10 +1,10 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
-use nframework_nfw_application::features::template_management::services::abstractions::git_repository::GitRepository;
-use nframework_nfw_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
-use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
+use nframework_nfw_core_application::features::template_management::services::abstractions::git_repository::GitRepository;
+use nframework_nfw_core_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
+use nframework_nfw_core_domain::features::template_management::template_source::TemplateSource;
 
 #[derive(Debug, Clone)]
 pub struct GitTemplateCatalogSource<G, P>

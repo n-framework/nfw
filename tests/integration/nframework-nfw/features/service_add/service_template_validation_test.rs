@@ -3,16 +3,16 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use nframework_nfw_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
-use nframework_nfw_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
-use nframework_nfw_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
-use nframework_nfw_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
-use nframework_nfw_domain::features::template_management::language::Language;
-use nframework_nfw_domain::features::template_management::template_catalog::TemplateCatalog;
-use nframework_nfw_domain::features::template_management::template_descriptor::TemplateDescriptor;
-use nframework_nfw_domain::features::template_management::template_metadata::TemplateMetadata;
-use nframework_nfw_domain::features::versioning::version::Version;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
+use nframework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
+use nframework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
+use nframework_nfw_core_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use nframework_nfw_core_domain::features::template_management::language::Language;
+use nframework_nfw_core_domain::features::template_management::template_catalog::TemplateCatalog;
+use nframework_nfw_core_domain::features::template_management::template_descriptor::TemplateDescriptor;
+use nframework_nfw_core_domain::features::template_management::template_metadata::TemplateMetadata;
+use nframework_nfw_core_domain::features::versioning::version::Version;
 
 #[derive(Debug, Clone)]
 struct StubDiscoveryService {

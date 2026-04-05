@@ -1,6 +1,6 @@
-use nframework_nfw_application::features::service_management::models::add_service_command_request::AddServiceCommandRequest;
-use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use nframework_nfw_application::features::service_management::services::add_service_request_validator::AddServiceRequestValidator;
+use nframework_nfw_core_application::features::service_management::models::add_service_command_request::AddServiceCommandRequest;
+use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use nframework_nfw_core_application::features::service_management::services::add_service_request_validator::AddServiceRequestValidator;
 
 #[test]
 fn rejects_missing_template_in_non_interactive_mode() {

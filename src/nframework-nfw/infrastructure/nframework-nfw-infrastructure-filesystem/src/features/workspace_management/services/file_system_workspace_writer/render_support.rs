@@ -1,4 +1,4 @@
-use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
+use nframework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use std::path::{Path, PathBuf};
 
 pub fn render_path(relative_path: &Path, resolution: &NewCommandResolution) -> PathBuf {

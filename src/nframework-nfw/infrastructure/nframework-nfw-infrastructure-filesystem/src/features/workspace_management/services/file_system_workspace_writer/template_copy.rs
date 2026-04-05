@@ -1,7 +1,7 @@
 use crate::features::workspace_management::services::file_system_workspace_writer::render_support::{
     render_bytes, render_path,
 };
-use nframework_nfw_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
+use nframework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use std::fs;
 use std::path::Path;
 

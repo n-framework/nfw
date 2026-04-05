@@ -1,10 +1,10 @@
 use std::fs;
 use std::path::PathBuf;
 
-use nframework_nfw_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
-use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
-use nframework_nfw_application::features::cli::configuration::nfw_configuration::NfwConfiguration;
-use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
+use nframework_nfw_core_application::features::cli::configuration::nfw_configuration::NfwConfiguration;
+use nframework_nfw_core_domain::features::template_management::template_source::TemplateSource;
 
 use crate::features::cli::configuration::models::source_config::SourceConfig;
 use crate::features::cli::configuration::models::sources_file::SourcesFile;

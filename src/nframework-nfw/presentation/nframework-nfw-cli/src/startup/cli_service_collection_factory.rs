@@ -1,18 +1,19 @@
-use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
+use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
+use nframework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
 use nframework_core_cli_inquire::InquirerPromptService;
-use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
-use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
-use nframework_nfw_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
-use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
-use nframework_nfw_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
-use nframework_nfw_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
-use nframework_nfw_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
-use nframework_nfw_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
-use nframework_nfw_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
-use nframework_nfw_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
-use nframework_nfw_application::features::template_management::services::templates_service::TemplatesService;
-use nframework_nfw_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
-use nframework_nfw_application::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
+use nframework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
+use nframework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
+use nframework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
+use nframework_nfw_core_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
+use nframework_nfw_core_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
+use nframework_nfw_core_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
+use nframework_nfw_core_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
+use nframework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
+use nframework_nfw_core_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
+use nframework_nfw_core_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
+use nframework_nfw_core_application::features::template_management::services::templates_service::TemplatesService;
+use nframework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
+use nframework_nfw_core_application::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::dirs_path_resolver::DirsPathResolver;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
 use nframework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
@@ -45,15 +46,18 @@ impl CliServiceCollectionFactory {
         CliServiceCollection {
             new_workspace_command_handler: workspace.new_workspace_command_handler,
             add_service_command_handler: service.add_service_command_handler,
+            check_command_handler: CheckCommandHandler::default(),
             list_templates_query_handler: templates.list_templates_query_handler,
             add_template_source_command_handler: templates.add_template_source_command_handler,
-            remove_template_source_command_handler: templates.remove_template_source_command_handler,
+            remove_template_source_command_handler: templates
+                .remove_template_source_command_handler,
             refresh_templates_command_handler: templates.refresh_templates_command_handler,
             ensure_default_source_command_handler: templates.ensure_default_source_command_handler,
         }
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 struct TemplateFeatureServices {
     templates_service: TemplatesService<
@@ -148,6 +152,7 @@ impl TemplateFeatureFactory {
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 struct WorkspaceFeatureServices {
     new_workspace_command_handler: NewWorkspaceCommandHandler<
@@ -170,6 +175,7 @@ struct WorkspaceFeatureServices {
 
 struct WorkspaceFeatureFactory;
 
+#[allow(clippy::type_complexity)]
 impl WorkspaceFeatureFactory {
     fn build(
         templates_service: TemplatesService<
@@ -197,6 +203,7 @@ impl WorkspaceFeatureFactory {
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 struct ServiceFeatureServices {
     add_service_command_handler: AddServiceCommandHandler<
@@ -208,7 +215,9 @@ struct ServiceFeatureServices {
                 SerdeYamlParser,
                 CliValidator,
                 SemverVersionComparator,
-                FileSystemWorkspaceArtifactWriter<NfwFileSystemConfigurationLoader<DirsPathResolver>>,
+                FileSystemWorkspaceArtifactWriter<
+                    NfwFileSystemConfigurationLoader<DirsPathResolver>,
+                >,
                 InfrastructureCliGitRepository,
             >,
         >,
@@ -221,6 +230,7 @@ struct ServiceFeatureServices {
 
 struct ServiceFeatureFactory;
 
+#[allow(clippy::type_complexity)]
 impl ServiceFeatureFactory {
     fn build(
         templates_service: TemplatesService<

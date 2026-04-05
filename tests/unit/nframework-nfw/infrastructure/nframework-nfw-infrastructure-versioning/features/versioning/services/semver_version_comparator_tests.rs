@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use nframework_nfw_application::features::versioning::abstractions::version_comparator::VersionComparator;
+use nframework_nfw_core_application::features::versioning::abstractions::version_comparator::VersionComparator;
 use nframework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
 
 #[test]

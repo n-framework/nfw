@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
+nframework-nfw-core-application = { path = "../../core/nframework-nfw-core-application" }
 nframework-nfw-infrastructure-workspace-metadata = { path = "../nframework-nfw-infrastructure-workspace-metadata" }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"

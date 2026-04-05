@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use nframework_nfw_domain::features::template_management::language::Language;
-use nframework_nfw_domain::features::template_management::template_metadata::TemplateMetadata;
-use nframework_nfw_domain::features::versioning::version::Version;
+use nframework_nfw_core_domain::features::template_management::language::Language;
+use nframework_nfw_core_domain::features::template_management::template_metadata::TemplateMetadata;
+use nframework_nfw_core_domain::features::versioning::version::Version;
 
 #[test]
 fn validates_valid_metadata() {

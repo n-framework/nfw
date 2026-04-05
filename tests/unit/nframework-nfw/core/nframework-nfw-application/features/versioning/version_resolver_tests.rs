@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
-use nframework_nfw_application::features::versioning::version_provider::VersionProvider;
-use nframework_nfw_application::features::versioning::version_resolver::VersionResolver;
-use nframework_nfw_domain::features::versioning::version::Version;
-use nframework_nfw_domain::features::versioning::version_info::VersionInfo;
+use nframework_nfw_core_application::features::versioning::version_provider::VersionProvider;
+use nframework_nfw_core_application::features::versioning::version_resolver::VersionResolver;
+use nframework_nfw_core_domain::features::versioning::version::Version;
+use nframework_nfw_core_domain::features::versioning::version_info::VersionInfo;
 use nframework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
 
 #[test]

@@ -7,8 +7,8 @@ edition = "2024"
 nframework-core-cli-abstraction = { workspace = true }
 nframework-core-cli-clap = { workspace = true }
 nframework-core-cli-inquire = { workspace = true }
-nframework-nfw-application = { path = "../../core/nframework-nfw-application" }
-nframework-nfw-domain = { path = "../../core/nframework-nfw-domain" }
+nframework-nfw-core-application = { path = "../../core/nframework-nfw-core-application" }
+nframework-nfw-core-domain = { path = "../../core/nframework-nfw-core-domain" }
 nframework-nfw-infrastructure-filesystem = { path = "../../infrastructure/nframework-nfw-infrastructure-filesystem" }
 nframework-nfw-infrastructure-git = { path = "../../infrastructure/nframework-nfw-infrastructure-git" }
 nframework-nfw-infrastructure-versioning = { path = "../../infrastructure/nframework-nfw-infrastructure-versioning" }
@@ -21,6 +21,14 @@ path = "../../../../tests/unit/nframework-nfw/presentation/nframework-nfw-cli/ru
 [[test]]
 name = "add_service_command_routing_tests"
 path = "../../../../tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/add_service_command_routing_tests.rs"
+
+[[test]]
+name = "check_command_routing_tests"
+path = "../../../../tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_routing_tests.rs"
+
+[[test]]
+name = "check_command_stdio_tests"
+path = "../../../../tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_stdio_tests.rs"
 
 [[test]]
 name = "no_input_validation_test"
@@ -57,3 +65,55 @@ path = "../../../../tests/integration/nframework-nfw/features/service_add/servic
 [[test]]
 name = "service_template_provenance_persistence_test"
 path = "../../../../tests/integration/nframework-nfw/features/service_add/service_template_provenance_persistence_test.rs"
+
+[[test]]
+name = "architecture_check_valid_workspace_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/valid_workspace_check_test.rs"
+
+[[test]]
+name = "architecture_check_forbidden_project_reference_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/forbidden_project_reference_test.rs"
+
+[[test]]
+name = "architecture_check_forbidden_namespace_usage_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/forbidden_namespace_usage_test.rs"
+
+[[test]]
+name = "architecture_check_forbidden_package_usage_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/forbidden_package_usage_test.rs"
+
+[[test]]
+name = "architecture_check_unreadable_artifact_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/unreadable_artifact_test.rs"
+
+[[test]]
+name = "architecture_check_deterministic_repeatability_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/deterministic_repeatability_test.rs"
+
+[[test]]
+name = "architecture_check_actionable_output_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/actionable_output_test.rs"
+
+[[test]]
+name = "architecture_check_multi_violation_reporting_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/multi_violation_reporting_test.rs"
+
+[[test]]
+name = "architecture_check_lint_failure_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/lint_failure_test.rs"
+
+[[test]]
+name = "architecture_check_service_lint_scope_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/service_lint_scope_test.rs"
+
+[[test]]
+name = "architecture_check_service_test_failure_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/service_test_failure_test.rs"
+
+[[test]]
+name = "architecture_check_polyglot_rust_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/polyglot_rust_check_test.rs"
+
+[[test]]
+name = "architecture_check_polyglot_go_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/polyglot_go_check_tests.rs"

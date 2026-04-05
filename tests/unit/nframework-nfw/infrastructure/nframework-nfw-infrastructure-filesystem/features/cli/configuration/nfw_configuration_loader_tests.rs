@@ -2,9 +2,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use nframework_nfw_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
-use nframework_nfw_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
-use nframework_nfw_domain::features::template_management::template_source::TemplateSource;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
+use nframework_nfw_core_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
+use nframework_nfw_core_domain::features::template_management::template_source::TemplateSource;
 use nframework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
 
 #[derive(Debug, Clone)]
@@ -57,7 +57,7 @@ fn saves_and_loads_sources_file() {
         config_directory: config_directory.clone(),
     });
 
-    let input_configuration = nframework_nfw_application::features::cli::configuration::nfw_configuration::NfwConfiguration::new(
+    let input_configuration = nframework_nfw_core_application::features::cli::configuration::nfw_configuration::NfwConfiguration::new(
         vec![
             TemplateSource::new(
                 "official".to_owned(),
