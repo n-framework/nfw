@@ -257,18 +257,18 @@ fn extract_go_replace_directives(content: &str) -> Vec<String> {
 
     for raw_line in content.lines() {
         let line = raw_line.trim();
-        if line.starts_with("replace ") || line.starts_with("replace\t") {
-            if let Some((_, rest)) = line.split_once("=>") {
-                let rest = rest.trim();
-                let path = rest
-                    .trim_start_matches('"')
-                    .trim_end_matches('"')
-                    .split_whitespace()
-                    .next()
-                    .unwrap_or(rest);
-                if path.starts_with("./") || path.starts_with("../") {
-                    references.push(path.to_owned());
-                }
+        if (line.starts_with("replace ") || line.starts_with("replace\t"))
+            && let Some((_, rest)) = line.split_once("=>")
+        {
+            let rest = rest.trim();
+            let path = rest
+                .trim_start_matches('"')
+                .trim_end_matches('"')
+                .split_whitespace()
+                .next()
+                .unwrap_or(rest);
+            if path.starts_with("./") || path.starts_with("../") {
+                references.push(path.to_owned());
             }
         }
     }

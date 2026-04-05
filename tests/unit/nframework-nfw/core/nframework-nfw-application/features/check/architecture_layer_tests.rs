@@ -171,11 +171,15 @@ fn architecture_layer_from_path_presentation_webapi_compound_names() {
         CheckLayer::Presentation
     );
     assert_eq!(
-        CheckLayer::from_path("src/MyProject.Presentation.WebApi/Shared/OpenApi/Extensions/OpenApiConfigurationExtensions.cs"),
+        CheckLayer::from_path(
+            "src/MyProject.Presentation.WebApi/Shared/OpenApi/Extensions/OpenApiConfigurationExtensions.cs"
+        ),
         CheckLayer::Presentation
     );
     assert_eq!(
-        CheckLayer::from_path("presentation/__ServiceName__.Presentation.WebApi/__ServiceName__.Presentation.WebApi.csproj"),
+        CheckLayer::from_path(
+            "presentation/__ServiceName__.Presentation.WebApi/__ServiceName__.Presentation.WebApi.csproj"
+        ),
         CheckLayer::Presentation
     );
 }
