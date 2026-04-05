@@ -14,7 +14,7 @@ pub trait WorkspaceMetadataReader: Send + Sync {
     /// Returns a vector of absolute paths to service directories.
     fn resolve_service_roots(&self, workspace_root: &Path) -> Result<Vec<PathBuf>, String>;
 
-    /// Reads the content of a project manifest file (package.json, Cargo.toml, etc.).
+    /// Reads the content of a project manifest file (go.mod, Cargo.toml, etc.).
     fn read_manifest_content(&self, path: &Path) -> Result<String, String>;
 
     /// Reads the content of a source file.

@@ -115,5 +115,5 @@ name = "architecture_check_polyglot_rust_test"
 path = "../../../../tests/integration/nframework-nfw/features/architecture_check/polyglot_rust_check_test.rs"
 
 [[test]]
-name = "architecture_check_polyglot_node_test"
-path = "../../../../tests/integration/nframework-nfw/features/architecture_check/polyglot_node_check_test.rs"
+name = "architecture_check_polyglot_go_test"
+path = "../../../../tests/integration/nframework-nfw/features/architecture_check/polyglot_go_check_tests.rs"

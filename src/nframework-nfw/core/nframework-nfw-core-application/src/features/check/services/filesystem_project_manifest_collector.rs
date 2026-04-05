@@ -8,7 +8,7 @@ use crate::features::check::services::abstractions::ProjectManifestCollector;
 enum ProjectManifestKind {
     CSharp,
     Rust,
-    Node,
+    Go,
 }
 
 fn detect_manifest_kind(path: &Path) -> Option<ProjectManifestKind> {
@@ -22,8 +22,8 @@ fn detect_manifest_kind(path: &Path) -> Option<ProjectManifestKind> {
         return Some(ProjectManifestKind::Rust);
     }
 
-    if file_name.eq_ignore_ascii_case("package.json") {
-        return Some(ProjectManifestKind::Node);
+    if file_name.eq_ignore_ascii_case("go.mod") {
+        return Some(ProjectManifestKind::Go);
     }
 
     None

@@ -70,11 +70,16 @@ impl RuleSetLoader for RuleSetLoaderService {
                     "Serilog.AspNetCore".to_owned(),
                     "axum".to_owned(),
                     "express".to_owned(),
+                    "github.com/gin-gonic/gin".to_owned(),
                 ],
             ),
             (
                 CheckLayer::Application,
-                vec!["Microsoft.AspNetCore.App".to_owned(), "express".to_owned()],
+                vec![
+                    "Microsoft.AspNetCore.App".to_owned(),
+                    "express".to_owned(),
+                    "github.com/gin-gonic/gin".to_owned(),
+                ],
             ),
         ]);
 

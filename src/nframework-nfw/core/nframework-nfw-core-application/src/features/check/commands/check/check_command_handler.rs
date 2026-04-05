@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 
 use regex::Regex;
-use serde_json::Value as JsonValue;
 
 use crate::features::check::models::check_command_request::CheckCommandRequest;
 use crate::features::check::models::{
@@ -17,7 +16,7 @@ const WORKSPACE_METADATA_FILE: &str = "nfw.yaml";
 enum ProjectManifestKind {
     CSharp,
     Rust,
-    Node,
+    Go,
 }
 
 #[derive(Debug, Clone)]
@@ -218,13 +217,7 @@ impl CheckCommandHandler {
                 .captures_iter(content)
                 .filter_map(|capture| capture.get(2).map(|value| value.as_str().to_owned()))
                 .collect(),
-            ProjectManifestKind::Node => {
-                let root = match parse_json_with_error_reporting(content, &manifest.path) {
-                    Some(root) => root,
-                    None => return Vec::new(),
-                };
-                extract_local_node_references(&root)
-            }
+            ProjectManifestKind::Go => extract_go_replace_directives(content),
         }
     }
 
@@ -240,13 +233,7 @@ impl CheckCommandHandler {
                 .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_owned()))
                 .collect(),
             ProjectManifestKind::Rust => extract_cargo_direct_dependencies(content),
-            ProjectManifestKind::Node => {
-                let root = match parse_json_with_error_reporting(content, &manifest.path) {
-                    Some(root) => root,
-                    None => return Vec::new(),
-                };
-                extract_node_direct_dependencies(&root)
-            }
+            ProjectManifestKind::Go => extract_go_direct_dependencies(content),
         }
     }
 
@@ -265,58 +252,23 @@ impl CheckCommandHandler {
 }
 
 /// Parses JSON and returns None, with errors already reported as findings elsewhere.
-fn parse_json_with_error_reporting(content: &str, _path: &Path) -> Option<JsonValue> {
-    // The actual error reporting happens in the calling context
-    // This function just returns None for parsing failures
-    serde_json::from_str::<JsonValue>(content).ok()
-}
-
-fn extract_node_direct_dependencies(root: &JsonValue) -> Vec<String> {
-    let mut dependencies = Vec::new();
-
-    for section in [
-        "dependencies",
-        "devDependencies",
-        "peerDependencies",
-        "optionalDependencies",
-    ] {
-        let Some(mapping) = root.get(section).and_then(|value| value.as_object()) else {
-            continue;
-        };
-
-        dependencies.extend(mapping.keys().cloned());
-    }
-
-    dependencies.sort();
-    dependencies.dedup();
-    dependencies
-}
-
-fn extract_local_node_references(root: &JsonValue) -> Vec<String> {
+fn extract_go_replace_directives(content: &str) -> Vec<String> {
     let mut references = Vec::new();
 
-    for section in [
-        "dependencies",
-        "devDependencies",
-        "peerDependencies",
-        "optionalDependencies",
-    ] {
-        let Some(mapping) = root.get(section).and_then(|value| value.as_object()) else {
-            continue;
-        };
-
-        for value in mapping.values() {
-            let Some(specifier) = value.as_str() else {
-                continue;
-            };
-
-            let normalized = specifier.to_ascii_lowercase();
-            let is_local = normalized.starts_with("file:")
-                || normalized.starts_with("workspace:")
-                || normalized.starts_with("../")
-                || normalized.starts_with("./");
-            if is_local {
-                references.push(specifier.to_owned());
+    for raw_line in content.lines() {
+        let line = raw_line.trim();
+        if line.starts_with("replace ") || line.starts_with("replace\t") {
+            if let Some((_, rest)) = line.split_once("=>") {
+                let rest = rest.trim();
+                let path = rest
+                    .trim_start_matches('"')
+                    .trim_end_matches('"')
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or(rest);
+                if path.starts_with("./") || path.starts_with("../") {
+                    references.push(path.to_owned());
+                }
             }
         }
     }
@@ -324,6 +276,49 @@ fn extract_local_node_references(root: &JsonValue) -> Vec<String> {
     references.sort();
     references.dedup();
     references
+}
+
+fn extract_go_direct_dependencies(content: &str) -> Vec<String> {
+    let mut dependencies = Vec::new();
+    let mut inside_require_block = false;
+
+    for raw_line in content.lines() {
+        let line = raw_line.trim();
+
+        if line.starts_with("require (") {
+            inside_require_block = true;
+            continue;
+        }
+
+        if inside_require_block {
+            if line == ")" {
+                inside_require_block = false;
+                continue;
+            }
+            if line.is_empty() || line.starts_with("//") {
+                continue;
+            }
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if !parts.is_empty() {
+                dependencies.push(parts[0].to_owned());
+            }
+            continue;
+        }
+
+        if line.starts_with("require ") || line.starts_with("require\t") {
+            let rest = line.trim_start_matches("require").trim();
+            if !rest.starts_with('(') {
+                let parts: Vec<&str> = rest.split_whitespace().collect();
+                if !parts.is_empty() {
+                    dependencies.push(parts[0].to_owned());
+                }
+            }
+        }
+    }
+
+    dependencies.sort();
+    dependencies.dedup();
+    dependencies
 }
 
 fn extract_cargo_direct_dependencies(content: &str) -> Vec<String> {
@@ -414,8 +409,8 @@ fn detect_manifest_kind(path: &Path) -> Option<ProjectManifestKind> {
         return Some(ProjectManifestKind::Rust);
     }
 
-    if file_name.eq_ignore_ascii_case("package.json") {
-        return Some(ProjectManifestKind::Node);
+    if file_name.eq_ignore_ascii_case("go.mod") {
+        return Some(ProjectManifestKind::Go);
     }
 
     None

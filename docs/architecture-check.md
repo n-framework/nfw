@@ -17,7 +17,7 @@ Current validation scans multiple project ecosystems:
 
 - C#: `.csproj` + `.cs`
 - Rust: `Cargo.toml` + `.rs`
-- Node.js/TypeScript: `package.json` + `.js/.jsx/.ts/.tsx`
+- Go: `go.mod` + `.go`
 
 ## Exit Behavior
 
