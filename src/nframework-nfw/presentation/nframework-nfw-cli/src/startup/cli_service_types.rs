@@ -1,4 +1,5 @@
 use nframework_core_cli_inquire::InquirerPromptService;
+use nframework_nfw_application::features::architecture_validation::commands::check::check_command_handler::CheckCommandHandler;
 use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use nframework_nfw_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
 use nframework_nfw_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
@@ -61,11 +62,13 @@ pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     FileSystemServiceTemplateRenderer,
     nframework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter,
 >;
+pub type CliCheckCommandHandler = CheckCommandHandler;
 
 #[derive(Clone)]
 pub struct CliServiceCollection {
     pub new_workspace_command_handler: CliNewWorkspaceCommandHandler,
     pub add_service_command_handler: CliAddServiceCommandHandler,
+    pub check_command_handler: CliCheckCommandHandler,
     pub list_templates_query_handler: CliListTemplatesQueryHandler,
     pub add_template_source_command_handler: CliAddTemplateSourceCommandHandler,
     pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,

@@ -5,9 +5,11 @@ use nframework_core_cli_abstraction::{
 };
 use nframework_core_cli_clap::ClapCliRuntimeBuilder;
 use nframework_nfw_application::features::cli::exit_codes::ExitCodes;
+use nframework_nfw_application::features::architecture_validation::models::errors::ArchitectureValidationError;
 use nframework_nfw_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
+use crate::commands::check::run_check::{RunCheckCliCommand, RunCheckError};
 use crate::commands::service::add_service::AddServiceCliCommand;
 use crate::commands::templates::add_source::AddSourceCliCommand;
 use crate::commands::templates::list_templates::TemplatesCliCommand;
@@ -80,6 +82,10 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                     ),
             )
             .with_command(
+                CliCommandSpec::new("check")
+                    .with_about("Validate workspace architecture boundaries"),
+            )
+            .with_command(
                 CliCommandSpec::new("add")
                     .with_about("Create workspace artifacts")
                     .require_subcommand()
@@ -109,6 +115,7 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
 
     ClapCliRuntimeBuilder::new(build_nfw_cli_app_config(), services)
         .register_handler("new", handle_workspace_new)
+        .register_handler("check", handle_check)
         .register_handler("add/service", handle_add_service)
         .register_handler("templates/list", handle_templates_list)
         .register_handler("templates/add", handle_templates_add)
@@ -160,6 +167,29 @@ fn handle_add_service(command: &dyn Command, context: &CliServiceCollection) -> 
                 AddServiceError::Interrupted => 130,
                 _ => ExitCodes::from_add_service_error(&error) as i32,
             };
+            format!("[exit:{exit_code}] {error}")
+        })
+}
+
+fn handle_check(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
+    RunCheckCliCommand::new(context.check_command_handler.clone())
+        .execute()
+        .map_err(|error| {
+            let exit_code = match error {
+                RunCheckError::ValidationFailed => ExitCodes::ValidationError as i32,
+                RunCheckError::Interrupted => ExitCodes::Interrupted as i32,
+                RunCheckError::CurrentDirectoryUnavailable(_) => ExitCodes::InternalError as i32,
+                RunCheckError::CommandError(ref validation_error) => {
+                    match validation_error {
+                        ArchitectureValidationError::InvalidWorkspaceContext(_) => {
+                            ExitCodes::ValidationError as i32
+                        }
+                        ArchitectureValidationError::Interrupted => ExitCodes::Interrupted as i32,
+                        ArchitectureValidationError::Internal(_) => ExitCodes::InternalError as i32,
+                    }
+                }
+            };
+
             format!("[exit:{exit_code}] {error}")
         })
 }

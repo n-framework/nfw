@@ -1,4 +1,5 @@
 use nframework_nfw_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
+use nframework_nfw_application::features::architecture_validation::commands::check::check_command_handler::CheckCommandHandler;
 use nframework_core_cli_inquire::InquirerPromptService;
 use nframework_nfw_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use nframework_nfw_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
@@ -45,6 +46,7 @@ impl CliServiceCollectionFactory {
         CliServiceCollection {
             new_workspace_command_handler: workspace.new_workspace_command_handler,
             add_service_command_handler: service.add_service_command_handler,
+            check_command_handler: CheckCommandHandler::default(),
             list_templates_query_handler: templates.list_templates_query_handler,
             add_template_source_command_handler: templates.add_template_source_command_handler,
             remove_template_source_command_handler: templates.remove_template_source_command_handler,

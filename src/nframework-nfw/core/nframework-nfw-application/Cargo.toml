@@ -8,6 +8,8 @@ nframework-core-cli-abstraction = { path = "../../../../packages/nframework-core
 nframework-nfw-domain = { path = "../nframework-nfw-domain" }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
+regex = "1"
+serde_json = "1"
 
 [dev-dependencies]
 semver = "1"
@@ -61,3 +63,11 @@ path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/fe
 [[test]]
 name = "exit_codes_tests"
 path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes_tests.rs"
+
+[[test]]
+name = "architecture_validation_services_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/validation_services_tests.rs"
+
+[[test]]
+name = "architecture_validation_remediation_hint_tests"
+path = "../../../../tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/remediation_hint_tests.rs"
