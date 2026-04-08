@@ -1,0 +1,3 @@
+name: invalid-workspace
+template: official/blank-workspace
+version: '1.0.0'

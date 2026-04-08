@@ -17,4 +17,7 @@ fd -t f Cargo.toml . "$REPO_ROOT" | while read -r cargo_file; do
 	(cd "$cargo_dir" && cargo clippy -- -D warnings)
 done
 
+acore_log_info "▶️ Running cargo machete (unused dependency check)..."
+cargo machete
+
 acore_log_success "✨ Rust linting complete!"

@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+# Shared smoke test utility functions
+# Used by all smoke test scripts under tests/smoke/
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+# Add default nfw build location to PATH
+export PATH="$REPO_ROOT/src/nfw/target/debug:$PATH"
+
+# Simple logging functions (self-contained, no external dependencies)
+log_info() {
+	echo "[INFO] $1"
+}
+
+log_success() {
+	echo "[SUCCESS] $1"
+}
+
+log_error() {
+	echo "[ERROR] $1" >&2
+}
+
+log_pass() {
+	echo "[PASS] $1"
+}
+
+log_fail() {
+	echo "[FAIL] $1"
+}
+
+# ============================================================================
+# Temporary directory management (FR-005, FR-006)
+# ============================================================================
+
+setup_test_dir() {
+	TEST_DIR=$(mktemp -d "${TMPDIR:-/tmp}/nfw-smoke-XXXXXX")
+	trap cleanup_test_dir EXIT INT TERM
+	log_info "Test directory: $TEST_DIR"
+}
+
+cleanup_test_dir() {
+	if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR:-}" ]]; then
+		rm -rf "$TEST_DIR"
+		log_info "Cleaned up test directory: $TEST_DIR"
+	fi
+}
+
+# ============================================================================
+# Prerequisite checks (T015)
+# ============================================================================
+
+check_cli_installed() {
+	# Add default nfw build location to PATH
+	export PATH="/home/ac/Code/n-framework/src/nfw/target/debug:$PATH"
+
+	if ! command -v nfw &>/dev/null; then
+		log_error "nfw CLI not found in PATH"
+		log_error "Expected at: /home/ac/Code/n-framework/src/nfw/target/debug/nfw"
+		exit 2
+	fi
+}
+
+check_template_cache() {
+	if ! nfw templates &>/dev/null 2>&1; then
+		log_error "Template cache is empty or inaccessible"
+		exit 2
+	fi
+}
+
+check_dotnet_sdk() {
+	if ! command -v dotnet &>/dev/null; then
+		log_error ".NET SDK not found in PATH"
+		exit 2
+	fi
+}
+
+check_make() {
+	if ! command -v make &>/dev/null; then
+		log_error "make not found in PATH"
+		exit 2
+	fi
+}
+
+check_all_prerequisites() {
+	log_info "Checking prerequisites..."
+	check_cli_installed
+	check_template_cache
+	check_make
+	log_success "All prerequisites satisfied"
+}
+
+# ============================================================================
+# Assertion helpers
+# ============================================================================
+
+assert_dir_exists() {
+	local path="$1"
+	local label="${2:-$path}"
+	if [[ ! -d "$path" ]]; then
+		log_fail "$label: directory does not exist at $path"
+		return 1
+	fi
+	log_pass "$label: directory exists"
+}
+
+assert_file_exists() {
+	local path="$1"
+	local label="${2:-$path}"
+	if [[ ! -f "$path" ]]; then
+		log_fail "$label: file does not exist at $path"
+		return 1
+	fi
+	log_pass "$label: file exists"
+}
+
+assert_file_contains() {
+	local file="$1"
+	local pattern="$2"
+	local label="${3:-$pattern}"
+	if ! grep -q "$pattern" "$file" 2>/dev/null; then
+		log_fail "$label: pattern not found in $file"
+		return 1
+	fi
+	log_pass "$label: found in $file"
+}
+
+assert_exit_code() {
+	local actual="$1"
+	local expected="${2:-0}"
+	local label="${3:-exit code}"
+	if [[ "$actual" -ne "$expected" ]]; then
+		log_fail "$label: expected $expected, got $actual"
+		return 1
+	fi
+	log_pass "$label: $actual (expected $expected)"
+}
+
+assert_cleaned_up() {
+	local path="$1"
+	local label="${2:-$path}"
+	if [[ -e "$path" ]]; then
+		log_fail "$label: path still exists after cleanup"
+		return 1
+	fi
+	log_pass "$label: cleaned up successfully"
+}

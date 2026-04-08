@@ -17,7 +17,4 @@ for helper_lint in "${SCRIPT_DIR}/helpers"/*/lint.sh; do
 	bash "$helper_lint"
 done
 
-acore_log_info "▶️ Running cargo machete (unused dependency check)..."
-cargo machete
-
 acore_log_success "✨ Linting complete!"
