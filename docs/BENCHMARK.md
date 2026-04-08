@@ -145,6 +145,7 @@ The benchmark workflow requires a self-hosted runner labeled `baseline-hardware`
    - SSD storage
 
 2. **Runner Setup**:
+
    ```bash
    # Register a self-hosted runner with the baseline-hardware label
    # See: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners
@@ -157,6 +158,7 @@ The benchmark workflow requires a self-hosted runner labeled `baseline-hardware`
 #### Alternative Configuration
 
 If you don't have a self-hosted runner, modify `.github/workflows/benchmarks.yml` to use GitHub-hosted runners:
+
 ```yaml
 runs-on: ubuntu-latest
 ```

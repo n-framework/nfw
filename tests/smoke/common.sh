@@ -5,10 +5,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+REPO_ROOT="${NFW_REPO_ROOT:-$(cd "$SCRIPT_DIR/../../../../" && pwd)}"
 
 # Add default nfw build location to PATH
-export PATH="$REPO_ROOT/src/nfw/target/debug:$PATH"
+export PATH="$REPO_ROOT/target/debug:$PATH"
 
 # Simple logging functions (self-contained, no external dependencies)
 log_info() {
@@ -55,7 +55,7 @@ cleanup_test_dir() {
 check_cli_installed() {
 	if ! command -v nfw &>/dev/null; then
 		log_error "nfw CLI not found in PATH"
-		log_error "Expected at: $REPO_ROOT/target/debug/nfw"
+		log_error "Expected at: $REPO_ROOT/target/debug/nfw or \$NFW_REPO_ROOT/target/debug/nfw"
 		exit 2
 	fi
 }

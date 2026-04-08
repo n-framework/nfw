@@ -24,7 +24,7 @@ Run individual smoke test suites:
 
 Expected output on success:
 
-```
+```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
 [PASS] Template selection (non-interactive)

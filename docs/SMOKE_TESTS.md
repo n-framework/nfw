@@ -46,7 +46,7 @@ bash tests/smoke/run_smoke_tests.sh --verbose
 
 ### Success
 
-```
+```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
 [PASS] Template selection (non-interactive)
@@ -58,7 +58,7 @@ Smoke Test Suite: Build & Test Workflows
 
 ### Failure
 
-```
+```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
 [PASS] Template selection (non-interactive)

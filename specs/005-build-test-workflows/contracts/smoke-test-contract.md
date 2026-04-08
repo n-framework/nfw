@@ -20,10 +20,12 @@ Each smoke test MUST:
 1. Create a unique temporary directory using `mktemp -d`
 2. Execute all CLI commands within that directory
 3. Register a cleanup trap to remove the directory on exit:
+
    ```bash
    cleanup() { rm -rf "$TEST_DIR"; }
    trap cleanup EXIT
    ```
+
 4. Never depend on state from other tests
 
 ### Exit Code Semantics
@@ -38,7 +40,7 @@ Each smoke test MUST:
 
 **Success output (stdout)**:
 
-```
+```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
 [PASS] Template selection (non-interactive)
@@ -50,7 +52,7 @@ Smoke Test Suite: Build & Test Workflows
 
 **Failure output (stderr)**:
 
-```
+```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
 [PASS] Template selection (non-interactive)
