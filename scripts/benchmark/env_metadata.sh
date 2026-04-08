@@ -66,15 +66,47 @@ get_os() {
 
 get_disk_type() {
 	local disk_type="unknown"
-	if [[ -f /sys/block/sda/queue/rotational ]]; then
-		if [[ "$(cat /sys/block/sda/queue/rotational 2>/dev/null)" == "0" ]]; then
-			disk_type="ssd"
-		else
-			disk_type="hdd"
+
+	# Try Linux sysfs first (handles both SATA and NVMe)
+	for device in /sys/block/*; do
+		local device_name="${device##*/}"
+
+		# Skip loop devices and device mapper
+		if [[ "$device_name" =~ ^(loop|dm-) ]]; then
+			continue
 		fi
-	elif command -v diskutil &>/dev/null; then
-		disk_type=$(diskutil info / 2>/dev/null | awk '/Protocol:/{print tolower($2)}' || echo "unknown")
+
+		local rotational_file="$device/queue/rotational"
+		if [[ -f "$rotational_file" ]]; then
+			local rotational
+			rotational=$(cat "$rotational_file" 2>/dev/null || echo "1")
+
+			if [[ "$rotational" == "0" ]]; then
+				# Check if it's NVMe
+				if [[ "$device_name" =~ ^nvme ]]; then
+					disk_type="nvme"
+				else
+					disk_type="ssd"
+				fi
+				break
+			else
+				disk_type="hdd"
+				break
+			fi
+		fi
+	done
+
+	# Fallback to macOS diskutil
+	if [[ "$disk_type" == "unknown" ]] && command -v diskutil &>/dev/null; then
+		local protocol
+		protocol=$(diskutil info / 2>/dev/null | awk '/Protocol:/{print tolower($2)}' || echo "unknown")
+		case "$protocol" in
+			*nvme*) disk_type="nvme" ;;
+			*ssd*) disk_type="ssd" ;;
+			*sata*) disk_type="hdd" ;;
+		esac
 	fi
+
 	echo "$disk_type"
 }
 

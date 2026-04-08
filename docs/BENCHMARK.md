@@ -133,6 +133,36 @@ Results are:
 - Uploaded as CI artifacts
 - Summary posted to PR/commit
 
+### Self-Hosted Runner Setup
+
+The benchmark workflow requires a self-hosted runner labeled `baseline-hardware` to ensure consistent performance measurements.
+
+#### Required Configuration
+
+1. **Hardware Requirements** (matching SC-001 baseline):
+   - 2 CPU cores minimum
+   - 4GB RAM minimum
+   - SSD storage
+
+2. **Runner Setup**:
+   ```bash
+   # Register a self-hosted runner with the baseline-hardware label
+   # See: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners
+   ```
+
+3. **Runner Labels**:
+   - Must include: `baseline-hardware`
+   - Optional: Add additional labels for specific hardware configurations
+
+#### Alternative Configuration
+
+If you don't have a self-hosted runner, modify `.github/workflows/benchmarks.yml` to use GitHub-hosted runners:
+```yaml
+runs-on: ubuntu-latest
+```
+
+Note: GitHub-hosted runners may have variable performance, so results should be interpreted as relative measurements rather than absolute targets.
+
 See [`.github/workflows/benchmarks.yml`](../../.github/workflows/benchmarks.yml) for configuration.
 
 ## Troubleshooting

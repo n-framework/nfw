@@ -6,28 +6,25 @@ const TEMPLATE_ID: &str = "official/blank-workspace";
 
 fn create_sandbox_directory(name: &str) -> PathBuf {
     let tmp_dir = std::env::temp_dir().join(format!("nfw-test-{}", name));
-    let _ = fs::remove_dir_all(&tmp_dir);
-    fs::create_dir_all(&tmp_dir).expect("should create sandbox directory");
+
+    // Clean up any existing directory
+    if let Err(e) = fs::remove_dir_all(&tmp_dir) {
+        // Ignore errors if directory doesn't exist
+        if e.kind() != std::io::ErrorKind::NotFound {
+            panic!("Failed to remove existing sandbox directory at {}: {}", tmp_dir.display(), e);
+        }
+    }
+
+    // Create the directory with proper error handling
+    fs::create_dir_all(&tmp_dir).unwrap_or_else(|e| {
+        panic!(
+            "Failed to create sandbox directory at {}: {}. \
+             Check permissions and disk space.",
+            tmp_dir.display(), e
+        )
+    });
+
     tmp_dir
-}
-
-fn create_template_directory(sandbox_root: &PathBuf) -> PathBuf {
-    let template_root = sandbox_root.join("templates").join(TEMPLATE_ID);
-    fs::create_dir_all(&template_root).expect("should create template directory");
-
-    let template_yaml = r#"name: "Blank Workspace"
-description: "A minimal workspace template"
-version: "1.0.0"
-"#;
-    fs::write(template_root.join("template.yaml"), template_yaml)
-        .expect("should write template.yaml");
-
-    let blank_dir = template_root.join("blank");
-    fs::create_dir_all(blank_dir.join("src")).expect("should create template src");
-    fs::create_dir_all(blank_dir.join("tests")).expect("should create template tests");
-    fs::create_dir_all(blank_dir.join("docs")).expect("should create template docs");
-
-    template_root
 }
 
 fn run_cli_command(cmd: &str, args: &[&str], cwd: &PathBuf) -> std::process::Output {
@@ -35,8 +32,16 @@ fn run_cli_command(cmd: &str, args: &[&str], cwd: &PathBuf) -> std::process::Out
         .args(args)
         .current_dir(cwd)
         .output()
-        .expect("should execute command")
+        .unwrap_or_else(|e| {
+            panic!(
+                "Failed to execute command '{}': {}. \
+                 Check that the command exists in PATH.",
+                cmd, e
+            )
+        })
 }
+
+// Note: Removed unused create_template_directory function (G9 - Remove Dead Code)
 
 #[test]
 fn test_build_workflow_succeeds_on_generated_workspace() {
@@ -66,7 +71,12 @@ fn test_build_workflow_succeeds_on_generated_workspace() {
         .arg("build")
         .current_dir(&workspace_dir)
         .output()
-        .expect("make build should execute");
+        .unwrap_or_else(|e| {
+            panic!(
+                "Failed to execute 'make build' in directory {}: {}",
+                workspace_dir.display(), e
+            )
+        });
 
     let stdout = String::from_utf8_lossy(&build_output.stdout);
     let stderr = String::from_utf8_lossy(&build_output.stderr);
@@ -109,7 +119,12 @@ fn test_test_workflow_succeeds_on_generated_workspace() {
         .arg("test")
         .current_dir(&workspace_dir)
         .output()
-        .expect("make test should execute");
+        .unwrap_or_else(|e| {
+            panic!(
+                "Failed to execute 'make test' in directory {}: {}",
+                workspace_dir.display(), e
+            )
+        });
 
     let stdout = String::from_utf8_lossy(&test_output.stdout);
     let stderr = String::from_utf8_lossy(&test_output.stderr);
@@ -144,7 +159,12 @@ fn test_build_failure_identifies_failing_project() {
     assert!(workspace_dir.is_dir(), "workspace should be created");
 
     let broken_project_dir = workspace_dir.join("src").join("BrokenProject");
-    fs::create_dir_all(&broken_project_dir).expect("should create broken project dir");
+    fs::create_dir_all(&broken_project_dir).unwrap_or_else(|e| {
+        panic!(
+            "Failed to create broken project directory at {}: {}",
+            broken_project_dir.display(), e
+        )
+    });
 
     let broken_csproj = r#"
 <Project Sdk="Microsoft.NET.Sdk">
@@ -157,13 +177,24 @@ fn test_build_failure_identifies_failing_project() {
         broken_project_dir.join("BrokenProject.csproj"),
         broken_csproj,
     )
-    .expect("should write broken csproj");
+    .unwrap_or_else(|e| {
+        panic!(
+            "Failed to write broken csproj to {}: {}",
+            broken_project_dir.join("BrokenProject.csproj").display(),
+            e
+        )
+    });
 
     let build_output = Command::new("make")
         .arg("build")
         .current_dir(&workspace_dir)
         .output()
-        .expect("make build should execute");
+        .unwrap_or_else(|e| {
+            panic!(
+                "Failed to execute 'make build' in directory {}: {}",
+                workspace_dir.display(), e
+            )
+        });
 
     let stdout = String::from_utf8_lossy(&build_output.stdout);
     let stderr = String::from_utf8_lossy(&build_output.stderr);

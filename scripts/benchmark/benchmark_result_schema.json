@@ -83,8 +83,9 @@
         },
         "disk_type": {
           "type": "string",
-          "description": "Disk type (ssd, hdd, or unknown)",
-          "examples": ["ssd", "hdd", "unknown"]
+          "description": "Disk type (ssd, hdd, nvme, or unknown)",
+          "enum": ["ssd", "hdd", "nvme", "unknown"],
+          "examples": ["ssd", "hdd", "nvme", "unknown"]
         },
         "cli_version": {
           "type": "string",

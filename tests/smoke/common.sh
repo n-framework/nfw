@@ -53,12 +53,9 @@ cleanup_test_dir() {
 # ============================================================================
 
 check_cli_installed() {
-	# Add default nfw build location to PATH
-	export PATH="/home/ac/Code/n-framework/src/nfw/target/debug:$PATH"
-
 	if ! command -v nfw &>/dev/null; then
 		log_error "nfw CLI not found in PATH"
-		log_error "Expected at: /home/ac/Code/n-framework/src/nfw/target/debug/nfw"
+		log_error "Expected at: $REPO_ROOT/target/debug/nfw"
 		exit 2
 	fi
 }
@@ -100,7 +97,9 @@ assert_dir_exists() {
 	local path="$1"
 	local label="${2:-$path}"
 	if [[ ! -d "$path" ]]; then
-		log_fail "$label: directory does not exist at $path"
+		log_fail "$label: directory does not exist at '$path'"
+		log_info "Parent directory exists: $([[ -d "$(dirname "$path")" ]] && echo "yes" || echo "no")"
+		log_info "Current directory: $(pwd)"
 		return 1
 	fi
 	log_pass "$label: directory exists"
@@ -121,7 +120,13 @@ assert_file_contains() {
 	local pattern="$2"
 	local label="${3:-$pattern}"
 	if ! grep -q "$pattern" "$file" 2>/dev/null; then
-		log_fail "$label: pattern not found in $file"
+		log_fail "$label: pattern '$pattern' not found in $file"
+		if [[ $VERBOSE == true ]]; then
+			log_info "Contents of $file (first 10 lines):"
+			head -10 "$file" | while IFS= read -r line; do
+				log_info "  $line"
+			done
+		fi
 		return 1
 	fi
 	log_pass "$label: found in $file"

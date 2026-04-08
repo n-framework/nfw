@@ -1,13 +1,26 @@
 #!/usr/bin/env bash
 # Benchmark Harness: measures CLI generation performance
+#
+# This benchmark system validates that the nfw CLI meets performance requirements
+# defined in SC-001: workspace + service creation should complete in under 1 second
+# on baseline hardware (2 CPU cores, 4GB RAM, SSD storage).
+#
 # Usage: ./run_benchmark.sh [--iterations N] [--test NAME] [--help]
 #
-# Tests:
-#   workspace_creation  - Measures `nfw new` end-to-end
-#   service_creation    - Measures `nfw add service` end-to-end
+# Available Tests:
+#   workspace_creation  - Measures `nfw new` end-to-end performance
+#   service_creation    - Measures `nfw add service` end-to-end performance
 #   combined            - Measures workspace + service creation (SC-001 target)
 #
-# Output: JSON to stdout and saved to benchmark-results.json
+# Performance Target:
+#   The benchmark passes when p95_ms <= 1000ms (1 second)
+#   This ensures 95% of users experience acceptable performance
+#
+# Output: JSON results written to benchmark-results.json with:
+#   - Raw timing data for each iteration
+#   - Statistical summary (median, p95, min, max, mean)
+#   - Environment metadata for reproducibility
+#   - Pass/fail determination against target
 
 set -euo pipefail
 
@@ -189,14 +202,26 @@ fi
 # Timing helpers
 # ============================================================================
 
-# Returns current time in nanoseconds
+# Returns current time in nanoseconds (cross-platform)
 now_ns() {
-	date +%s%N
+	# Try GNU date with nanoseconds (Linux)
+	if date +%s%N >/dev/null 2>&1; then
+		date +%s%N
+	else
+		# Fallback for macOS/BSD: use Python for nanosecond precision
+		if command -v python3 &>/dev/null; then
+			python3 -c 'import time; print(int(time.time()*1e9))'
+		else
+			# Last resort: use milliseconds only (less precise but portable)
+			echo $(( $(date +%s) * 1000000 ))
+		fi
+	fi
 }
 
 # Converts nanoseconds to milliseconds
 ns_to_ms() {
-	echo $(( $1 / 1000000 ))
+	local ns="${1:-0}"
+	echo $(( ns / 1000000 ))
 }
 
 # ============================================================================
@@ -211,9 +236,13 @@ benchmark_workspace_creation() {
 		cd "$test_dir"
 		trap 'rm -rf "$test_dir" 2>/dev/null || true' EXIT
 		start=$(now_ns)
-		run_nfw_command new BenchmarkWorkspace --template official/blank-workspace --no-input >/dev/null 2>&1 || return 1
-		end=$(now_ns)
 
+		if ! run_nfw_command new BenchmarkWorkspace --template official/blank-workspace --no-input >/dev/null 2>&1; then
+			log_error "Failed to create benchmark workspace"
+			return 1
+		fi
+
+		end=$(now_ns)
 		echo $((end - start))
 	)
 }
@@ -225,13 +254,21 @@ benchmark_service_creation() {
 	(
 		cd "$workspace_dir"
 		trap 'rm -rf "$workspace_dir" 2>/dev/null || true' EXIT
-		run_nfw_command new BenchmarkWorkspace --template official/blank-workspace --no-input >/dev/null 2>&1 || return 1
+
+		if ! run_nfw_command new BenchmarkWorkspace --template official/blank-workspace --no-input >/dev/null 2>&1; then
+			log_error "Failed to create workspace for service benchmark"
+			return 1
+		fi
 
 		cd "$workspace_dir/BenchmarkWorkspace" || return 1
 		start=$(now_ns)
-		run_nfw_command add service BenchmarkService --template official/dotnet-service --no-input >/dev/null 2>&1 || return 1
-		end=$(now_ns)
 
+		if ! run_nfw_command add service BenchmarkService --template official/dotnet-service --no-input >/dev/null 2>&1; then
+			log_error "Failed to add benchmark service"
+			return 1
+		fi
+
+		end=$(now_ns)
 		echo $((end - start))
 	)
 }
@@ -244,12 +281,20 @@ benchmark_combined() {
 		cd "$workspace_dir"
 		trap 'rm -rf "$workspace_dir" 2>/dev/null || true' EXIT
 		start=$(now_ns)
-		run_nfw_command new BenchmarkWorkspace --template official/blank-workspace --no-input >/dev/null 2>&1 || return 1
+
+		if ! run_nfw_command new BenchmarkWorkspace --template official/blank-workspace --no-input >/dev/null 2>&1; then
+			log_error "Failed to create workspace for combined benchmark"
+			return 1
+		fi
 
 		cd "$workspace_dir/BenchmarkWorkspace" || return 1
-		run_nfw_command add service BenchmarkService --template official/dotnet-service --no-input >/dev/null 2>&1 || return 1
-		end=$(now_ns)
 
+		if ! run_nfw_command add service BenchmarkService --template official/dotnet-service --no-input >/dev/null 2>&1; then
+			log_error "Failed to add service for combined benchmark"
+			return 1
+		fi
+
+		end=$(now_ns)
 		echo $((end - start))
 	)
 }
@@ -312,27 +357,28 @@ run_benchmark() {
 	log_header "Benchmark: $TEST_NAME ($ITERATIONS iterations)"
 
 	declare -a durations_ms=()
+	local iteration=1
 
-	for i in $(seq 1 $ITERATIONS); do
-		log_info "Iteration $i/$ITERATIONS..."
+	while [[ $iteration -le $ITERATIONS ]]; do
+		log_info "Iteration $iteration/$ITERATIONS..."
 
 		local ns_result=""
 		case $TEST_NAME in
 		workspace_creation)
 			if ! ns_result=$(benchmark_workspace_creation); then
-				log_error "Iteration $i failed: workspace_creation command failed"
+				log_error "Iteration $iteration failed: workspace_creation command failed"
 				exit 1
 			fi
 			;;
 		service_creation)
 			if ! ns_result=$(benchmark_service_creation); then
-				log_error "Iteration $i failed: service_creation command failed"
+				log_error "Iteration $iteration failed: service_creation command failed"
 				exit 1
 			fi
 			;;
 		combined)
 			if ! ns_result=$(benchmark_combined); then
-				log_error "Iteration $i failed: combined command failed"
+				log_error "Iteration $iteration failed: combined command failed"
 				exit 1
 			fi
 			;;
@@ -347,6 +393,7 @@ run_benchmark() {
 		durations_ms+=("$ms_result")
 
 		log_info "  Result: ${ms_result}ms"
+		((iteration++))
 	done
 
 	# Compute statistics
