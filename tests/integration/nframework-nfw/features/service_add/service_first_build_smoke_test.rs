@@ -3,6 +3,19 @@ mod support;
 
 use std::fs;
 
+/// Tests that generated service projects contain valid build-ready project files.
+///
+/// This validates that the service generation produces all required project files
+/// with proper MSBuild project structure for .NET services.
+/// The test:
+/// 1. Creates a workspace and service template
+/// 2. Adds a service using `nfw add service` with dotnet-service template
+/// 3. Validates that all expected project files exist (.csproj files)
+/// 4. Validates that project files contain valid MSBuild XML structure
+///
+/// # Success Criteria
+/// - All four layer project files exist (Domain, Application, Infrastructure, API)
+/// - Each project file contains `<Project` root element (valid MSBuild structure)
 #[test]
 fn generated_service_contains_build_ready_project_files() {
     let workspace_root = support::create_workspace_root("service-first-build");

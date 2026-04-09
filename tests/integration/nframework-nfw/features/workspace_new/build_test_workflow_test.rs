@@ -43,6 +43,17 @@ fn run_cli_command(cmd: &str, args: &[&str], cwd: &PathBuf) -> std::process::Out
 
 // Note: Removed unused create_template_directory function (G9 - Remove Dead Code)
 
+/// Tests that a generated workspace can be built with a single command.
+///
+/// This validates FR-001 from spec 005-build-test-workflows: "Generated workspaces must build with a single command."
+/// The test:
+/// 1. Creates a workspace using `nfw new` with the blank-workspace template
+/// 2. Runs `make build` in the generated workspace
+/// 3. Asserts the build succeeds (exit code 0)
+///
+/// # Success Criteria
+/// - Workspace directory is created
+/// - `make build` completes successfully
 #[test]
 fn test_build_workflow_succeeds_on_generated_workspace() {
     let sandbox_root = create_sandbox_directory("build-workflow");
@@ -91,6 +102,17 @@ fn test_build_workflow_succeeds_on_generated_workspace() {
     );
 }
 
+/// Tests that a generated workspace can be tested with a single command.
+///
+/// This validates FR-002 from spec 005-build-test-workflows: "Generated workspaces must test with a single command."
+/// The test:
+/// 1. Creates a workspace using `nfw new` with the blank-workspace template
+/// 2. Runs `make test` in the generated workspace
+/// 3. Asserts the test run succeeds (exit code 0)
+///
+/// # Success Criteria
+/// - Workspace directory is created
+/// - `make test` completes successfully
 #[test]
 fn test_test_workflow_succeeds_on_generated_workspace() {
     let sandbox_root = create_sandbox_directory("test-workflow");
@@ -139,6 +161,18 @@ fn test_test_workflow_succeeds_on_generated_workspace() {
     );
 }
 
+/// Tests that build failures clearly identify which project failed.
+///
+/// This validates error reporting quality for generated workspaces.
+/// The test:
+/// 1. Creates a workspace with a valid project
+/// 2. Adds a broken project with an invalid target framework (net999.0)
+/// 3. Runs `make build` in the workspace
+/// 4. Asserts the build fails AND the error output identifies the broken project
+///
+/// # Success Criteria
+/// - Build fails (non-zero exit code)
+/// - Error output contains "BrokenProject" (failing project name)
 #[test]
 fn test_build_failure_identifies_failing_project() {
     let sandbox_root = create_sandbox_directory("build-failure");

@@ -32,15 +32,21 @@ main() {
 	# Test 2: Missing .NET SDK should be detected (skip if dotnet not in standard paths)
 	echo "Test 2: Missing .NET SDK detection"
 	local original_path="$PATH"
-	PATH=$(echo "$PATH" | sed 's|/usr/local/bin:/usr/bin:/bin||g')
+	local temp_path
+	temp_path=$(echo "$PATH" | tr ':' '\n' | grep -v '/usr/local/bin\|/usr/bin\|/bin' | tr '\n' ':' | sed 's/:$//')
 
-	output=$(nfw new TestWorkspace --template "official/blank-workspace" --no-input 2>&1 || true)
-	if echo "$output" | grep -iqE "(dotnet|\.net|sdk)"; then
-		log_pass "Missing .NET SDK detected appropriately"
-		test_passed=$((test_passed + 1))
+	if [ -z "$temp_path" ]; then
+		log_info "Cannot test .NET SDK detection - would empty PATH completely"
+		log_info "Skipping this test"
 	else
-		log_info "Dotnet may not be in standard PATH, skipping test"
-		test_passed=$((test_passed + 1))
+		PATH="$temp_path"
+		output=$(nfw new TestWorkspace --template "official/blank-workspace" --no-input 2>&1 || true)
+		if echo "$output" | grep -iqE "(dotnet|\.net|sdk)"; then
+			log_pass "Missing .NET SDK detected appropriately"
+			test_passed=$((test_passed + 1))
+		else
+			log_info "Dotnet may not be in standard PATH, skipping test"
+		fi
 	fi
 
 	PATH="$original_path"
@@ -64,12 +70,13 @@ main() {
 
 	output=$(nfw new TestWorkspace --template "official/blank-workspace" --no-input --cwd "$restricted_dir" 2>&1 || true)
 	# Note: --cwd option may not exist on all versions
-	if echo "$output" | grep -iqE "(permission|denied|access|unexpected argument)"; then
-		log_pass "Permission errors or invalid option handled gracefully"
+	if echo "$output" | grep -iqE "(permission|denied|access)"; then
+		log_pass "Permission errors handled gracefully"
 		test_passed=$((test_passed + 1))
+	elif echo "$output" | grep -iq "unexpected argument"; then
+		log_info "Permission handling test skipped - --cwd option not available"
 	else
-		log_info "Permission handling test skipped - option may not be available"
-		test_passed=$((test_passed + 1))
+		log_info "Permission error handling did not produce expected error"
 	fi
 
 	chmod 755 "$restricted_dir"

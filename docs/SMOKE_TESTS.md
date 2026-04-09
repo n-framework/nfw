@@ -78,6 +78,72 @@ Smoke Test Suite: Build & Test Workflows
 | 1    | One or more tests failed  |
 | 2    | Environment setup failure |
 
+## Troubleshooting
+
+### "nfw CLI not found in PATH"
+
+**Error**: `nfw CLI not found in PATH`
+
+**Solution**: Build the CLI first:
+```bash
+cd src/nfw
+cargo build --workspace
+export PATH="$PATH:$PWD/target/debug"
+```
+
+### "Template cache is empty or inaccessible"
+
+**Error**: Template-related failures during smoke tests
+
+**Solution**: Populate the template cache:
+```bash
+nfw templates refresh
+```
+
+### ".NET SDK not found"
+
+**Error**: `.NET SDK not found` or similar
+
+**Solution**: Install .NET 8.0 SDK:
+```bash
+# macOS
+brew install dotnet-sdk
+
+# Linux
+wget https://dot.net/v1/dotnet-install.sh
+bash dotnet-install.sh --channel 8.0
+```
+
+### "No test files found"
+
+**Error**: `No test files found in tests/smoke/`
+
+**Solution**: Ensure smoke test scripts exist:
+```bash
+ls tests/smoke/*_test.sh
+# Should show: error_path_test.sh, service_scaffolding_test.sh, etc.
+```
+
+### Cleanup Failures
+
+**Warning**: `Failed to clean up test directory`
+
+**Solution**: Manual cleanup may be required:
+```bash
+# Remove test directories manually
+rm -rf /tmp/nfw-smoke-*
+```
+
+### Test Timeout
+
+**Error**: Tests hang or timeout
+
+**Solution**:
+1. Check network connectivity (template downloads)
+2. Verify template cache is populated
+3. Check disk space availability
+4. Run with `--verbose` flag for more details
+
 ## Test Details
 
 ### Template Selection Test
@@ -128,4 +194,4 @@ Smoke tests run automatically on:
 - Every pull request to main
 - Every merge to main
 
-See [`.github/workflows/smoke-tests.yml`](../../.github/workflows/smoke-tests.yml) for configuration.
+See [`.github/workflows/test-suite.yml`](../../.github/workflows/test-suite.yml) for configuration.

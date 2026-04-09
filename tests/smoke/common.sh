@@ -43,8 +43,12 @@ setup_test_dir() {
 
 cleanup_test_dir() {
 	if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR:-}" ]]; then
-		rm -rf "$TEST_DIR"
-		log_info "Cleaned up test directory: $TEST_DIR"
+		if rm -rf "$TEST_DIR" 2>/dev/null; then
+			log_info "Cleaned up test directory: $TEST_DIR"
+		else
+			log_error "Failed to clean up test directory: $TEST_DIR"
+			log_error "Manual cleanup may be required"
+		fi
 	fi
 }
 
@@ -135,7 +139,7 @@ assert_file_contains() {
 	local label="${3:-$pattern}"
 	if ! grep -q "$pattern" "$file" 2>/dev/null; then
 		log_fail "$label: pattern '$pattern' not found in $file"
-		if [[ $VERBOSE == true ]]; then
+		if [[ "${VERBOSE:-false}" == true ]]; then
 			log_info "Contents of $file (first 10 lines):"
 			head -10 "$file" | while IFS= read -r line; do
 				log_info "  $line"

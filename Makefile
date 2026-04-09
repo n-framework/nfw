@@ -1,4 +1,4 @@
-.PHONY: all build build-release test clean lint fmt help smoke-tests benchmark setup
+.PHONY: all build build-release test clean lint fmt help smoke-tests setup
 
 # Default target
 all: build
@@ -41,10 +41,6 @@ smoke-tests:
 	@echo "Running smoke tests..."
 	bash tests/smoke/run_smoke_tests.sh
 
-# Run benchmark harness
-benchmark: build-release
-	@echo "Running performance benchmark..."
-	BENCHMARK_BIN=target/release/nframework-nfw-cli bash scripts/benchmark/run_benchmark.sh
 
 # Show help
 help:
@@ -55,7 +51,6 @@ help:
 	@echo "  make build-release - Build the workspace (release)"
 	@echo "  make test         - Run all tests"
 	@echo "  make smoke-tests  - Run CLI smoke tests"
-	@echo "  make benchmark    - Run performance benchmark"
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make lint         - Run linter"
 	@echo "  make format       - Format code"

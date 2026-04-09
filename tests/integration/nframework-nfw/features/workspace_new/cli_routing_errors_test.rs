@@ -89,6 +89,7 @@ fn write_local_official_source_config(home: &Path) {
     ];
 
     let source_url = potential_paths
+        .clone()
         .into_iter()
         .find_map(|path| {
             if path.exists() {
@@ -98,13 +99,11 @@ fn write_local_official_source_config(home: &Path) {
             }
         })
         .unwrap_or_else(|| {
-            // Fallback: create a dummy directory for test purposes
-            // This allows the test to verify routing behavior even without real templates
-            let fallback = workspace_root.join(".test-dummy-templates");
-            fs::create_dir_all(&fallback).ok();
-            fallback
-                .canonicalize()
-                .expect("fallback directory should exist")
+            panic!(
+                "No valid template directory found. Tried: {:?}. \
+                Please ensure nfw-templates submodule is initialized.",
+                potential_paths
+            );
         });
 
     let config = format!(
@@ -116,5 +115,8 @@ fn write_local_official_source_config(home: &Path) {
 }
 
 fn cleanup_sandbox_directory(path: &Path) {
-    let _ = fs::remove_dir_all(path);
+    if let Err(e) = fs::remove_dir_all(path) {
+        eprintln!("Warning: Failed to cleanup sandbox directory {}: {}", path.display(), e);
+        eprintln!("Manual cleanup may be required");
+    }
 }

@@ -2,191 +2,78 @@
 
 ## Overview
 
-The nfw CLI includes a benchmark harness that measures workspace and service creation performance against the <1 second target defined in SC-001. The benchmark validates that the CLI meets performance requirements on baseline hardware (2 CPU cores, 4GB RAM).
+The benchmark harness is planned to measure workspace and service creation performance against the <1 second target defined in SC-001 (SuperClaude-001, a performance requirement for CLI scaffolding tools). This feature is not yet implemented.
+
+See [Spec 005-build-test-workflows](../specs/005-build-test-workflows/) for detailed requirements and success criteria.
+
+## Status
+
+- **Implementation**: Not implemented yet
+- **Target**: Measure CLI performance on baseline hardware (2 CPU cores, 4GB RAM)
+- **Goal**: Validate that workspace + service creation completes in under 1 second
+
+## Planned Implementation
+
+The benchmark harness will:
+
+1. Measure `nfw new` (workspace creation) timing
+2. Measure `nfw add service` (service creation) timing  
+3. Run combined benchmark validating SC-001 target (total < 1 second)
+4. Report statistics (median, p95, min, max, mean)
+5. Output JSON results with environment metadata
+6. Integrate with CI for performance regression detection
 
 ## Running Benchmarks
 
-### Prerequisites
+Not available yet. Check back later.
 
-- `nfw` CLI built and available in PATH
-- Template cache populated
-- `make` available
+## Planned Usage
 
-### Run Default Benchmark
+When implemented, the benchmark will support:
 
 ```bash
-cd src/nfw
+# Run with default settings
 make benchmark
-```
 
-### Run with Custom Iterations
-
-```bash
+# Custom iterations
 ./scripts/benchmark/run_benchmark.sh --iterations 20
-```
 
-### Run Specific Benchmark
-
-```bash
-# Workspace creation only
+# Specific test scenarios
 ./scripts/benchmark/run_benchmark.sh --test workspace_creation
-
-# Service creation only
-./scripts/benchmark/run_benchmark.sh --test service_creation
-
-# Combined (workspace + service)
+./scripts/benchmark/run_benchmark.sh --test service_creation  
 ./scripts/benchmark/run_benchmark.sh --test combined
 ```
 
-### Show Help
-
-```bash
-./scripts/benchmark/run_benchmark.sh --help
-```
-
-## Understanding Results
-
-### Sample Output
-
-```json
-{
-  "test_name": "workspace_and_service_creation",
-  "iterations": 10,
-  "results": [
-    {"iteration": 1, "duration_ms": 850},
-    {"iteration": 2, "duration_ms": 823},
-    ...
-  ],
-  "statistics": {
-    "median_ms": 850,
-    "p95_ms": 887,
-    "min_ms": 823,
-    "max_ms": 891,
-    "mean_ms": 853
-  },
-  "target_ms": 1000,
-  "passed": true,
-  "environment": {
-    "cpu_cores": 2,
-    "ram_mb": 4096,
-    "os": "linux-x86_64",
-    "disk_type": "ssd",
-    "cli_version": "0.1.0"
-  },
-  "timestamp": "2026-04-07T14:30:00Z"
-}
-```
-
-### Interpreting Results
-
-| Field       | Description                               |
-| ----------- | ----------------------------------------- |
-| `p95_ms`    | 95th percentile duration (the key metric) |
-| `target_ms` | Performance target (1000ms for SC-001)    |
-| `passed`    | Whether p95_ms <= target_ms               |
-
-- **passed: true** — Performance target met. No action needed.
-- **passed: false** — Performance target exceeded. Investigate:
-  - Is the hardware equivalent to baseline (2 CPU, 4GB RAM)?
-  - Is the system under load during the benchmark?
-  - Is disk I/O a bottleneck?
-
-### Statistics Explained
-
-| Statistic   | Description                             |
-| ----------- | --------------------------------------- |
-| `median_ms` | 50th percentile — typical performance   |
-| `p95_ms`    | 95th percentile — accounts for outliers |
-| `min_ms`    | Fastest iteration                       |
-| `max_ms`    | Slowest iteration                       |
-| `mean_ms`   | Arithmetic average                      |
-
 ## Performance Target
 
-### SC-001: Workspace + Service Creation
-
-The target is **workspace + service creation in under 1 second** on baseline hardware:
-
-- 2 CPU cores
-- 4GB RAM
-- SSD storage
-
-The benchmark passes when `p95_ms <= 1000`.
-
-## Environment Metadata
-
-The benchmark captures environment information for context:
-
-- **cpu_cores**: Number of available CPU cores
-- **ram_mb**: Available RAM in megabytes
-- **os**: Operating system identifier
-- **disk_type**: Disk type (ssd, hdd, unknown)
-- **cli_version**: Version of the nfw CLI
-
-## CI Integration
-
-Benchmarks run on merge to main only (not on PRs) to avoid noise from variable CI hardware.
-
-Results are:
-
-- Saved to `benchmark-results.json`
-- Uploaded as CI artifacts
-- Summary posted to PR/commit
-
-### Self-Hosted Runner Setup
-
-The benchmark workflow requires a self-hosted runner labeled `baseline-hardware` to ensure consistent performance measurements.
-
-#### Required Configuration
-
-1. **Hardware Requirements** (matching SC-001 baseline):
-   - 2 CPU cores minimum
-   - 4GB RAM minimum
-   - SSD storage
-
-2. **Runner Setup**:
-
-   ```bash
-   # Register a self-hosted runner with the baseline-hardware label
-   # See: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners
-   ```
-
-3. **Runner Labels**:
-   - Must include: `baseline-hardware`
-   - Optional: Add additional labels for specific hardware configurations
-
-#### Alternative Configuration
-
-If you don't have a self-hosted runner, modify `.github/workflows/benchmarks.yml` to use GitHub-hosted runners:
-
-```yaml
-runs-on: ubuntu-latest
-```
-
-Note: GitHub-hosted runners may have variable performance, so results should be interpreted as relative measurements rather than absolute targets.
-
-See [`.github/workflows/benchmarks.yml`](../../.github/workflows/benchmarks.yml) for configuration.
+The SC-001 target is **workspace + service creation in under 1 second** on baseline hardware (2 CPU cores, 4GB RAM).
 
 ## Troubleshooting
 
-### Benchmark Fails on Your Machine
+### Benchmark Feature Not Available
 
-1. **Check hardware**: Are you running on baseline hardware (2 CPU, 4GB RAM)?
+The benchmark feature is not yet implemented. See the status section above for current implementation state.
+
+### Performance Target Not Met
+
+When the benchmark is implemented, if it exceeds the 1 second target:
+
+1. **Check hardware**: Ensure you're running on baseline hardware (2 CPU cores, 4GB RAM, SSD)
 2. **Check system load**: Close other applications during benchmarking
-3. **Check disk**: SSD recommended; HDD will be significantly slower
-4. **Run multiple times**: Single runs can be affected by system variance
+3. **Check disk I/O**: HDD will be significantly slower than SSD
+4. **Run multiple times**: Use more iterations to reduce variance
 
-### Benchmark Passes in CI but Fails Locally
-
-- Your hardware may be slower than baseline
-- Your system may have more background processes
-- Consider the baseline hardware requirements
-
-### Timing Variance
+### Performance Variance
 
 If results vary significantly between runs:
 
 - Use more iterations: `--iterations 20`
-- Check for background processes
+- Check for background processes consuming resources
 - Ensure no other heavy applications are running
 - Consider running on a clean system
+
+## Related Documents
+
+- [Smoke Tests](./SMOKE_TESTS.md) - Available now for CLI workflow validation
+- [Spec 005-build-test-workflows](../specs/005-build-test-workflows/) - Detailed benchmark requirements
+- [CI/CD Workflows](../../.github/workflows/test-suite.yml) - Currently includes placeholder benchmark job

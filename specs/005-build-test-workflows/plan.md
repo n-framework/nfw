@@ -33,6 +33,8 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 No constitutional violations identified before Phase 0.
 
+**Note:** Constitutional Principles refer to the core architectural and quality standards defined in the NFramework development guidelines (single-step operations, proper error handling, deterministic behavior, comprehensive documentation).
+
 ## Phase 0: Research
 
 Research questions resolved in [research.md](./research.md):

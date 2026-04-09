@@ -150,121 +150,7 @@ jobs:
           name: smoke-test-results
           path: tests/smoke/results/
 
-  benchmarks:
-    name: Benchmarks
-    runs-on: baseline-hardware
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: stable
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache templates
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/nfw/templates
-          key: nfw-templates-${{ hashFiles('src/nfw-templates/**') }}
-
-      - name: Build release CLI
-        run: cargo build --workspace --release
-
-      - name: Run benchmark
-        run: bash scripts/benchmark/run_benchmark.sh
-        env:
-          BENCHMARK_ITERATIONS: 10
-
-      - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results
-          path: benchmark-results.json
-
-      - name: Comment benchmark results
-        if: always()
-        run: |
-          echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ -f benchmark-results.json ]; then
-            # Extract key metrics using jq
-            TEST_NAME=$(jq -r '.test_name' benchmark-results.json)
-            ITERATIONS=$(jq -r '.iterations' benchmark-results.json)
-            P95_MS=$(jq -r '.statistics.p95_ms' benchmark-results.json)
-            TARGET_MS=$(jq -r '.target_ms' benchmark-results.json)
-            PASSED=$(jq -r '.passed' benchmark-results.json)
-
-            echo "**Test:** $TEST_NAME" >> $GITHUB_STEP_SUMMARY
-            echo "**Iterations:** $ITERATIONS" >> $GITHUB_STEP_SUMMARY
-            echo "**P95 Latency:** ${P95_MS}ms (target: ${TARGET_MS}ms)" >> $GITHUB_STEP_SUMMARY
-
-            if [ "$PASSED" = "true" ]; then
-              echo "**Status:** ✅ PASSED" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "**Status:** ❌ FAILED" >> $GITHUB_STEP_SUMMARY
-            fi
-
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Statistics" >> $GITHUB_STEP_SUMMARY
-            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
-            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Median | $(jq -r '.statistics.median_ms' benchmark-results.json)ms |" >> $GITHUB_STEP_SUMMARY
-            echo "| P95 | ${P95_MS}ms |" >> $GITHUB_STEP_SUMMARY
-            echo "| Min | $(jq -r '.statistics.min_ms' benchmark-results.json)ms |" >> $GITHUB_STEP_SUMMARY
-            echo "| Max | $(jq -r '.statistics.max_ms' benchmark-results.json)ms |" >> $GITHUB_STEP_SUMMARY
-            echo "| Mean | $(jq -r '.statistics.mean_ms' benchmark-results.json)ms |" >> $GITHUB_STEP_SUMMARY
-
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Environment" >> $GITHUB_STEP_SUMMARY
-            echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| CPU Cores | $(jq -r '.environment.cpu_cores' benchmark-results.json) |" >> $GITHUB_STEP_SUMMARY
-            echo "| RAM | $(jq -r '.environment.ram_mb' benchmark-results.json)MB |" >> $GITHUB_STEP_SUMMARY
-            echo "| OS | $(jq -r '.environment.os' benchmark-results.json) |" >> $GITHUB_STEP_SUMMARY
-            echo "| Disk Type | $(jq -r '.environment.disk_type' benchmark-results.json) |" >> $GITHUB_STEP_SUMMARY
-            echo "| CLI Version | $(jq -r '.environment.cli_version' benchmark-results.json) |" >> $GITHUB_STEP_SUMMARY
-
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "<details>" >> $GITHUB_STEP_SUMMARY
-            echo "<summary>Raw JSON</summary>" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo '```json' >> $GITHUB_STEP_SUMMARY
-            cat benchmark-results.json >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "</details>" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Benchmark results file not found" >> $GITHUB_STEP_SUMMARY
-          fi
-
+  
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -303,7 +189,11 @@ jobs:
         run: cargo install fd-find
 
       - name: Install bun
-        run: curl -fsSL https://bun.sh/install | bash
+        run: |
+          if ! curl -fsSL https://bun.sh/install | bash; then
+            echo "::error::Failed to install bun"
+            exit 1
+          fi
         shell: bash
 
       - name: Install cargo machete

@@ -25,11 +25,13 @@ FAILED=0
 FAILURES=""
 
 # Discover and run all *_test.sh files
+test_files_found=0
 for test_file in "$SCRIPT_DIR"/*_test.sh; do
 	if [[ ! -f "$test_file" ]]; then
 		continue
 	fi
 
+	test_files_found=$((test_files_found + 1))
 	TOTAL=$((TOTAL + 1))
 	test_name=$(basename "$test_file" .sh)
 
@@ -54,7 +56,14 @@ done
 
 echo "========================================="
 
-if [[ "$FAILED" -eq 0 ]]; then
+	# Check if any test files were found
+	if [[ "$test_files_found" -eq 0 ]]; then
+		log_error "No test files found in $SCRIPT_DIR"
+		log_error "Expected files matching pattern: *_test.sh"
+		exit 2
+	fi
+
+	if [[ "$FAILED" -eq 0 ]]; then
 	echo "$PASSED/$TOTAL tests passed"
 	exit 0
 else
