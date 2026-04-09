@@ -3,7 +3,7 @@ use crate::features::template_management::services::abstractions::template_catal
 use crate::features::template_management::services::template_selection_result::TemplateSelectionResult;
 use crate::features::template_management::services::template_type_resolver::read_template_type;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
-use nframework_core_cli_abstraction::{PromptService, SelectOption};
+use nframework_core_cli_abstractions::{PromptService, SelectOption};
 use nframework_nfw_core_domain::features::template_management::template_descriptor::TemplateDescriptor;
 
 const DEFAULT_TEMPLATE_ID_PREFERENCES: [&str; 3] = ["blank-workspace", "blank", "workspace-blank"];

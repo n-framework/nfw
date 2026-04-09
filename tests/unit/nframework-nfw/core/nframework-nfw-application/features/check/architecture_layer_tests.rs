@@ -162,7 +162,7 @@ fn architecture_layer_from_path_core_compound_names() {
 fn architecture_layer_from_path_presentation_webapi_compound_names() {
     assert_eq!(
         CheckLayer::from_path(
-            "src/__ServiceName__.Presentation.WebApi/__ServiceName__.Presentation.WebApi.csproj"
+            "src/{{ServiceName}}.Presentation.WebApi/{{ServiceName}}.Presentation.WebApi.csproj"
         ),
         CheckLayer::Presentation
     );
@@ -178,7 +178,7 @@ fn architecture_layer_from_path_presentation_webapi_compound_names() {
     );
     assert_eq!(
         CheckLayer::from_path(
-            "presentation/__ServiceName__.Presentation.WebApi/__ServiceName__.Presentation.WebApi.csproj"
+            "presentation/{{ServiceName}}.Presentation.WebApi/{{ServiceName}}.Presentation.WebApi.csproj"
         ),
         CheckLayer::Presentation
     );

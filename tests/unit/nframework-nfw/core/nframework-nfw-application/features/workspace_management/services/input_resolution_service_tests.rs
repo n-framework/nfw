@@ -1,4 +1,4 @@
-use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
+use nframework_core_cli_abstractions::{PromptError, PromptService, SelectOption};
 use nframework_nfw_core_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use nframework_nfw_core_application::features::workspace_management::models::new_command_request::NewCommandRequest;
 use nframework_nfw_core_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;

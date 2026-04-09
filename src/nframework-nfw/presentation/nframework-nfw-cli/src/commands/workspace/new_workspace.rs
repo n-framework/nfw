@@ -1,7 +1,7 @@
 use nframework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command::NewWorkspaceCommand;
 use nframework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
 use nframework_nfw_core_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
-use nframework_core_cli_abstraction::PromptService;
+use nframework_core_cli_abstractions::PromptService;
 use nframework_nfw_core_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use nframework_nfw_core_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;

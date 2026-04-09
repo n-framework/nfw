@@ -4,3 +4,6 @@
 [submodule "packages/nframework-core-cli"]
 	path = packages/nframework-core-cli
 	url = git@github.com:n-framework/core-cli-rust.git
+[submodule "packages/nframework-core-template"]
+	path = packages/nframework-core-template
+	url = git@github.com:n-framework/core-template-rust.git

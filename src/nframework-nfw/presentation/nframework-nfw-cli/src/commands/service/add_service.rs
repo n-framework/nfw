@@ -6,7 +6,7 @@ use nframework_nfw_core_application::features::service_management::services::abs
 use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
 use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use nframework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
-use nframework_core_cli_abstraction::PromptService;
+use nframework_core_cli_abstractions::PromptService;
 
 #[derive(Debug, Clone)]
 pub struct AddServiceCliCommand<H> {

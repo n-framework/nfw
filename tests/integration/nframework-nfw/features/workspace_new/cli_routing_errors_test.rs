@@ -79,20 +79,24 @@ fn write_local_official_source_config(home: &Path) {
     let config_home = home.join(".config").join("nfw");
     fs::create_dir_all(&config_home).expect("nfw config directory should exist");
 
-    let workspace_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../../");
-    let local_templates_repository = workspace_root.join("../nfw-templates");
-    let source_url = local_templates_repository
-        .canonicalize()
-        .expect("local nfw-templates repository should exist");
+    // Create a template cache directory in the test sandbox
+    let template_cache = home.join(".cache").join("nfw").join("templates");
+    fs::create_dir_all(&template_cache).expect("template cache directory should exist");
 
+    // The test validates error handling when a specific template doesn't exist.
+    // We create an empty cache directory so the CLI can find the source,
+    // but the specific template won't exist.
     let config = format!(
         "sources:\n  - name: official\n    url: {}\n    enabled: true\n",
-        source_url.to_string_lossy()
+        template_cache.to_string_lossy()
     );
     fs::write(config_home.join("sources.yaml"), config)
         .expect("sources.yaml should be written for test sandbox");
 }
 
 fn cleanup_sandbox_directory(path: &Path) {
-    let _ = fs::remove_dir_all(path);
+    if let Err(e) = fs::remove_dir_all(path) {
+        eprintln!("Warning: Failed to cleanup sandbox directory {}: {}", path.display(), e);
+        eprintln!("Manual cleanup may be required");
+    }
 }

@@ -173,7 +173,7 @@ fn create_template_directory(sandbox_root: &Path) -> PathBuf {
     let template_root = sandbox_root.join("templates/official/src/blank-workspace");
     let content_root = template_root.join("content");
 
-    fs::create_dir_all(content_root.join("src/__WorkspaceName__"))
+    fs::create_dir_all(content_root.join("src/{{WorkspaceName}}"))
         .expect("template source directory should be created");
     fs::create_dir_all(content_root.join("tests"))
         .expect("template tests directory should be created");
@@ -182,22 +182,22 @@ fn create_template_directory(sandbox_root: &Path) -> PathBuf {
 
     fs::write(
         content_root.join("workspace.manifest"),
-        "workspace for __WorkspaceName__",
+        "workspace for {{WorkspaceName}}",
     )
     .expect("template manifest should be written");
     fs::write(
-        content_root.join("src/__WorkspaceName__/service.manifest"),
-        "service for __ServiceName__ in __Namespace__",
+        content_root.join("src/{{WorkspaceName}}/service.manifest"),
+        "service for {{ServiceName}} in {{Namespace}}",
     )
     .expect("template service manifest should be written");
     fs::write(
         content_root.join("README.md"),
-        "# __WorkspaceName__\nnamespace: __Namespace__\n",
+        "# {{WorkspaceName}}\nnamespace: {{Namespace}}\n",
     )
     .expect("template readme should be written");
     fs::write(
         content_root.join("nfw.yaml"),
-        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: __WorkspaceName__\n  template: official/blank-workspace\n  namespace: __Namespace__\n",
+        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: {{WorkspaceName}}\n  template: official/blank-workspace\n  namespace: {{Namespace}}\n",
     )
     .expect("template config should be written");
 
@@ -208,7 +208,7 @@ fn create_template_directory_without_nfw_yaml(sandbox_root: &Path) -> PathBuf {
     let template_root = sandbox_root.join("templates/official/src/blank-workspace-no-yaml");
     let content_root = template_root.join("content");
 
-    fs::create_dir_all(content_root.join("src/__WorkspaceName__"))
+    fs::create_dir_all(content_root.join("src/{{WorkspaceName}}"))
         .expect("template source directory should be created");
     fs::create_dir_all(content_root.join("tests"))
         .expect("template tests directory should be created");
@@ -217,7 +217,7 @@ fn create_template_directory_without_nfw_yaml(sandbox_root: &Path) -> PathBuf {
 
     fs::write(
         content_root.join("workspace.manifest"),
-        "workspace for __WorkspaceName__",
+        "workspace for {{WorkspaceName}}",
     )
     .expect("template manifest should be written");
 

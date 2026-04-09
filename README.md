@@ -73,8 +73,8 @@ nfw check --verbose                          # Validate with detailed diagnostic
 
 ### Template Catalog
 
-| Identifier | Display Name    | Description                      |
-| ---------- | --------------- | -------------------------------- |
+| Identifier        | Display Name    | Description               |
+| ----------------- | --------------- | ------------------------- |
 | `blank-workspace` | Blank Workspace | Minimal starter workspace |
 
 ---

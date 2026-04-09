@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
+use mustache;
 use nframework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use nframework_nfw_core_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
 use nframework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
@@ -53,7 +55,7 @@ impl FileSystemServiceTemplateRenderer {
                         ))
                     })?;
 
-            let rendered_relative_path = render_path(relative_path, context.placeholder_values);
+            let rendered_relative_path = render_path(relative_path, context.placeholder_values)?;
             ensure_safe_relative_path(&rendered_relative_path)?;
             let destination_path = context.output_root.join(rendered_relative_path);
 
@@ -84,7 +86,7 @@ impl FileSystemServiceTemplateRenderer {
                     source_path.display()
                 ))
             })?;
-            let rendered_bytes = render_bytes(&bytes, context.placeholder_values);
+            let rendered_bytes = render_bytes(&bytes, context.placeholder_values)?;
             fs::write(&destination_path, rendered_bytes).map_err(|error| {
                 AddServiceError::RenderFailed(format!(
                     "failed to write generated file '{}': {error}",
@@ -143,30 +145,88 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
     }
 }
 
-fn render_path(relative_path: &Path, placeholders: &BTreeMap<String, String>) -> PathBuf {
+/// Converts placeholder values to mustache-compatible data.
+///
+/// Handles two placeholder formats:
+/// - Mustache format: {{TokenName}} → key becomes "TokenName"
+/// - Underscore format: __Token.Name__ → key becomes "Token.Name" (for nested object binding)
+///
+/// Example: For "ServiceName" = "Orders", adds both:
+///   - "ServiceName" -> "Orders"
+///   - "Service.Name" -> "Orders"  (for {{Service.Name}} in templates)
+fn to_mustache_data(placeholders: &BTreeMap<String, String>) -> HashMap<String, serde_json::Value> {
+    let mut map = HashMap::new();
+
+    for (key, value) in placeholders {
+        // Normalize key (remove {{ }} or __ __ wrappers)
+        let normalized_key = if key.starts_with("{{") && key.ends_with("}}") {
+            key.trim_start_matches("{{").trim_end_matches("}}")
+        } else if key.starts_with("__") && key.ends_with("__") {
+            key.trim_start_matches("__").trim_end_matches("__")
+        } else {
+            key.as_str()
+        };
+
+        // Insert with normalized key
+        map.insert(
+            normalized_key.to_owned(),
+            serde_json::Value::String(value.clone()),
+        );
+
+        // For underscore format with dots (e.g., __Service.Name__), also add with dot notation
+        // This enables mustache's nested object binding: {{Service.Name}}
+        if key.starts_with("__") && key.ends_with("__") && normalized_key.contains('.') {
+            map.insert(
+                normalized_key.to_owned(),
+                serde_json::Value::String(value.clone()),
+            );
+        }
+    }
+
+    map
+}
+
+fn render_path(
+    relative_path: &Path,
+    placeholders: &BTreeMap<String, String>,
+) -> Result<PathBuf, AddServiceError> {
     let mut rendered_path = PathBuf::new();
 
     for component in relative_path.components() {
         let text = component.as_os_str().to_string_lossy();
-        rendered_path.push(render_text(&text, placeholders));
+        let rendered = render_mustache(&text, placeholders)?;
+        rendered_path.push(rendered);
     }
 
-    rendered_path
+    Ok(rendered_path)
 }
 
-fn render_bytes(bytes: &[u8], placeholders: &BTreeMap<String, String>) -> Vec<u8> {
+fn render_bytes(
+    bytes: &[u8],
+    placeholders: &BTreeMap<String, String>,
+) -> Result<Vec<u8>, AddServiceError> {
     match String::from_utf8(bytes.to_vec()) {
-        Ok(text) => render_text(&text, placeholders).into_bytes(),
-        Err(_) => bytes.to_vec(),
+        Ok(text) => {
+            let rendered = render_mustache(&text, placeholders)?;
+            Ok(rendered.into_bytes())
+        }
+        Err(_) => Ok(bytes.to_vec()),
     }
 }
 
-fn render_text(value: &str, placeholders: &BTreeMap<String, String>) -> String {
-    let mut rendered = value.to_owned();
-    for (placeholder, replacement) in placeholders {
-        rendered = rendered.replace(placeholder, replacement);
-    }
-    rendered
+fn render_mustache(
+    value: &str,
+    placeholders: &BTreeMap<String, String>,
+) -> Result<String, AddServiceError> {
+    let data = to_mustache_data(placeholders);
+
+    // Compile and render the template
+    let template = mustache::compile_str(value)
+        .map_err(|e| AddServiceError::RenderFailed(format!("failed to compile template: {}", e)))?;
+
+    template
+        .render_to_string(&data)
+        .map_err(|e| AddServiceError::RenderFailed(format!("failed to render template: {}", e)))
 }
 
 fn ensure_safe_relative_path(relative_path: &Path) -> Result<(), AddServiceError> {

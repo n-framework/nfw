@@ -11,7 +11,9 @@ nframework-nfw-core-domain = { path = "../../core/nframework-nfw-core-domain" }
 nframework-nfw-infrastructure-filesystem = { path = "../nframework-nfw-infrastructure-filesystem" }
 nframework-nfw-infrastructure-versioning = { path = "../nframework-nfw-infrastructure-versioning" }
 nframework-nfw-infrastructure-yaml = { path = "../nframework-nfw-infrastructure-yaml" }
-core-template-rust = { workspace = true }
+nframework-core-template-abstractions = { workspace = true }
+nframework-core-template-mustache = { workspace = true }
+serde_json = "1"
 
 [[test]]
 name = "discovery_test"

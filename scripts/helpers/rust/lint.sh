@@ -17,4 +17,12 @@ fd -t f Cargo.toml . "$REPO_ROOT" | while read -r cargo_file; do
 	(cd "$cargo_dir" && cargo clippy -- -D warnings)
 done
 
+acore_log_info "▶️ Running cargo machete (unused dependency check)..."
+if ! command -v cargo-machete &>/dev/null; then
+	acore_log_warning "cargo-machete not found, skipping unused dependency check"
+	acore_log_info "Install with: cargo install cargo-machete"
+else
+	cargo machete
+fi
+
 acore_log_success "✨ Rust linting complete!"

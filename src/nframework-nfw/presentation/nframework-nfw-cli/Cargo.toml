@@ -3,8 +3,12 @@ name = "nframework-nfw-cli"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "nframework-nfw-cli"
+path = "src/main.rs"
+
 [dependencies]
-nframework-core-cli-abstraction = { workspace = true }
+nframework-core-cli-abstractions = { workspace = true }
 nframework-core-cli-clap = { workspace = true }
 nframework-core-cli-inquire = { workspace = true }
 nframework-nfw-core-application = { path = "../../core/nframework-nfw-core-application" }

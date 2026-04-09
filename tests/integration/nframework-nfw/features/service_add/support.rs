@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
+use nframework_core_cli_abstractions::{PromptError, PromptService, SelectOption};
 use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
 use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommandResult;
 use nframework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
@@ -200,26 +200,26 @@ pub fn create_service_template(root: &Path, template_name: &str, template_type: 
     .expect("template metadata should be written");
 
     fs::write(
-        content_root.join("Domain/__ServiceName__.Domain.csproj"),
+        content_root.join("Domain/{{ServiceName}}.Domain.csproj"),
         "<Project Sdk=\"Microsoft.NET.Sdk\"></Project>\n",
     )
     .expect("domain csproj should be written");
 
     fs::write(
-        content_root.join("Application/__ServiceName__.Application.csproj"),
-        "<Project Sdk=\"Microsoft.NET.Sdk\"><ItemGroup><ProjectReference Include=\"../Domain/__ServiceName__.Domain.csproj\" /></ItemGroup></Project>\n",
+        content_root.join("Application/{{ServiceName}}.Application.csproj"),
+        "<Project Sdk=\"Microsoft.NET.Sdk\"><ItemGroup><ProjectReference Include=\"../Domain/{{ServiceName}}.Domain.csproj\" /></ItemGroup></Project>\n",
     )
     .expect("application csproj should be written");
 
     fs::write(
-        content_root.join("Infrastructure/__ServiceName__.Infrastructure.csproj"),
-        "<Project Sdk=\"Microsoft.NET.Sdk\"><ItemGroup><ProjectReference Include=\"../Application/__ServiceName__.Application.csproj\" /><ProjectReference Include=\"../Domain/__ServiceName__.Domain.csproj\" /></ItemGroup></Project>\n",
+        content_root.join("Infrastructure/{{ServiceName}}.Infrastructure.csproj"),
+        "<Project Sdk=\"Microsoft.NET.Sdk\"><ItemGroup><ProjectReference Include=\"../Application/{{ServiceName}}.Application.csproj\" /><ProjectReference Include=\"../Domain/{{ServiceName}}.Domain.csproj\" /></ItemGroup></Project>\n",
     )
     .expect("infrastructure csproj should be written");
 
     fs::write(
-        content_root.join("Api/__ServiceName__.WebApi.csproj"),
-        "<Project Sdk=\"Microsoft.NET.Sdk.Web\"><ItemGroup><ProjectReference Include=\"../Application/__ServiceName__.Application.csproj\" /><ProjectReference Include=\"../Infrastructure/__ServiceName__.Infrastructure.csproj\" /></ItemGroup></Project>\n",
+        content_root.join("Api/{{ServiceName}}.WebApi.csproj"),
+        "<Project Sdk=\"Microsoft.NET.Sdk.Web\"><ItemGroup><ProjectReference Include=\"../Application/{{ServiceName}}.Application.csproj\" /><ProjectReference Include=\"../Infrastructure/{{ServiceName}}.Infrastructure.csproj\" /></ItemGroup></Project>\n",
     )
     .expect("api csproj should be written");
 

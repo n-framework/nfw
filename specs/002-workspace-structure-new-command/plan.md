@@ -24,7 +24,7 @@ Implement deterministic workspace bootstrapping through `nfw new` with a layered
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 | Principle | Status | Notes |
-|---|---|---|
+| --- | --- | --- |
 | I. Single-Step Build And Test | Pass | Generated workspace quickstart mandates one build command and one test command. |
 | II. CLI I/O And Exit Codes | Pass | Plan requires deterministic success/failure outcomes and actionable CLI diagnostics. |
 | III. No Suppression | Pass | Validation and runtime errors are surfaced; no warning/test suppression introduced. |

@@ -9,10 +9,14 @@ members = [
   "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-yaml",
   "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-versioning",
   "src/nframework-nfw/presentation/nframework-nfw-cli",
+  "packages/nframework-core-template/src/nframework-core-template-abstractions",
+  "packages/nframework-core-template/src/nframework-core-template-mustache",
 ]
 
 [workspace.dependencies]
-nframework-core-cli-abstraction = { path = "packages/nframework-core-cli/src/nframework-core-cli-abstraction" }
+nframework-core-cli-abstractions = { path = "packages/nframework-core-cli/src/nframework-core-cli-abstractions" }
 nframework-core-cli-clap = { path = "packages/nframework-core-cli/src/nframework-core-cli-clap" }
 nframework-core-cli-inquire = { path = "packages/nframework-core-cli/src/nframework-core-cli-inquire" }
-core-template-rust = { path = "../core-template-rust" }
+nframework-core-template-abstractions = { path = "packages/nframework-core-template/src/nframework-core-template-abstractions" }
+nframework-core-template-mustache = { path = "packages/nframework-core-template/src/nframework-core-template-mustache" }
+mustache = "0.9"
