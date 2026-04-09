@@ -15,4 +15,6 @@ members = [
 nframework-core-cli-abstractions = { path = "packages/nframework-core-cli/src/nframework-core-cli-abstractions" }
 nframework-core-cli-clap = { path = "packages/nframework-core-cli/src/nframework-core-cli-clap" }
 nframework-core-cli-inquire = { path = "packages/nframework-core-cli/src/nframework-core-cli-inquire" }
-core-template-rust = { path = "../core-template-rust" }
+nframework-core-template-abstractions = { path = "../core-template-rust/src/nframework-core-template-abstractions" }
+nframework-core-template-mustache = { path = "../core-template-rust/src/nframework-core-template-mustache" }
+mustache = "0.9"

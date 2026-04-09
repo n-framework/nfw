@@ -47,7 +47,7 @@ fn copy_directory_recursive(
                 source_path.display()
             )
         })?;
-        let rendered_relative_path = render_path(relative_path, resolution);
+        let rendered_relative_path = render_path(relative_path, resolution)?;
         let destination_path = output_root.join(rendered_relative_path);
 
         if source_path.is_dir() {
@@ -76,7 +76,7 @@ fn copy_directory_recursive(
                 source_path.display()
             )
         })?;
-        let rendered_bytes = render_bytes(&bytes, resolution);
+        let rendered_bytes = render_bytes(&bytes, resolution)?;
         fs::write(&destination_path, rendered_bytes).map_err(|error| {
             format!(
                 "failed to write workspace file '{}': {error}",

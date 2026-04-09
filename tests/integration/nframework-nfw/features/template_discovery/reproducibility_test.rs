@@ -3,9 +3,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use core_template_rust::{
-    BasicFileGenerator, FileGenerator, TemplateContext, TokenPlaceholderRenderer,
-};
+use nframework_core_template_abstractions::{FileGenerator, TemplateContext};
+use nframework_core_template_mustache::{MustacheFileGenerator, MustacheTemplateRenderer};
+use serde_json::Value;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct DirectoryEntrySnapshot {
@@ -22,12 +22,18 @@ fn generating_twice_from_same_template_produces_identical_structure() {
 
     create_template(&template_root);
 
-    let mut values = BTreeMap::new();
-    values.insert("ServiceName".to_owned(), "BillingService".to_owned());
-    values.insert("Namespace".to_owned(), "Acme.Billing".to_owned());
+    let mut values: BTreeMap<String, Value> = BTreeMap::new();
+    values.insert(
+        "ServiceName".to_owned(),
+        Value::String("BillingService".to_owned()),
+    );
+    values.insert(
+        "Namespace".to_owned(),
+        Value::String("Acme.Billing".to_owned()),
+    );
     let context = TemplateContext::new(values);
 
-    let generator = BasicFileGenerator::new(TokenPlaceholderRenderer::new());
+    let generator = MustacheFileGenerator::new(MustacheTemplateRenderer::new());
     generator
         .generate(&template_root, &output_a, &context)
         .expect("first generation should succeed");
@@ -42,16 +48,16 @@ fn generating_twice_from_same_template_produces_identical_structure() {
 }
 
 fn create_template(template_root: &Path) {
-    let source_directory = template_root.join("__ServiceName__");
+    let source_directory = template_root.join("{{ServiceName}}");
     fs::create_dir_all(&source_directory).expect("template directory should be created");
 
     fs::write(
         source_directory.join("README.md"),
-        "# __ServiceName__\nnamespace: __Namespace__\n",
+        "# {{ServiceName}}\nnamespace: {{Namespace}}\n",
     )
     .expect("template readme should be written");
     fs::write(
-        source_directory.join("__ServiceName__.csproj"),
+        source_directory.join("{{ServiceName}}.csproj"),
         "<Project Sdk=\"Microsoft.NET.Sdk\"></Project>\n",
     )
     .expect("template project file should be written");
