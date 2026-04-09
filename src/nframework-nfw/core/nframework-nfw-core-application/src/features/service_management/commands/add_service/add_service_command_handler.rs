@@ -12,7 +12,7 @@ use crate::features::service_management::services::add_service_workspace_context
 use crate::features::service_management::services::service_generation_plan_builder::ServiceGenerationPlanBuilder;
 use crate::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
-use nframework_core_cli_abstraction::PromptService;
+use nframework_core_cli_abstractions::PromptService;
 
 #[derive(Debug, Clone)]
 pub struct AddServiceCommandHandler<D, S, P, Q, R, PS>

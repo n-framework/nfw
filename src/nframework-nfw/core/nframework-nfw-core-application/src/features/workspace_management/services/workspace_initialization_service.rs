@@ -10,7 +10,7 @@ use crate::features::workspace_management::services::namespace_resolver::Namespa
 use crate::features::workspace_management::services::new_command_validator::NewCommandValidator;
 use crate::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
 use crate::features::workspace_management::services::workspace_blueprint_builder::WorkspaceBlueprintBuilder;
-use nframework_core_cli_abstraction::PromptService;
+use nframework_core_cli_abstractions::PromptService;
 
 #[derive(Clone)]
 pub struct WorkspaceInitializationService<P, V, T, W, D, PS>

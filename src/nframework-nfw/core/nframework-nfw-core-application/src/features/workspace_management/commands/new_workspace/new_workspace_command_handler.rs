@@ -1,4 +1,4 @@
-use nframework_core_cli_abstraction::PromptService;
+use nframework_core_cli_abstractions::PromptService;
 
 use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::workspace_management::commands::new_workspace::new_workspace_command::{

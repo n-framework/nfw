@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
+use nframework_core_cli_abstractions::{PromptError, PromptService, SelectOption};
 use nframework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use nframework_nfw_core_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_core_application::features::workspace_management::models::new_command_request::NewCommandRequest;

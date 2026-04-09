@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use nframework_core_cli_abstraction::{PromptError, PromptService, SelectOption};
+use nframework_core_cli_abstractions::{PromptError, PromptService, SelectOption};
 use nframework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use nframework_nfw_core_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use nframework_nfw_core_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;

@@ -1,6 +1,6 @@
 use std::io::{self, IsTerminal};
 
-use nframework_core_cli_abstraction::{
+use nframework_core_cli_abstractions::{
     CliAppConfig, CliCommandSpec, CliOptionSpec, CliRuntime, CliSpec, Command,
 };
 use nframework_core_cli_clap::ClapCliRuntimeBuilder;
