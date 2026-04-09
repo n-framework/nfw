@@ -79,36 +79,16 @@ fn write_local_official_source_config(home: &Path) {
     let config_home = home.join(".config").join("nfw");
     fs::create_dir_all(&config_home).expect("nfw config directory should exist");
 
-    let workspace_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../../");
+    // Create a template cache directory in the test sandbox
+    let template_cache = home.join(".cache").join("nfw").join("templates");
+    fs::create_dir_all(&template_cache).expect("template cache directory should exist");
 
-    // Try multiple potential locations for nfw-templates to handle different repo layouts
-    let potential_paths = vec![
-        workspace_root.join("../nfw-templates"), // Meta-repo layout: src/nfw -> src/nfw-templates
-        workspace_root.join("src/nfw-templates"), // From meta-repo root
-        workspace_root.join("nfw-templates"),    // Direct sibling
-    ];
-
-    let source_url = potential_paths
-        .clone()
-        .into_iter()
-        .find_map(|path| {
-            if path.exists() {
-                path.canonicalize().ok()
-            } else {
-                None
-            }
-        })
-        .unwrap_or_else(|| {
-            panic!(
-                "No valid template directory found. Tried: {:?}. \
-                Please ensure nfw-templates submodule is initialized.",
-                potential_paths
-            );
-        });
-
+    // The test validates error handling when a specific template doesn't exist.
+    // We create an empty cache directory so the CLI can find the source,
+    // but the specific template won't exist.
     let config = format!(
         "sources:\n  - name: official\n    url: {}\n    enabled: true\n",
-        source_url.to_string_lossy()
+        template_cache.to_string_lossy()
     );
     fs::write(config_home.join("sources.yaml"), config)
         .expect("sources.yaml should be written for test sandbox");
