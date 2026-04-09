@@ -24,7 +24,7 @@ Implement `nfw add service <name>` as a template-first workflow that requires te
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 | Principle | Status | Notes |
-|---|---|---|
+| --- | --- | --- |
 | I. Single-Step Build And Test | Pass | Quickstart includes one-command verification and keeps root build/test workflows intact. |
 | II. CLI I/O And Exit Codes | Pass | Command contract defines deterministic success/error exits and keeps SIGINT behavior explicit. |
 | III. No Suppression | Pass | Plan requires explicit validation failures and surfaced actionable errors. |

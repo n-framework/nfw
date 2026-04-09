@@ -53,11 +53,25 @@ cleanup_test_dir() {
 # ============================================================================
 
 check_cli_installed() {
+	log_info "Checking for nfw in PATH..."
+	log_info "PATH=$PATH"
+	log_info "REPO_ROOT=$REPO_ROOT"
+	log_info "Checking for binary at: $REPO_ROOT/target/debug/nfw"
+	if [[ -f "$REPO_ROOT/target/debug/nfw" ]]; then
+		log_info "Found nfw file: $(file "$REPO_ROOT/target/debug/nfw")"
+	elif [[ -L "$REPO_ROOT/target/debug/nfw" ]]; then
+		log_info "Found nfw symlink: $(readlink -f "$REPO_ROOT/target/debug/nfw")"
+	else
+		log_info "No nfw binary found in target/debug/"
+		ls -la "$REPO_ROOT/target/debug/" | grep -E "nfw|nframework" || log_info "No nfw-related files found"
+	fi
 	if ! command -v nfw &>/dev/null; then
 		log_error "nfw CLI not found in PATH"
 		log_error "Expected at: $REPO_ROOT/target/debug/nfw or \$NFW_REPO_ROOT/target/debug/nfw"
+		log_error "command -v nfw output: $(command -v nfw 2>&1 || echo 'not found')"
 		exit 2
 	fi
+	log_success "nfw CLI found: $(command -v nfw)"
 }
 
 check_template_cache() {
