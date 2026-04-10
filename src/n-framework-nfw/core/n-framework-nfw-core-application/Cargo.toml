@@ -1,0 +1,76 @@
+[package]
+name = "n-framework-nfw-core-application"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+n-framework-core-cli-abstractions = { path = "../../../../packages/n-framework-core-cli/src/n-framework-core-cli-abstractions" }
+n-framework-nfw-core-domain = { path = "../n-framework-nfw-core-domain" }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+regex = "1"
+
+[dev-dependencies]
+semver = "1"
+serde_yaml = "0.9"
+n-framework-nfw-infrastructure-versioning = { path = "../../infrastructure/n-framework-nfw-infrastructure-versioning" }
+
+[[test]]
+name = "template_catalog_parser_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/template_management/services/template_catalog_parser_tests.rs"
+
+[[test]]
+name = "template_catalog_source_resolver_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/template_management/services/template_catalog_source_resolver_tests.rs"
+
+[[test]]
+name = "templates_service_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/template_management/services/templates_service_tests.rs"
+
+[[test]]
+name = "source_management_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/template_management/services/source_management_tests.rs"
+
+[[test]]
+name = "template_selection_service_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/template_management/services/template_selection_service_tests.rs"
+
+[[test]]
+name = "version_resolver_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/versioning/version_resolver_tests.rs"
+
+[[test]]
+name = "input_resolution_service_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/workspace_management/services/input_resolution_service_tests.rs"
+
+[[test]]
+name = "template_selection_for_new_service_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/workspace_management/services/template_selection_for_new_service_tests.rs"
+
+[[test]]
+name = "workspace_initialization_service_test"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/workspace_management/services/workspace_initialization_service_test.rs"
+
+[[test]]
+name = "add_service_request_validation_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/service_management/add_service_request_validation_tests.rs"
+
+[[test]]
+name = "service_template_selection_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/service_management/service_template_selection_tests.rs"
+
+[[test]]
+name = "exit_codes_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/cli/exit_codes_tests.rs"
+
+[[test]]
+name = "check_services_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/check/validation_services_tests.rs"
+
+[[test]]
+name = "check_remediation_hint_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/check/remediation_hint_tests.rs"
+
+[[test]]
+name = "architecture_layer_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-application/features/check/architecture_layer_tests.rs"

@@ -1,22 +1,36 @@
 [workspace]
 resolver = "2"
 members = [
-  "src/nframework-nfw/core/nframework-nfw-core-domain",
-  "src/nframework-nfw/core/nframework-nfw-core-application",
-  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem",
-  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-git",
-  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-workspace-metadata",
-  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-yaml",
-  "src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-versioning",
-  "src/nframework-nfw/presentation/nframework-nfw-cli",
-  "packages/nframework-core-template/src/nframework-core-template-abstractions",
-  "packages/nframework-core-template/src/nframework-core-template-mustache",
+  "src/n-framework-nfw/core/n-framework-nfw-core-domain",
+  "src/n-framework-nfw/core/n-framework-nfw-core-application",
+  "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-filesystem",
+  "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-git",
+  "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-workspace-metadata",
+  "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-yaml",
+  "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-versioning",
+  "src/n-framework-nfw/presentation/n-framework-nfw-cli",
+  "packages/n-framework-core-cli/src/n-framework-core-cli-abstractions",
+  "packages/n-framework-core-cli/src/n-framework-core-cli-clap",
+  "packages/n-framework-core-cli/src/n-framework-core-cli-inquire",
+  "packages/n-framework-core-template/src/n-framework-core-template-abstractions",
+  "packages/n-framework-core-template/src/n-framework-core-template-mustache",
 ]
 
 [workspace.dependencies]
-nframework-core-cli-abstractions = { path = "packages/nframework-core-cli/src/nframework-core-cli-abstractions" }
-nframework-core-cli-clap = { path = "packages/nframework-core-cli/src/nframework-core-cli-clap" }
-nframework-core-cli-inquire = { path = "packages/nframework-core-cli/src/nframework-core-cli-inquire" }
-nframework-core-template-abstractions = { path = "packages/nframework-core-template/src/nframework-core-template-abstractions" }
-nframework-core-template-mustache = { path = "packages/nframework-core-template/src/nframework-core-template-mustache" }
+n-framework-core-cli = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-abstractions" }
+n-framework-core-cli-abstractions = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-abstractions" }
+n-framework-core-cli-clap = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-clap" }
+n-framework-core-cli-inquire = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-inquire" }
+n-framework-core-template = { path = "packages/n-framework-core-template/src/n-framework-core-template-abstractions" }
+n-framework-core-template-abstractions = { path = "packages/n-framework-core-template/src/n-framework-core-template-abstractions" }
+n-framework-core-template-mustache = { path = "packages/n-framework-core-template/src/n-framework-core-template-mustache" }
+n-framework-nfw-core-application = { path = "src/n-framework-nfw/core/n-framework-nfw-core-application" }
+n-framework-nfw-core-domain = { path = "src/n-framework-nfw/core/n-framework-nfw-core-domain" }
+n-framework-nfw-cli = { path = "src/n-framework-nfw/presentation/n-framework-nfw-cli" }
+n-framework-nfw-infrastructure-filesystem = { path = "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-filesystem" }
+n-framework-nfw-infrastructure-git = { path = "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-git" }
+n-framework-nfw-infrastructure-versioning = { path = "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-versioning" }
+n-framework-nfw-infrastructure-workspace-metadata = { path = "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-workspace-metadata" }
+n-framework-nfw-infrastructure-yaml = { path = "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-yaml" }
+
 mustache = "0.9"

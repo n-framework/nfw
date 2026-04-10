@@ -2,8 +2,14 @@
 	path = packages/acore-scripts
 	url = git@github.com:ahmet-cetinkaya/acore-scripts.git
 [submodule "packages/nframework-core-cli"]
-	path = packages/nframework-core-cli
+	path = packages/n-framework-core-cli
 	url = git@github.com:n-framework/core-cli-rust.git
 [submodule "packages/nframework-core-template"]
-	path = packages/nframework-core-template
+	path = packages/n-framework-core-template
+	url = git@github.com:n-framework/core-template-rust.git
+[submodule "packages/n-framework-core-cli"]
+	path = packages/n-framework-core-cli
+	url = git@github.com:n-framework/core-cli-rust.git
+[submodule "packages/n-framework-core-template"]
+	path = packages/n-framework-core-template
 	url = git@github.com:n-framework/core-template-rust.git

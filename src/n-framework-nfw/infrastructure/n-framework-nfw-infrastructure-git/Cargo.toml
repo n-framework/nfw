@@ -1,0 +1,48 @@
+[package]
+name = "n-framework-nfw-infrastructure-git"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+n-framework-nfw-core-application = { path = "../../core/n-framework-nfw-core-application" }
+n-framework-nfw-core-domain = { path = "../../core/n-framework-nfw-core-domain" }
+
+[dev-dependencies]
+n-framework-nfw-infrastructure-filesystem = { path = "../n-framework-nfw-infrastructure-filesystem" }
+n-framework-nfw-infrastructure-versioning = { path = "../n-framework-nfw-infrastructure-versioning" }
+n-framework-nfw-infrastructure-yaml = { path = "../n-framework-nfw-infrastructure-yaml" }
+n-framework-core-template-abstractions = { workspace = true }
+n-framework-core-template-mustache = { workspace = true }
+serde_json = "1"
+
+[[test]]
+name = "discovery_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/discovery_test.rs"
+
+[[test]]
+name = "e2e_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/e2e_test.rs"
+
+[[test]]
+name = "metadata_bench"
+path = "../../../../tests/integration/n-framework-nfw/benches/metadata_bench.rs"
+
+[[test]]
+name = "listing_bench"
+path = "../../../../tests/integration/n-framework-nfw/benches/listing_bench.rs"
+
+[[test]]
+name = "reproducibility_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/reproducibility_test.rs"
+
+[[test]]
+name = "corrupted_cache_recovery_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/corrupted_cache_recovery_test.rs"
+
+[[test]]
+name = "authentication_failure_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/authentication_failure_test.rs"
+
+[[test]]
+name = "offline_fallback_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/offline_fallback_test.rs"
