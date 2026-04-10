@@ -25,10 +25,10 @@ fi
 if ! bun pm ls 2> /dev/null | grep -q markdownlint-cli2; then
 	acore_log_info "Installing markdownlint-cli2..."
 	if ! bun add -g markdownlint-cli2; then
-    acore_log_error "Failed to install markdownlint-cli2"
-    acore_log_error "Please check your network connection and bun permissions"
-    exit 1
-fi
+		acore_log_error "Failed to install markdownlint-cli2"
+		acore_log_error "Please check your network connection and bun permissions"
+		exit 1
+	fi
 fi
 
 bunx markdownlint-cli2 --fix "${markdown_files[@]}"

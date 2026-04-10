@@ -85,6 +85,7 @@ Smoke Test Suite: Build & Test Workflows
 **Error**: `nfw CLI not found in PATH`
 
 **Solution**: Build the CLI first:
+
 ```bash
 cd src/nfw
 cargo build --workspace
@@ -96,6 +97,7 @@ export PATH="$PATH:$PWD/target/debug"
 **Error**: Template-related failures during smoke tests
 
 **Solution**: Populate the template cache:
+
 ```bash
 nfw templates refresh
 ```
@@ -105,6 +107,7 @@ nfw templates refresh
 **Error**: `.NET SDK not found` or similar
 
 **Solution**: Install .NET 8.0 SDK:
+
 ```bash
 # macOS
 brew install dotnet-sdk
@@ -119,6 +122,7 @@ bash dotnet-install.sh --channel 8.0
 **Error**: `No test files found in tests/smoke/`
 
 **Solution**: Ensure smoke test scripts exist:
+
 ```bash
 ls tests/smoke/*_test.sh
 # Should show: error_path_test.sh, service_scaffolding_test.sh, etc.
@@ -129,6 +133,7 @@ ls tests/smoke/*_test.sh
 **Warning**: `Failed to clean up test directory`
 
 **Solution**: Manual cleanup may be required:
+
 ```bash
 # Remove test directories manually
 rm -rf /tmp/nfw-smoke-*
@@ -139,6 +144,7 @@ rm -rf /tmp/nfw-smoke-*
 **Error**: Tests hang or timeout
 
 **Solution**:
+
 1. Check network connectivity (template downloads)
 2. Verify template cache is populated
 3. Check disk space availability

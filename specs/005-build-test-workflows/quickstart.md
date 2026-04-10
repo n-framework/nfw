@@ -130,13 +130,15 @@ The SC-001 target is **workspace + service creation in under 1 second** on basel
 Smoke tests validate core CLI workflows in `tests/smoke/`.
 
 1. **Create test script**:
+
 ```bash
 cd tests/smoke
 cp workspace_generation_test.sh your_feature_test.sh
 chmod +x your_feature_test.sh
 ```
 
-2. **Implement test logic**:
+### Implement test logic
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -148,14 +150,14 @@ TEST_NAME="Your Feature Test"
 
 main() {
     echo "Running: $TEST_NAME"
-    
+
     setup_test_dir
     cd "$TEST_DIR"
-    
+
     # Your test logic here
     nfw new TestWorkspace --template "official/blank-workspace" --no-input
     assert_directory_exists "TestWorkspace"
-    
+
     log_pass "Feature test passed"
     cleanup_test_dir
 }
@@ -163,7 +165,8 @@ main() {
 main "$@"
 ```
 
-3. **Available helpers** from `common.sh`:
+**Available helpers** from `common.sh`
+
 - `setup_test_dir` / `cleanup_test_dir` - Directory management
 - `assert_file_exists` / `assert_directory_exists` - Assertions
 - `assert_file_contains` - Pattern matching
@@ -173,13 +176,15 @@ main "$@"
 
 Integration tests are Rust tests in `tests/integration/`.
 
-1. **Create test file** in feature directory:
+**Create test file** in feature directory:
+
 ```bash
 cd tests/integration/nframework-nfw/features/your_feature
 touch your_test.rs
 ```
 
-2. **Add documented test function**:
+**Add documented test function**:
+
 ```rust
 /// Tests that your feature works correctly.
 ///
@@ -195,20 +200,21 @@ touch your_test.rs
 #[test]
 fn test_your_feature_works() {
     let workspace_root = support::create_workspace_root("test-name");
-    
+
     // Test implementation
     let output = std::process::Command::new("nfw")
         .args(["your", "command"])
         .current_dir(&workspace_root)
         .output()
         .expect("Command should execute");
-    
+
     assert!(output.status.success(), "Command should succeed");
     support::cleanup_sandbox_directory(&workspace_root);
 }
 ```
 
-3. **Use support modules** when available:
+**Use support modules** when available:
+
 ```rust
 #[path = "support.rs"]
 mod support;
@@ -219,6 +225,7 @@ use support::{create_workspace_root, cleanup_sandbox_directory};
 ### Test Best Practices
 
 **Smoke Tests:**
+
 - Isolate: Clean up after yourself
 - Validate: Test both success and failure paths
 - Document: Add clear comments
@@ -226,6 +233,7 @@ use support::{create_workspace_root, cleanup_sandbox_directory};
 - Fast: Complete in < 30 seconds
 
 **Integration Tests:**
+
 - Document: Add doc comments with purpose and success criteria
 - Cleanup: Always clean up temporary directories
 - Assert: Use descriptive assertion messages
@@ -234,6 +242,7 @@ use support::{create_workspace_root, cleanup_sandbox_directory};
 ### Common Patterns
 
 **Setup and Cleanup:**
+
 ```rust
 let sandbox = create_sandbox_directory("test-name");
 // ... test code ...
@@ -241,6 +250,7 @@ cleanup_sandbox_directory(&sandbox);
 ```
 
 **Command Execution:**
+
 ```rust
 let output = std::process::Command::new("nfw")
     .args(["new", "Workspace", "--template", "official/blank-workspace"])
@@ -250,6 +260,7 @@ let output = std::process::Command::new("nfw")
 ```
 
 **File Validation:**
+
 ```rust
 assert!(path.is_file(), "File should exist: {}", path.display());
 let content = fs::read_to_string(path)?;
@@ -259,12 +270,14 @@ assert!(content.contains("expected"), "Should contain expected content");
 ### Troubleshooting
 
 **Tests fail locally:**
+
 1. Build CLI: `cargo build --workspace`
 2. Add to PATH: `export PATH="$PATH:$PWD/target/debug"`
 3. Check templates: `nfw templates`
 4. Check .NET: `dotnet --version`
 
 **Cleanup failures:**
+
 ```bash
 # Manual cleanup
 rm -rf /tmp/nfw-smoke-*
