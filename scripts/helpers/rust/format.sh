@@ -13,8 +13,7 @@ acore_log_section "🦀 Formatting Rust code with cargo fmt..."
 
 fd -t f Cargo.toml . "$REPO_ROOT" | while read -r cargo_file; do
 	cargo_dir="$(dirname "$cargo_file")"
-	acore_log_info "📋 Formatting $(basename "$cargo_dir")..."
-	(cd "$cargo_dir" && cargo fmt)
+	(cd "$cargo_dir" && cargo fmt &> /dev/null) || acore_log_warning "⚠️ Skipped $(basename "$cargo_dir")"
 done
 
 acore_log_success "✅ Rust formatting complete!"
