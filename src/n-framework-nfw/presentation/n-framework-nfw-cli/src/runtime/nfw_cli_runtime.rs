@@ -9,6 +9,7 @@ use n_framework_nfw_core_application::features::service_management::models::erro
 
 use crate::cli_error::CliError;
 use crate::commands::check::run_check::{RunCheckCliCommand, RunCheckError};
+use crate::commands::generate::generate::GenerateCliCommand;
 use crate::commands::service::add_service::AddServiceCliCommand;
 use crate::commands::templates::add_source::AddSourceCliCommand;
 use crate::commands::templates::list_templates::TemplatesCliCommand;
@@ -104,6 +105,37 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                                     .flag(),
                             ),
                     ),
+            )
+            .with_command(
+                CliCommandSpec::new("gen")
+                    .with_about("Generate code from templates defined in nfw.yaml")
+                    .require_subcommand()
+                    .with_subcommand(
+                        CliCommandSpec::new("command")
+                            .with_about("Generate a mediator command")
+                            .with_option(
+                                CliOptionSpec::positional("name", 1)
+                                    .with_help("Command name (e.g. CreateProduct)")
+                                    .required(),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("feature", "feature")
+                                    .with_help("Feature/module name (defaults to command name)"),
+                            ),
+                    )
+                    .with_subcommand(
+                        CliCommandSpec::new("query")
+                            .with_about("Generate a mediator query")
+                            .with_option(
+                                CliOptionSpec::positional("name", 1)
+                                    .with_help("Query name (e.g. GetProductById)")
+                                    .required(),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("feature", "feature")
+                                    .with_help("Feature/module name (defaults to query name)"),
+                            ),
+                    ),
             ),
     )
 }
@@ -116,6 +148,8 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("new", handle_workspace_new)
         .register_handler("check", handle_check)
         .register_handler("add/service", handle_add_service)
+        .register_handler("gen/command", handle_gen_command)
+        .register_handler("gen/query", handle_gen_query)
         .register_handler("templates/list", handle_templates_list)
         .register_handler("templates/add", handle_templates_add)
         .register_handler("templates/remove", handle_templates_remove)
@@ -210,6 +244,24 @@ fn handle_templates_remove(
 
 fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
+}
+
+fn handle_gen_command(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
+    let name = required_option(command, "name")?;
+    GenerateCliCommand::new(context.template_engine.clone())
+        .execute("command", &name, command.option("feature"))
+}
+
+fn handle_gen_query(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
+    let name = required_option(command, "name")?;
+    GenerateCliCommand::new(context.template_engine.clone())
+        .execute("query", &name, command.option("feature"))
 }
 
 /// Extension trait to parse exit code from error string protocol.

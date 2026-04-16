@@ -53,6 +53,7 @@ impl CliServiceCollectionFactory {
                 .remove_template_source_command_handler,
             refresh_templates_command_handler: templates.refresh_templates_command_handler,
             ensure_default_source_command_handler: templates.ensure_default_source_command_handler,
+            template_engine: n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
         }
     }
 }
@@ -167,7 +168,7 @@ struct WorkspaceFeatureServices {
             FileSystemWorkspaceArtifactWriter<NfwFileSystemConfigurationLoader<DirsPathResolver>>,
             InfrastructureCliGitRepository,
         >,
-        FileSystemWorkspaceWriter,
+        FileSystemWorkspaceWriter<n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine>,
         StandardWorkingDirectoryProvider,
         InquirerPromptService,
     >,
@@ -196,7 +197,7 @@ impl WorkspaceFeatureFactory {
                 InquirerPromptService::new(),
                 CliValidator,
                 template_selection_for_new_service,
-                FileSystemWorkspaceWriter::new(),
+                FileSystemWorkspaceWriter::new(n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new()),
                 StandardWorkingDirectoryProvider::new(),
             ),
         }

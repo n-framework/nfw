@@ -14,6 +14,7 @@ members = [
   "packages/n-framework-core-cli/src/n-framework-core-cli-inquire",
   "packages/n-framework-core-template/src/n-framework-core-template-abstractions",
   "packages/n-framework-core-template/src/n-framework-core-template-mustache",
+  "packages/n-framework-core-template/src/n-framework-core-template-tera",
 ]
 
 [workspace.dependencies]
@@ -24,6 +25,7 @@ n-framework-core-cli-inquire = { path = "packages/n-framework-core-cli/src/n-fra
 n-framework-core-template = { path = "packages/n-framework-core-template/src/n-framework-core-template-abstractions" }
 n-framework-core-template-abstractions = { path = "packages/n-framework-core-template/src/n-framework-core-template-abstractions" }
 n-framework-core-template-mustache = { path = "packages/n-framework-core-template/src/n-framework-core-template-mustache" }
+n-framework-core-template-tera = { path = "packages/n-framework-core-template/src/n-framework-core-template-tera" }
 n-framework-nfw-core-application = { path = "src/n-framework-nfw/core/n-framework-nfw-core-application" }
 n-framework-nfw-core-domain = { path = "src/n-framework-nfw/core/n-framework-nfw-core-domain" }
 n-framework-nfw-cli = { path = "src/n-framework-nfw/presentation/n-framework-nfw-cli" }
@@ -34,3 +36,4 @@ n-framework-nfw-infrastructure-workspace-metadata = { path = "src/n-framework-nf
 n-framework-nfw-infrastructure-yaml = { path = "src/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-yaml" }
 
 mustache = "0.9"
+tera = "1"

@@ -1,101 +1,27 @@
-use std::collections::BTreeMap;
-use std::collections::HashMap;
 use std::fs;
-use std::path::{Component, Path, PathBuf};
-
-use mustache;
+use std::path::Path;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use n_framework_nfw_core_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
 
 use crate::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 
+use crate::features::template_management::template_engine::FileSystemTemplateEngine;
+use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
+use n_framework_nfw_core_domain::features::template_management::template_config::{TemplateConfig, TemplateStep};
+
 #[derive(Debug, Clone)]
 pub struct FileSystemServiceTemplateRenderer {
     cleanup: ServiceGenerationCleanup,
-}
-
-struct RenderContext<'a> {
-    content_root: &'a Path,
-    output_root: &'a Path,
-    placeholder_values: &'a BTreeMap<String, String>,
+    engine: FileSystemTemplateEngine,
 }
 
 impl FileSystemServiceTemplateRenderer {
     pub fn new(cleanup: ServiceGenerationCleanup) -> Self {
-        Self { cleanup }
-    }
-
-    fn render_template_content(
-        &self,
-        current_path: &Path,
-        context: &RenderContext<'_>,
-    ) -> Result<(), AddServiceError> {
-        for entry in fs::read_dir(current_path).map_err(|error| {
-            AddServiceError::RenderFailed(format!(
-                "failed to read template content '{}': {error}",
-                current_path.display()
-            ))
-        })? {
-            let entry = entry.map_err(|error| {
-                AddServiceError::RenderFailed(format!(
-                    "failed to read an entry under '{}': {error}",
-                    current_path.display()
-                ))
-            })?;
-
-            let source_path = entry.path();
-            let relative_path =
-                source_path
-                    .strip_prefix(context.content_root)
-                    .map_err(|error| {
-                        AddServiceError::RenderFailed(format!(
-                            "failed to compute template-relative path for '{}': {error}",
-                            source_path.display()
-                        ))
-                    })?;
-
-            let rendered_relative_path = render_path(relative_path, context.placeholder_values)?;
-            ensure_safe_relative_path(&rendered_relative_path)?;
-            let destination_path = context.output_root.join(rendered_relative_path);
-
-            if source_path.is_dir() {
-                fs::create_dir_all(&destination_path).map_err(|error| {
-                    AddServiceError::RenderFailed(format!(
-                        "failed to create directory '{}': {error}",
-                        destination_path.display()
-                    ))
-                })?;
-
-                self.render_template_content(&source_path, context)?;
-                continue;
-            }
-
-            if let Some(parent) = destination_path.parent() {
-                fs::create_dir_all(parent).map_err(|error| {
-                    AddServiceError::RenderFailed(format!(
-                        "failed to create parent directory '{}': {error}",
-                        parent.display()
-                    ))
-                })?;
-            }
-
-            let bytes = fs::read(&source_path).map_err(|error| {
-                AddServiceError::RenderFailed(format!(
-                    "failed to read template file '{}': {error}",
-                    source_path.display()
-                ))
-            })?;
-            let rendered_bytes = render_bytes(&bytes, context.placeholder_values)?;
-            fs::write(&destination_path, rendered_bytes).map_err(|error| {
-                AddServiceError::RenderFailed(format!(
-                    "failed to write generated file '{}': {error}",
-                    destination_path.display()
-                ))
-            })?;
+        Self {
+            cleanup,
+            engine: FileSystemTemplateEngine::new(),
         }
-
-        Ok(())
     }
 }
 
@@ -107,35 +33,79 @@ impl Default for FileSystemServiceTemplateRenderer {
 
 impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
     fn render_service(&self, plan: &ServiceGenerationPlan) -> Result<(), AddServiceError> {
-        let content_root = plan.template_cache_path.join("content");
-        if !content_root.is_dir() {
-            return Err(AddServiceError::RenderFailed(format!(
-                "template '{}' is missing required 'content/' directory",
-                plan.template_cache_path.display()
-            )));
-        }
+        let template_root = &plan.template_cache_path;
+        let root_config_path = template_root.join("template.yaml");
+        let subfolder_config_path = template_root.join("add-service").join("template.yaml");
 
-        fs::create_dir_all(&plan.output_root).map_err(|error| {
-            AddServiceError::RenderFailed(format!(
-                "failed to create output directory '{}': {error}",
-                plan.output_root.display()
-            ))
-        })?;
-
-        let context = RenderContext {
-            content_root: &content_root,
-            output_root: &plan.output_root,
-            placeholder_values: &plan.placeholder_values,
+        // Determine which configuration and template root to use
+        let (config, final_template_root) = if subfolder_config_path.exists() {
+            // Implementation is in add-service/
+            let yaml = fs::read_to_string(&subfolder_config_path).map_err(|e| {
+                AddServiceError::RenderFailed(format!("failed to read subfolder template.yaml: {e}"))
+            })?;
+            let mut config = serde_yaml::from_str::<TemplateConfig>(&yaml).map_err(|e| {
+                AddServiceError::RenderFailed(format!("failed to parse subfolder template.yaml: {e}"))
+            })?;
+            // Set ID if missing in subfolder config
+            if config.id.is_none() {
+                config.id = Some(plan.template_id.clone());
+            }
+            (config, template_root.join("add-service"))
+        } else if root_config_path.exists() {
+            // Check if root config has steps
+            let yaml = fs::read_to_string(&root_config_path).map_err(|e| {
+                AddServiceError::RenderFailed(format!("failed to read root template.yaml: {e}"))
+            })?;
+            let config = serde_yaml::from_str::<TemplateConfig>(&yaml).map_err(|e| {
+                AddServiceError::RenderFailed(format!("failed to parse root template.yaml: {e}"))
+            })?;
+            
+            if !config.steps.is_empty() {
+                (config, template_root.to_path_buf())
+            } else {
+                // Root config exists but has no steps, and no subfolder config found.
+                // Fallback to legacy if content/ exists, otherwise error or empty
+                let content_path = template_root.join("content");
+                if content_path.exists() {
+                    (TemplateConfig {
+                        id: Some(plan.template_id.clone()),
+                        steps: vec![TemplateStep::RenderFolder {
+                            source: "content".to_string(),
+                            destination: ".".to_string(),
+                        }],
+                    }, template_root.to_path_buf())
+                } else {
+                    return Err(AddServiceError::RenderFailed("no template steps found in template.yaml or add-service/template.yaml, and no legacy content folder present".to_string()));
+                }
+            }
+        } else {
+            // Legacy fallback: Create a virtual config that renders the 'content/' folder
+            (TemplateConfig {
+                id: Some(plan.template_id.clone()),
+                steps: vec![TemplateStep::RenderFolder {
+                    source: "content".to_string(),
+                    destination: ".".to_string(),
+                }],
+            }, template_root.to_path_buf())
         };
 
-        match self.render_template_content(&content_root, &context) {
-            Ok(()) => Ok(()),
-            Err(error) => self
-                .cleanup
-                .cleanup_output(&plan.output_root)
-                .map_err(|cleanup_error| merge_cleanup_error(cleanup_error, &error))
-                .and(Err(error)),
+        if let Err(engine_error) = self.engine.execute(
+            &config,
+            &final_template_root,
+            &plan.output_root,
+            &plan.placeholder_values,
+        ) {
+            let error_msg = engine_error.to_string();
+            let render_error = AddServiceError::RenderFailed(error_msg.clone());
+            if let Err(cleanup_error) = self.cleanup.cleanup_output(&plan.output_root) {
+                return Err(AddServiceError::CleanupFailed(format!(
+                    "{cleanup_error}; original error: {error_msg}"
+                )));
+            }
+            return Err(render_error);
         }
+
+        Ok(())
     }
 
     fn cleanup_partial_output(&self, output_root: &Path) -> Result<(), AddServiceError> {
@@ -143,118 +113,4 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
             .cleanup_output(output_root)
             .map_err(AddServiceError::CleanupFailed)
     }
-}
-
-/// Converts placeholder values to mustache-compatible data.
-///
-/// Handles two placeholder formats:
-/// - Mustache format: {{TokenName}} → key becomes "TokenName"
-/// - Underscore format: __Token.Name__ → key becomes "Token.Name" (for nested object binding)
-///
-/// Example: For "ServiceName" = "Orders", adds both:
-///   - "ServiceName" -> "Orders"
-///   - "Service.Name" -> "Orders"  (for {{Service.Name}} in templates)
-fn to_mustache_data(placeholders: &BTreeMap<String, String>) -> HashMap<String, serde_json::Value> {
-    let mut map = HashMap::new();
-
-    for (key, value) in placeholders {
-        // Normalize key (remove {{ }} or __ __ wrappers)
-        let normalized_key = if key.starts_with("{{") && key.ends_with("}}") {
-            key.trim_start_matches("{{").trim_end_matches("}}")
-        } else if key.starts_with("__") && key.ends_with("__") {
-            key.trim_start_matches("__").trim_end_matches("__")
-        } else {
-            key.as_str()
-        };
-
-        // Insert with normalized key
-        map.insert(
-            normalized_key.to_owned(),
-            serde_json::Value::String(value.clone()),
-        );
-
-        // For underscore format with dots (e.g., __Service.Name__), also add with dot notation
-        // This enables mustache's nested object binding: {{Service.Name}}
-        if key.starts_with("__") && key.ends_with("__") && normalized_key.contains('.') {
-            map.insert(
-                normalized_key.to_owned(),
-                serde_json::Value::String(value.clone()),
-            );
-        }
-    }
-
-    map
-}
-
-fn render_path(
-    relative_path: &Path,
-    placeholders: &BTreeMap<String, String>,
-) -> Result<PathBuf, AddServiceError> {
-    let mut rendered_path = PathBuf::new();
-
-    for component in relative_path.components() {
-        let text = component.as_os_str().to_string_lossy();
-        let rendered = render_mustache(&text, placeholders)?;
-        rendered_path.push(rendered);
-    }
-
-    Ok(rendered_path)
-}
-
-fn render_bytes(
-    bytes: &[u8],
-    placeholders: &BTreeMap<String, String>,
-) -> Result<Vec<u8>, AddServiceError> {
-    match String::from_utf8(bytes.to_vec()) {
-        Ok(text) => {
-            let rendered = render_mustache(&text, placeholders)?;
-            Ok(rendered.into_bytes())
-        }
-        Err(_) => Ok(bytes.to_vec()),
-    }
-}
-
-fn render_mustache(
-    value: &str,
-    placeholders: &BTreeMap<String, String>,
-) -> Result<String, AddServiceError> {
-    let data = to_mustache_data(placeholders);
-
-    // Compile and render the template
-    let template = mustache::compile_str(value)
-        .map_err(|e| AddServiceError::RenderFailed(format!("failed to compile template: {}", e)))?;
-
-    template
-        .render_to_string(&data)
-        .map_err(|e| AddServiceError::RenderFailed(format!("failed to render template: {}", e)))
-}
-
-fn ensure_safe_relative_path(relative_path: &Path) -> Result<(), AddServiceError> {
-    if relative_path.is_absolute() {
-        return Err(AddServiceError::RenderFailed(format!(
-            "unsafe rendered path '{}': absolute paths are not allowed",
-            relative_path.display()
-        )));
-    }
-
-    for component in relative_path.components() {
-        match component {
-            Component::Prefix(_)
-            | Component::RootDir
-            | Component::ParentDir
-            | Component::CurDir => {
-                return Err(AddServiceError::RenderFailed(format!(
-                    "unsafe rendered path '{}': traversal or root components are not allowed",
-                    relative_path.display()
-                )));
-            }
-            Component::Normal(_) => {}
-        }
-    }
-
-    Ok(())
-}
-
-fn merge_cleanup_error(cleanup_error: String, original_error: &AddServiceError) -> AddServiceError {
-    AddServiceError::CleanupFailed(format!("{cleanup_error}; original error: {original_error}"))
 }

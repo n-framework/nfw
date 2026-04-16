@@ -22,6 +22,8 @@ use n_framework_nfw_infrastructure_yaml::features::template_management::services
 
 use crate::startup::cli_validator::CliValidator;
 
+use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
+
 pub type CliPathResolver = DirsPathResolver;
 pub type CliGitRepository = InfrastructureCliGitRepository;
 pub type CliConfigurationLoader = NfwFileSystemConfigurationLoader<CliPathResolver>;
@@ -38,7 +40,7 @@ pub type CliTemplatesService = TemplatesService<
     CliGitRepository,
 >;
 pub type CliListTemplatesQueryHandler = ListTemplatesQueryHandler<CliTemplatesService>;
-pub type CliWorkspaceWriter = FileSystemWorkspaceWriter;
+pub type CliWorkspaceWriter = FileSystemWorkspaceWriter<FileSystemTemplateEngine>;
 pub type CliWorkingDirectoryProvider = StandardWorkingDirectoryProvider;
 pub type CliNewWorkspaceCommandHandler = NewWorkspaceCommandHandler<
     InquirerPromptService,
@@ -73,4 +75,5 @@ pub struct CliServiceCollection {
     pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,
     pub refresh_templates_command_handler: CliRefreshTemplatesCommandHandler,
     pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
+    pub template_engine: FileSystemTemplateEngine,
 }

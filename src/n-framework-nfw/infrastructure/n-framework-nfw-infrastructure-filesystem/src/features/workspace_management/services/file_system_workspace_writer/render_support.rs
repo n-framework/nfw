@@ -58,7 +58,7 @@ fn render_text(text: &str, resolution: &NewCommandResolution) -> Result<String, 
         .map_err(|e| format!("failed to render template: {}", e))
 }
 
-fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {
+pub fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {
     let mut state_a: u64 = 0xcbf29ce484222325;
     let mut state_b: u64 = 0x8422_2325_cbf2_9ce4;
     for byte in workspace_name.bytes().chain(template_id.bytes()) {

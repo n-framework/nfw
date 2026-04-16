@@ -37,6 +37,15 @@ impl ServiceGenerationPlanBuilder {
         let qualified_template_id = template_resolution.qualified_template_id();
 
         let mut placeholder_values = BTreeMap::<String, String>::new();
+        
+        // Tera/Clean format: TokenName
+        placeholder_values.insert("WorkspaceName".to_owned(), workspace_name.clone());
+        placeholder_values.insert("ServiceName".to_owned(), service_name.to_owned());
+        placeholder_values.insert("Namespace".to_owned(), namespace.clone());
+        placeholder_values.insert(
+            "ProjectGuid".to_owned(),
+            stable_project_guid(service_name, &qualified_template_id),
+        );
 
         // Mustache format: {{TokenName}}
         placeholder_values.insert("{{WorkspaceName}}".to_owned(), workspace_name.clone());

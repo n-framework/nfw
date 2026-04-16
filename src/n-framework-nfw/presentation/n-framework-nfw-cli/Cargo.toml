@@ -17,6 +17,8 @@ n-framework-nfw-infrastructure-filesystem = { path = "../../infrastructure/n-fra
 n-framework-nfw-infrastructure-git = { path = "../../infrastructure/n-framework-nfw-infrastructure-git" }
 n-framework-nfw-infrastructure-versioning = { path = "../../infrastructure/n-framework-nfw-infrastructure-versioning" }
 n-framework-nfw-infrastructure-yaml = { path = "../../infrastructure/n-framework-nfw-infrastructure-yaml" }
+dirs = "6"
+serde_yaml = "0.9"
 
 [[test]]
 name = "new_command_routing_tests"
