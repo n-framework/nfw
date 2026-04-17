@@ -32,8 +32,8 @@ impl<E: TemplateEngine> GenerateCliCommand<E> {
 
         let nfw_yaml_content = fs::read_to_string(&nfw_yaml_path)
             .map_err(|e| format!("failed to read nfw.yaml: {e}"))?;
-        let nfw_yaml: YamlValue =
-            serde_yaml::from_str(&nfw_yaml_content).map_err(|e| format!("invalid nfw.yaml: {e}"))?;
+        let nfw_yaml: YamlValue = serde_yaml::from_str(&nfw_yaml_content)
+            .map_err(|e| format!("invalid nfw.yaml: {e}"))?;
 
         let template_id = nfw_yaml
             .get("generators")
@@ -106,14 +106,13 @@ fn resolve_template_root(
     workspace_root: &Path,
 ) -> Result<PathBuf, String> {
     // Check if there is a template_sources.local entry mapping to a local directory
-    if let Some(sources) = nfw_yaml.get("template_sources") {
-        if let Some(local) = sources.get("local") {
-            if let Some(local_path) = local.as_str() {
-                let candidate = workspace_root.join(local_path).join(template_id);
-                if candidate.is_dir() {
-                    return Ok(candidate);
-                }
-            }
+    if let Some(sources) = nfw_yaml.get("template_sources")
+        && let Some(local) = sources.get("local")
+        && let Some(local_path) = local.as_str()
+    {
+        let candidate = workspace_root.join(local_path).join(template_id);
+        if candidate.is_dir() {
+            return Ok(candidate);
         }
     }
 

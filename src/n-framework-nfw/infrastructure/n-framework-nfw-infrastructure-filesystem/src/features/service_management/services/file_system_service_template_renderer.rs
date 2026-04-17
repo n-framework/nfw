@@ -8,7 +8,9 @@ use crate::features::service_management::services::service_generation_cleanup::S
 
 use crate::features::template_management::template_engine::FileSystemTemplateEngine;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
-use n_framework_nfw_core_domain::features::template_management::template_config::{TemplateConfig, TemplateStep};
+use n_framework_nfw_core_domain::features::template_management::template_config::{
+    TemplateConfig, TemplateStep,
+};
 
 #[derive(Debug, Clone)]
 pub struct FileSystemServiceTemplateRenderer {
@@ -41,10 +43,14 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
         let (config, final_template_root) = if subfolder_config_path.exists() {
             // Implementation is in add-service/
             let yaml = fs::read_to_string(&subfolder_config_path).map_err(|e| {
-                AddServiceError::RenderFailed(format!("failed to read subfolder template.yaml: {e}"))
+                AddServiceError::RenderFailed(format!(
+                    "failed to read subfolder template.yaml: {e}"
+                ))
             })?;
             let mut config = serde_yaml::from_str::<TemplateConfig>(&yaml).map_err(|e| {
-                AddServiceError::RenderFailed(format!("failed to parse subfolder template.yaml: {e}"))
+                AddServiceError::RenderFailed(format!(
+                    "failed to parse subfolder template.yaml: {e}"
+                ))
             })?;
             // Set ID if missing in subfolder config
             if config.id.is_none() {
@@ -59,7 +65,7 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
             let config = serde_yaml::from_str::<TemplateConfig>(&yaml).map_err(|e| {
                 AddServiceError::RenderFailed(format!("failed to parse root template.yaml: {e}"))
             })?;
-            
+
             if !config.steps.is_empty() {
                 (config, template_root.to_path_buf())
             } else {
@@ -67,26 +73,32 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
                 // Fallback to legacy if content/ exists, otherwise error or empty
                 let content_path = template_root.join("content");
                 if content_path.exists() {
-                    (TemplateConfig {
-                        id: Some(plan.template_id.clone()),
-                        steps: vec![TemplateStep::RenderFolder {
-                            source: "content".to_string(),
-                            destination: ".".to_string(),
-                        }],
-                    }, template_root.to_path_buf())
+                    (
+                        TemplateConfig {
+                            id: Some(plan.template_id.clone()),
+                            steps: vec![TemplateStep::RenderFolder {
+                                source: "content".to_string(),
+                                destination: "".to_string(),
+                            }],
+                        },
+                        template_root.to_path_buf(),
+                    )
                 } else {
                     return Err(AddServiceError::RenderFailed("no template steps found in template.yaml or add-service/template.yaml, and no legacy content folder present".to_string()));
                 }
             }
         } else {
             // Legacy fallback: Create a virtual config that renders the 'content/' folder
-            (TemplateConfig {
-                id: Some(plan.template_id.clone()),
-                steps: vec![TemplateStep::RenderFolder {
-                    source: "content".to_string(),
-                    destination: ".".to_string(),
-                }],
-            }, template_root.to_path_buf())
+            (
+                TemplateConfig {
+                    id: Some(plan.template_id.clone()),
+                    steps: vec![TemplateStep::RenderFolder {
+                        source: "content".to_string(),
+                        destination: "".to_string(),
+                    }],
+                },
+                template_root.to_path_buf(),
+            )
         };
 
         if let Err(engine_error) = self.engine.execute(

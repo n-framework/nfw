@@ -17,11 +17,17 @@ pub struct FileSystemTemplateEngine {
     renderer: TeraTemplateRenderer,
 }
 
+impl Default for FileSystemTemplateEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FileSystemTemplateEngine {
     pub fn new() -> Self {
         Self {
             generator: TeraFileGenerator::default(),
-            renderer: TeraTemplateRenderer::default(),
+            renderer: TeraTemplateRenderer,
         }
     }
 
@@ -33,7 +39,10 @@ impl FileSystemTemplateEngine {
         context
     }
 
-    fn map_error(&self, error: n_framework_core_template_abstractions::TemplateError) -> TemplateError {
+    fn map_error(
+        &self,
+        error: n_framework_core_template_abstractions::TemplateError,
+    ) -> TemplateError {
         TemplateError::RenderError(error.message())
     }
 }
@@ -50,29 +59,39 @@ impl TemplateEngine for FileSystemTemplateEngine {
 
         for step in &config.steps {
             match step {
-                TemplateStep::Render { source, destination } => {
+                TemplateStep::Render {
+                    source,
+                    destination,
+                } => {
                     let source_path = template_root.join(source);
-                    let rendered_dest = self.renderer
+                    let rendered_dest = self
+                        .renderer
                         .render_content(destination, &core_context)
                         .map_err(|e| self.map_error(e))?;
                     let dest_path = output_root.join(rendered_dest);
 
                     if let Some(parent) = dest_path.parent() {
-                        fs::create_dir_all(parent).map_err(|e| TemplateError::FileSystemError(e.to_string()))?;
+                        fs::create_dir_all(parent)
+                            .map_err(|e| TemplateError::FileSystemError(e.to_string()))?;
                     }
 
                     let content = fs::read_to_string(&source_path)
                         .map_err(|e| TemplateError::FileSystemError(e.to_string()))?;
-                    let rendered_content = self.renderer
+                    let rendered_content = self
+                        .renderer
                         .render_content(&content, &core_context)
                         .map_err(|e| self.map_error(e))?;
 
                     fs::write(&dest_path, rendered_content)
                         .map_err(|e| TemplateError::FileSystemError(e.to_string()))?;
                 }
-                TemplateStep::RenderFolder { source, destination } => {
+                TemplateStep::RenderFolder {
+                    source,
+                    destination,
+                } => {
                     let source_path = template_root.join(source);
-                    let rendered_dest = self.renderer
+                    let rendered_dest = self
+                        .renderer
                         .render_content(destination, &core_context)
                         .map_err(|e| self.map_error(e))?;
                     let dest_path = output_root.join(rendered_dest);
@@ -81,16 +100,22 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         .generate(&source_path, &dest_path, &core_context)
                         .map_err(|e| self.map_error(e))?;
                 }
-                TemplateStep::Inject { source, destination, injection_target } => {
+                TemplateStep::Inject {
+                    source,
+                    destination,
+                    injection_target,
+                } => {
                     let source_path = template_root.join(source);
-                    let rendered_dest = self.renderer
+                    let rendered_dest = self
+                        .renderer
                         .render_content(destination, &core_context)
                         .map_err(|e| self.map_error(e))?;
                     let dest_path = output_root.join(rendered_dest);
 
                     let inject_content_raw = fs::read_to_string(&source_path)
                         .map_err(|e| TemplateError::FileSystemError(e.to_string()))?;
-                    let rendered_inject_content = self.renderer
+                    let rendered_inject_content = self
+                        .renderer
                         .render_content(&inject_content_raw, &core_context)
                         .map_err(|e| self.map_error(e))?;
 
@@ -111,7 +136,8 @@ impl TemplateEngine for FileSystemTemplateEngine {
                             if let Some(start_pos) = file_content.find(&start_marker) {
                                 if let Some(end_pos) = file_content[start_pos..].find(&end_marker) {
                                     let absolute_end_pos = start_pos + end_pos;
-                                    file_content.insert_str(absolute_end_pos, &rendered_inject_content);
+                                    file_content
+                                        .insert_str(absolute_end_pos, &rendered_inject_content);
                                 } else {
                                     return Err(TemplateError::InjectionError(format!(
                                         "region end marker not found for: {}",

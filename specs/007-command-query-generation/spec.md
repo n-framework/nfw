@@ -39,16 +39,18 @@ As a tech lead, I want to specify in `nfw.yaml` which templates should be used f
 - **FR-001**: The CLI MUST implement `nfw gen command <NAME> <FEATURE>` and `nfw gen query <NAME> <FEATURE>`.
 - **FR-002**: The CLI MUST read the `nfw.yaml` file from the workspace root to find template mappings.
 - **FR-003**: The `nfw.yaml` schema MUST support a `templates` section:
+
     ```yaml
     templates:
       command: <template-id>
       query: <template-id>
     ```
+
 - **FR-004**: The CLI MUST provide the following standard inputs to the template generation engine:
-    - `Name`: The first argument (e.g., `ApproveOrder`).
-    - `Feature`: The second argument (e.g., `Orders`).
-    - `Namespace`: The base namespace of the workspace (determined from `nfw.yaml` or project folder).
-    - `WorkspaceRoot`: The absolute path to the workspace root.
+  - `Name`: The first argument (e.g., `ApproveOrder`).
+  - `Feature`: The second argument (e.g., `Orders`).
+  - `Namespace`: The base namespace of the workspace (determined from `nfw.yaml` or project folder).
+  - `WorkspaceRoot`: The absolute path to the workspace root.
 - **FR-005**: The CLI MUST resolve the `<template-id>` using the existing template discovery mechanism (searching `src/nfw-templates/` and cached remotes).
 - **FR-006**: The CLI SHOULD support an `--id-type <TYPE>` optional flag for generation (e.g. `Guid`, `int`) if the template supports it.
 - **FR-007**: The CLI MUST validate that `<NAME>` and `<FEATURE>` are valid identifiers (no spaces, special characters except hyphens/underscores).

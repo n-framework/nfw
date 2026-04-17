@@ -254,22 +254,24 @@ fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> 
     RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
 }
 
-fn handle_gen_command(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
+fn handle_gen_command(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.template_engine.clone())
-        .execute("command", &name, command.option("feature"), command.option("param"))
+    GenerateCliCommand::new(context.template_engine.clone()).execute(
+        "command",
+        &name,
+        command.option("feature"),
+        command.option("param"),
+    )
 }
 
-fn handle_gen_query(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
+fn handle_gen_query(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.template_engine.clone())
-        .execute("query", &name, command.option("feature"), command.option("param"))
+    GenerateCliCommand::new(context.template_engine.clone()).execute(
+        "query",
+        &name,
+        command.option("feature"),
+        command.option("param"),
+    )
 }
 
 /// Extension trait to parse exit code from error string protocol.

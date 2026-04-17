@@ -81,9 +81,12 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
 
             let mut placeholders = BTreeMap::new();
             placeholders.insert("Name".to_string(), resolution.workspace_name.clone());
-            placeholders.insert("WorkspaceName".to_string(), resolution.workspace_name.clone());
+            placeholders.insert(
+                "WorkspaceName".to_string(),
+                resolution.workspace_name.clone(),
+            );
             placeholders.insert("Namespace".to_string(), resolution.namespace_base.clone());
-            
+
             // Note: ProjectGuid is typically used in C# templates, providing it for compatibility
             let project_guid = crate::features::workspace_management::services::file_system_workspace_writer::render_support::stable_project_guid(
                 &resolution.workspace_name,
@@ -92,7 +95,12 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
             placeholders.insert("ProjectGuid".to_string(), project_guid);
 
             self.engine
-                .execute(&config, &tiered_root, &resolution.output_path, &placeholders)
+                .execute(
+                    &config,
+                    &tiered_root,
+                    &resolution.output_path,
+                    &placeholders,
+                )
                 .map_err(|e| format!("{e}"))?;
         } else {
             // Fallback to legacy content copying

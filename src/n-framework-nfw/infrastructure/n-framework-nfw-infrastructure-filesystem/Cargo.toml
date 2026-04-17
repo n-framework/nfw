@@ -12,7 +12,6 @@ regex = "1"
 dirs = "6"
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
-serde_json = "1"
 mustache = { workspace = true }
 n-framework-core-template-abstractions = { workspace = true }
 n-framework-core-template-tera = { workspace = true }
