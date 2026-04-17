@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TemplateConfig {
     pub id: Option<String>,
+    #[serde(default)]
     pub steps: Vec<TemplateStep>,
 }
 

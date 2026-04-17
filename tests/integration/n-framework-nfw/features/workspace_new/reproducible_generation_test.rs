@@ -6,6 +6,7 @@ use n_framework_nfw_core_application::features::workspace_management::models::ne
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
 use n_framework_nfw_core_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
+use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
 
 #[test]
 fn workspace_generation_is_reproducible_for_identical_inputs() {
@@ -30,7 +31,7 @@ fn workspace_generation_is_reproducible_for_identical_inputs() {
         output_path: second_output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new();
+    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
     writer
         .write_workspace(&blueprint, &first_resolution)
         .expect("first generation should succeed");

@@ -6,6 +6,7 @@ use n_framework_nfw_core_application::features::workspace_management::models::ne
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
 use n_framework_nfw_core_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
+use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
 
 const EXPECTED_NFW_YAML_PREFIX: &str = "\
 #    _  ______                                   __
@@ -30,7 +31,7 @@ fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new();
+    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
     writer
         .write_workspace(&blueprint, &resolution)
         .expect("workspace generation should succeed");
@@ -84,7 +85,7 @@ fn fails_when_target_directory_already_exists_and_is_not_empty() {
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new();
+    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
     let error = writer
         .write_workspace(&blueprint, &resolution)
         .expect_err("workspace generation should fail for non-empty target directory");
@@ -110,7 +111,7 @@ fn creates_nfw_yaml_when_template_does_not_provide_it() {
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new();
+    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
     writer
         .write_workspace(&blueprint, &resolution)
         .expect("workspace generation should succeed");
@@ -142,7 +143,7 @@ fn does_not_create_default_root_directories_when_template_omits_them() {
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new();
+    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
     writer
         .write_workspace(&blueprint, &resolution)
         .expect("workspace generation should succeed");
