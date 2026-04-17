@@ -52,9 +52,12 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
                     "failed to parse subfolder template.yaml: {e}"
                 ))
             })?;
+            config
+                .validate()
+                .map_err(|e| AddServiceError::RenderFailed(e.to_string()))?;
             // Set ID if missing in subfolder config
-            if config.id.is_none() {
-                config.id = Some(plan.template_id.clone());
+            if config.id().is_none() {
+                config.set_id(plan.template_id.clone());
             }
             (config, template_root.join("add-service"))
         } else if root_config_path.exists() {
@@ -65,40 +68,41 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
             let config = serde_yaml::from_str::<TemplateConfig>(&yaml).map_err(|e| {
                 AddServiceError::RenderFailed(format!("failed to parse root template.yaml: {e}"))
             })?;
+            // We do not call config.validate() here because older templates
+            // may legitimately have an empty root template.yaml and use content/.
+            // Instead we check config.steps().is_empty() below.
 
-            if !config.steps.is_empty() {
+            if !config.steps().is_empty() {
                 (config, template_root.to_path_buf())
             } else {
                 // Root config exists but has no steps, and no subfolder config found.
                 // Fallback to legacy if content/ exists, otherwise error or empty
                 let content_path = template_root.join("content");
                 if content_path.exists() {
-                    (
-                        TemplateConfig {
-                            id: Some(plan.template_id.clone()),
-                            steps: vec![TemplateStep::RenderFolder {
-                                source: "content".to_string(),
-                                destination: "".to_string(),
-                            }],
-                        },
-                        template_root.to_path_buf(),
+                    let config = TemplateConfig::new(
+                        Some(plan.template_id.clone()),
+                        vec![TemplateStep::RenderFolder {
+                            source: "content".to_string(),
+                            destination: "".to_string(),
+                        }],
                     )
+                    .map_err(|e| AddServiceError::RenderFailed(e.to_string()))?;
+                    (config, template_root.to_path_buf())
                 } else {
                     return Err(AddServiceError::RenderFailed("no template steps found in template.yaml or add-service/template.yaml, and no legacy content folder present".to_string()));
                 }
             }
         } else {
             // Legacy fallback: Create a virtual config that renders the 'content/' folder
-            (
-                TemplateConfig {
-                    id: Some(plan.template_id.clone()),
-                    steps: vec![TemplateStep::RenderFolder {
-                        source: "content".to_string(),
-                        destination: "".to_string(),
-                    }],
-                },
-                template_root.to_path_buf(),
+            let config = TemplateConfig::new(
+                Some(plan.template_id.clone()),
+                vec![TemplateStep::RenderFolder {
+                    source: "content".to_string(),
+                    destination: "".to_string(),
+                }],
             )
+            .map_err(|e| AddServiceError::RenderFailed(e.to_string()))?;
+            (config, template_root.to_path_buf())
         };
 
         if let Err(engine_error) = self.engine.execute(

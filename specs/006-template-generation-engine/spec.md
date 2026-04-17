@@ -45,9 +45,9 @@ As a developer, I want the CLI to be able to inject code into existing files (e.
 - **FR-005**: The `inject` action MUST take a `source`, a `destination`, and an `injection_target`.
 - **FR-006**: The `injection_target` MUST support several modes:
   - `at_end`: Append to the end of the file.
-  - `class(Name)`: Inside the body of the specified class.
-  - `function(Name)`: Inside the body of the specified function.
-  - `region(Name)`: Inside the specified `#region` or equivalent marker.
+  - `class(Name)`: Inside the body of the specified class (Note: Not yet implemented, returns error).
+  - `function(Name)`: Inside the body of the specified function (Note: Not yet implemented, returns error).
+  - `region(Name)`: Inside the specified region marker (e.g. `// region: Name`).
 - **FR-007**: The CLI MUST use the **Tera** template engine for both path interpolation and file content rendering.
 - **FR-008**: The CLI MUST pass all standard inputs (e.g., `Name`, `Feature`, `Namespace`) to the Tera engine.
 - **FR-009**: If a step fails (e.g., target file missing for injection), the CLI MUST abort and provide a clear error message. Partial file creations SHOULD be cleaned up if possible.

@@ -16,6 +16,13 @@ mustache = { workspace = true }
 n-framework-core-template-abstractions = { workspace = true }
 n-framework-core-template-tera = { workspace = true }
 
+[dev-dependencies]
+tempfile = "3.10"
+
+[[test]]
+name = "template_engine_tests"
+path = "../../../../tests/unit/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-filesystem/features/template_management/template_engine_tests.rs"
+
 [[test]]
 name = "nfw_configuration_loader_tests"
 path = "../../../../tests/unit/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-filesystem/features/cli/configuration/nfw_configuration_loader_tests.rs"

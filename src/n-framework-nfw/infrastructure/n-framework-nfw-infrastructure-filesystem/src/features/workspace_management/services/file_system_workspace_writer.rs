@@ -6,8 +6,8 @@ use n_framework_nfw_core_application::features::template_management::services::t
 use n_framework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
 use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
+use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 use n_framework_nfw_core_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
-use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
@@ -79,31 +79,24 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
             let config: TemplateConfig = serde_yaml::from_str(&config_content)
                 .map_err(|e| format!("failed to parse tiered template config: {e}"))?;
 
-            let mut placeholders = BTreeMap::new();
-            placeholders.insert("Name".to_string(), resolution.workspace_name.clone());
-            placeholders.insert(
-                "WorkspaceName".to_string(),
-                resolution.workspace_name.clone(),
-            );
-            placeholders.insert("Namespace".to_string(), resolution.namespace_base.clone());
+            let parameters = TemplateParameters::new()
+                .with_name(&resolution.workspace_name)
+                .with_namespace(&resolution.namespace_base);
+
+            let mut parameters = parameters;
+            parameters.insert("WorkspaceName", &resolution.workspace_name);
 
             // Note: ProjectGuid is typically used in C# templates, providing it for compatibility
             let project_guid = crate::features::workspace_management::services::file_system_workspace_writer::render_support::stable_project_guid(
                 &resolution.workspace_name,
                 &resolution.template_id
             );
-            placeholders.insert("ProjectGuid".to_string(), project_guid);
+            parameters.insert("ProjectGuid", project_guid);
 
             self.engine
-                .execute(
-                    &config,
-                    &tiered_root,
-                    &resolution.output_path,
-                    &placeholders,
-                )
+                .execute(&config, &tiered_root, &resolution.output_path, &parameters)
                 .map_err(|e| format!("{e}"))?;
         } else {
-            // Fallback to legacy content copying
             copy_template_content(
                 &resolution.template_cache_path,
                 &resolution.output_path,

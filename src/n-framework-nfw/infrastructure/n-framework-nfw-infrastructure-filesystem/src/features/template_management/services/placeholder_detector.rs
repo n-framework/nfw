@@ -12,43 +12,35 @@ impl PlaceholderDetector {
         Self
     }
 
-    pub fn detect_in_name(&self, entry_name: &str) -> Vec<String> {
-        placeholder_regex()
+    pub fn detect_in_name(&self, entry_name: &str) -> Result<Vec<String>, String> {
+        Ok(placeholder_regex()?
             .find_iter(entry_name)
             .map(|placeholder| placeholder.as_str().to_owned())
-            .collect()
+            .collect())
     }
 
-    pub fn detect_in_path(&self, path: &Path) -> Vec<String> {
+    pub fn detect_in_path(&self, path: &Path) -> Result<Vec<String>, String> {
         let mut placeholders = BTreeSet::new();
 
         for component in path.components() {
             let component_name = component.as_os_str().to_string_lossy();
-            for placeholder in self.detect_in_name(&component_name) {
+            for placeholder in self.detect_in_name(&component_name)? {
                 placeholders.insert(placeholder);
             }
         }
 
-        placeholders.into_iter().collect()
+        Ok(placeholders.into_iter().collect())
     }
 }
 
 /// Returns a compiled regex for matching placeholder patterns.
-///
-/// The regex pattern matches two formats:
-/// - Mustache format: `{{TOKEN}}` (e.g., `{{ServiceName}}`, `{{Namespace}}`)
-/// - Underscore format: `__TOKEN__` (e.g., `__ServiceName__`, `__Namespace__`)
-///
-/// Both formats use PascalCase placeholder names (uppercase first letter, alphanumeric).
-///
-/// # Panics
-/// This function will panic on first call if the hardcoded regex pattern is invalid.
-/// Since the pattern is a compile-time constant and has been validated, this should never happen.
-fn placeholder_regex() -> &'static Regex {
-    static PLACEHOLDER_REGEX: OnceLock<Regex> = OnceLock::new();
-    PLACEHOLDER_REGEX.get_or_init(|| {
-        // Matches either {{TOKEN}} or __TOKEN__ format
-        Regex::new(r"(\{\{[A-Z][A-Za-z0-9]*\}\}|__[A-Z][A-Za-z0-9]*__)")
-            .expect("hardcoded placeholder regex pattern is invalid - this is a bug in the code")
-    })
+fn placeholder_regex() -> Result<&'static Regex, String> {
+    static PLACEHOLDER_REGEX: OnceLock<Result<Regex, regex::Error>> = OnceLock::new();
+    PLACEHOLDER_REGEX
+        .get_or_init(|| {
+            // Matches either {{TOKEN}} or __TOKEN__ format
+            Regex::new(r"(\{\{[A-Z][A-Za-z0-9]*\}\}|__[A-Z][A-Za-z0-9]*__)")
+        })
+        .as_ref()
+        .map_err(|e| format!("failed to compile placeholder regex: {e}"))
 }

@@ -1,14 +1,14 @@
-mod cli_error;
-mod commands;
-mod runtime;
-mod startup;
-
-use crate::cli_error::CliError;
-use crate::runtime::nfw_cli_runtime::ParseExitCode;
-use crate::runtime::nfw_cli_runtime::build_nfw_cli_runtime;
-use crate::startup::cli_bootstrapper::CliBootstrapper;
+use n_framework_nfw_cli::cli_error::CliError;
+use n_framework_nfw_cli::runtime::nfw_cli_runtime::ParseExitCode;
+use n_framework_nfw_cli::runtime::nfw_cli_runtime::build_nfw_cli_runtime;
+use n_framework_nfw_cli::startup::cli_bootstrapper::CliBootstrapper;
 
 fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_writer(std::io::stderr)
+        .init();
+
     if let Err(error) = run() {
         eprintln!("error: {error}");
         std::process::exit(error.exit_code);

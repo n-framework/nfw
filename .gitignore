@@ -26,5 +26,4 @@ Cargo.lock
 
 ## Test artifacts
 benchmark-results.json
-/tests/smoke/*.log
-/scripts/benchmark/*.log
+*.log

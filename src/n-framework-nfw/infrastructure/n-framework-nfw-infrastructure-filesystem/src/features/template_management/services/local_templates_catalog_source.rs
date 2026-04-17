@@ -63,7 +63,7 @@ impl LocalTemplatesCatalogSource {
                 })?
                 .to_path_buf();
 
-            for placeholder in self.placeholder_detector.detect_in_path(&relative_path) {
+            for placeholder in self.placeholder_detector.detect_in_path(&relative_path)? {
                 placeholders.insert(placeholder);
             }
         }

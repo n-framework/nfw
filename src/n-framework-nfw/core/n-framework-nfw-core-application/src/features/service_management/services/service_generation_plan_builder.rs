@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 use std::fs;
 use std::path::Path;
 
@@ -36,32 +36,33 @@ impl ServiceGenerationPlanBuilder {
         let namespace = format!("{workspace_namespace}.{service_name}");
         let qualified_template_id = template_resolution.qualified_template_id();
 
-        let mut placeholder_values = BTreeMap::<String, String>::new();
+        let mut parameters = TemplateParameters::new()
+            .with_name(service_name)
+            .with_namespace(&namespace);
 
-        // Tera/Clean format: TokenName
-        placeholder_values.insert("WorkspaceName".to_owned(), workspace_name.clone());
-        placeholder_values.insert("ServiceName".to_owned(), service_name.to_owned());
-        placeholder_values.insert("Namespace".to_owned(), namespace.clone());
-        placeholder_values.insert(
-            "ProjectGuid".to_owned(),
+        // Standard parameters
+        parameters.insert("WorkspaceName", &workspace_name);
+        parameters.insert("ServiceName", service_name);
+        parameters.insert(
+            "ProjectGuid",
             stable_project_guid(service_name, &qualified_template_id),
         );
 
-        // Mustache format: {{TokenName}}
-        placeholder_values.insert("{{WorkspaceName}}".to_owned(), workspace_name.clone());
-        placeholder_values.insert("{{ServiceName}}".to_owned(), service_name.to_owned());
-        placeholder_values.insert("{{Namespace}}".to_owned(), namespace.clone());
-        placeholder_values.insert(
-            "{{ProjectGuid}}".to_owned(),
+        // Mustache format: {{TokenName}} - for backward compatibility
+        parameters.insert("{{WorkspaceName}}", &workspace_name);
+        parameters.insert("{{ServiceName}}", service_name);
+        parameters.insert("{{Namespace}}", &namespace);
+        parameters.insert(
+            "{{ProjectGuid}}",
             stable_project_guid(service_name, &qualified_template_id),
         );
 
-        // Alternative format: __TokenName__
-        placeholder_values.insert("__WorkspaceName__".to_owned(), workspace_name.clone());
-        placeholder_values.insert("__ServiceName__".to_owned(), service_name.to_owned());
-        placeholder_values.insert("__Namespace__".to_owned(), namespace.clone());
-        placeholder_values.insert(
-            "__ProjectGuid__".to_owned(),
+        // Alternative format: __TokenName__ - for backward compatibility
+        parameters.insert("__WorkspaceName__", &workspace_name);
+        parameters.insert("__ServiceName__", service_name);
+        parameters.insert("__Namespace__", &namespace);
+        parameters.insert(
+            "__ProjectGuid__",
             stable_project_guid(service_name, &qualified_template_id),
         );
 
@@ -72,7 +73,7 @@ impl ServiceGenerationPlanBuilder {
             template_id: qualified_template_id,
             template_version: template_resolution.resolved_version.clone(),
             namespace,
-            placeholder_values,
+            placeholder_values: parameters,
         })
     }
 }

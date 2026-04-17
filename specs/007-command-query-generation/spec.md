@@ -52,8 +52,8 @@ As a tech lead, I want to specify in `nfw.yaml` which templates should be used f
   - `Namespace`: The base namespace of the workspace (determined from `nfw.yaml` or project folder).
   - `WorkspaceRoot`: The absolute path to the workspace root.
 - **FR-005**: The CLI MUST resolve the `<template-id>` using the existing template discovery mechanism (searching `src/nfw-templates/` and cached remotes).
-- **FR-006**: The CLI SHOULD support an `--id-type <TYPE>` optional flag for generation (e.g. `Guid`, `int`) if the template supports it.
-- **FR-007**: The CLI MUST validate that `<NAME>` and `<FEATURE>` are valid identifiers (no spaces, special characters except hyphens/underscores).
+- **FR-006**: The CLI MUST support passing custom template parameters via an optional `--param` flag (format: `Key=Value` or `Key1=Value1,Key2=Value2`).
+- **FR-007**: The CLI MUST validate that `<NAME>` and `<FEATURE>` are valid identifiers (alphanumeric, hyphens, and underscores only).
 
 ### Key Entities
 

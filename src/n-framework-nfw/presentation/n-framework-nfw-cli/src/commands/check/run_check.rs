@@ -39,13 +39,21 @@ impl<'a> RunCheckCliCommand<'a> {
     }
 
     pub fn execute(&self) -> Result<(), RunCheckError> {
-        let request = CheckCommandRequest::current_dir()
-            .map_err(RunCheckError::CurrentDirectoryUnavailable)?;
+        tracing::info!("Starting architecture check");
+        let request = CheckCommandRequest::current_dir().map_err(|e| {
+            tracing::error!("Failed to resolve current directory: {}", e);
+            RunCheckError::CurrentDirectoryUnavailable(e)
+        })?;
 
-        let result = self
-            .handler
-            .execute(&request)
-            .map_err(RunCheckError::CommandError)?;
+        let result = self.handler.execute(&request).map_err(|e| {
+            tracing::error!("Check command execution failed: {}", e);
+            RunCheckError::CommandError(e)
+        })?;
+
+        tracing::info!(
+            "Architecture check completed with outcome: {:?}",
+            result.summary.exit_outcome
+        );
 
         match result.summary.exit_outcome {
             ExitOutcome::Success => {
@@ -54,10 +62,12 @@ impl<'a> RunCheckCliCommand<'a> {
             }
             ExitOutcome::ViolationFound => {
                 eprintln!("{}", self.formatter.failure_message(&result));
+                tracing::warn!("Architecture check found violations");
                 Err(RunCheckError::ValidationFailed)
             }
             ExitOutcome::ExecutionInterrupted => {
                 eprintln!("{}", self.formatter.failure_message(&result));
+                tracing::warn!("Architecture check was interrupted");
                 Err(RunCheckError::Interrupted)
             }
         }

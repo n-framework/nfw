@@ -9,7 +9,7 @@ use n_framework_nfw_core_application::features::service_management::models::erro
 
 use crate::cli_error::CliError;
 use crate::commands::check::run_check::{RunCheckCliCommand, RunCheckError};
-use crate::commands::generate::generate::GenerateCliCommand;
+use crate::commands::generate::{GenerateCliCommand, GenerateRequest};
 use crate::commands::service::add_service::AddServiceCliCommand;
 use crate::commands::templates::add_source::AddSourceCliCommand;
 use crate::commands::templates::list_templates::TemplatesCliCommand;
@@ -120,7 +120,7 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             )
                             .with_option(
                                 CliOptionSpec::new("feature", "feature")
-                                    .with_help("Feature/module name (defaults to command name)"),
+                                    .with_help("The target feature or module"),
                             )
                             .with_option(
                                 CliOptionSpec::new("param", "param")
@@ -256,22 +256,26 @@ fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> 
 
 fn handle_gen_command(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.template_engine.clone()).execute(
-        "command",
-        &name,
-        command.option("feature"),
-        command.option("param"),
-    )
+    GenerateCliCommand::new(context.template_engine.clone())
+        .execute(GenerateRequest {
+            generator_type: "command",
+            name: &name,
+            feature: command.option("feature"),
+            params: command.option("param"),
+        })
+        .map_err(|e| format!("[exit:1] {}", e))
 }
 
 fn handle_gen_query(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.template_engine.clone()).execute(
-        "query",
-        &name,
-        command.option("feature"),
-        command.option("param"),
-    )
+    GenerateCliCommand::new(context.template_engine.clone())
+        .execute(GenerateRequest {
+            generator_type: "query",
+            name: &name,
+            feature: command.option("feature"),
+            params: command.option("param"),
+        })
+        .map_err(|e| format!("[exit:1] {}", e))
 }
 
 /// Extension trait to parse exit code from error string protocol.
