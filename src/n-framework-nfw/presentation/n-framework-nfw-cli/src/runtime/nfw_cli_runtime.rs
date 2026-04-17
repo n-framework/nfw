@@ -121,6 +121,10 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             .with_option(
                                 CliOptionSpec::new("feature", "feature")
                                     .with_help("Feature/module name (defaults to command name)"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("param", "param")
+                                    .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
                             ),
                     )
                     .with_subcommand(
@@ -134,6 +138,10 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             .with_option(
                                 CliOptionSpec::new("feature", "feature")
                                     .with_help("Feature/module name (defaults to query name)"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("param", "param")
+                                    .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
                             ),
                     ),
             ),
@@ -252,7 +260,7 @@ fn handle_gen_command(
 ) -> Result<(), String> {
     let name = required_option(command, "name")?;
     GenerateCliCommand::new(context.template_engine.clone())
-        .execute("command", &name, command.option("feature"))
+        .execute("command", &name, command.option("feature"), command.option("param"))
 }
 
 fn handle_gen_query(
@@ -261,7 +269,7 @@ fn handle_gen_query(
 ) -> Result<(), String> {
     let name = required_option(command, "name")?;
     GenerateCliCommand::new(context.template_engine.clone())
-        .execute("query", &name, command.option("feature"))
+        .execute("query", &name, command.option("feature"), command.option("param"))
 }
 
 /// Extension trait to parse exit code from error string protocol.

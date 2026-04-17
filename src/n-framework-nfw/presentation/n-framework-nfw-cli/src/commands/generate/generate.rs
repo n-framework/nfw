@@ -23,6 +23,7 @@ impl<E: TemplateEngine> GenerateCliCommand<E> {
         generator_type: &str,
         name: &str,
         feature: Option<&str>,
+        params: Option<&str>,
     ) -> Result<(), String> {
         let current_dir =
             std::env::current_dir().map_err(|e| format!("failed to get current directory: {e}"))?;
@@ -61,6 +62,19 @@ impl<E: TemplateEngine> GenerateCliCommand<E> {
         let mut placeholders = BTreeMap::new();
         placeholders.insert("Name".to_string(), name.to_string());
         placeholders.insert("Feature".to_string(), feature_name.to_string());
+
+        if let Some(params_str) = params {
+            for param_pair in params_str.split(',') {
+                if let Some((key, value)) = param_pair.split_once('=') {
+                    placeholders.insert(key.trim().to_string(), value.trim().to_string());
+                } else {
+                    return Err(format!(
+                        "invalid parameter format '{}'. expected Key=Value",
+                        param_pair
+                    ));
+                }
+            }
+        }
 
         self.engine
             .execute(&config, &template_root, &workspace_root, &placeholders)
