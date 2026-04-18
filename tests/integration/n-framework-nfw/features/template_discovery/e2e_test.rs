@@ -95,7 +95,7 @@ fn runs_template_source_registration_discovery_listing_and_version_resolution() 
         .map(|template| VersionInfo::new(template.version.clone()))
         .collect::<Vec<_>>();
 
-    versions.sort_by(|left, right| left.version.to_string().cmp(&right.version.to_string()));
+    versions.sort_by_key(|v| v.version.to_string());
     assert_eq!(versions.len(), 2);
 
     let resolver = VersionResolver::new(VersionProvider::new(SemverVersionComparator::new()));

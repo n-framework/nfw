@@ -38,7 +38,7 @@ impl FileSystemTemplateEngine {
     fn to_core_context(&self, parameters: &TemplateParameters) -> TemplateContext {
         let mut context = TemplateContext::empty();
         for (key, value) in parameters.as_map() {
-            context.insert(key, value);
+            context.insert_value(key, value.clone());
         }
         context
     }
@@ -290,7 +290,6 @@ impl TemplateEngine for FileSystemTemplateEngine {
                             }
                         }
                     }
-
 
                     fs::write(&dest_path, file_content).map_err(|e| {
                         TemplateError::io(format!("failed to write injected file: {e}"), dest_path)

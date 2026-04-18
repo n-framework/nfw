@@ -88,6 +88,7 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
                             source: "content".to_string(),
                             destination: "".to_string(),
                         }],
+                        vec![],
                     )
                     .map_err(|e| AddServiceError::RenderFailed(e.to_string()))?;
                     (config, template_root.to_path_buf())
@@ -103,6 +104,7 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
                     source: "content".to_string(),
                     destination: "".to_string(),
                 }],
+                vec![],
             )
             .map_err(|e| AddServiceError::RenderFailed(e.to_string()))?;
             (config, template_root.to_path_buf())

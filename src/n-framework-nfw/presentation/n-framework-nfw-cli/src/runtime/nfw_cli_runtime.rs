@@ -115,8 +115,7 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             .with_about("Generate a mediator command")
                             .with_option(
                                 CliOptionSpec::positional("name", 1)
-                                    .with_help("Command name (e.g. CreateProduct)")
-                                    .required(),
+                                    .with_help("Command name (e.g. CreateProduct)"),
                             )
                             .with_option(
                                 CliOptionSpec::new("feature", "feature")
@@ -125,6 +124,15 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             .with_option(
                                 CliOptionSpec::new("param", "param")
                                     .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("param-json", "param-json")
+                                    .with_help("JSON string of parameters for the template (e.g. '{\"Key\": \"Value\"}')"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("no-input", "no-input")
+                                    .with_help("Disable all interactive prompts")
+                                    .flag(),
                             ),
                     )
                     .with_subcommand(
@@ -132,8 +140,7 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             .with_about("Generate a mediator query")
                             .with_option(
                                 CliOptionSpec::positional("name", 1)
-                                    .with_help("Query name (e.g. GetProductById)")
-                                    .required(),
+                                    .with_help("Query name (e.g. GetProductById)"),
                             )
                             .with_option(
                                 CliOptionSpec::new("feature", "feature")
@@ -142,6 +149,15 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             .with_option(
                                 CliOptionSpec::new("param", "param")
                                     .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("param-json", "param-json")
+                                    .with_help("JSON string of parameters for the template (e.g. '{\"Key\": \"Value\"}')"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("no-input", "no-input")
+                                    .with_help("Disable all interactive prompts")
+                                    .flag(),
                             ),
                     ),
             ),
@@ -254,36 +270,45 @@ fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> 
     RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
 }
 
-pub fn handle_gen_command(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.generate_command_handler.clone())
-        .execute(GenerateRequest {
-            generator_type: "command",
-            name: &name,
-            feature: command.option("feature"),
-            params: command.option("param"),
-        })
-        .map_err(|e| {
-            let exit_code = ExitCodes::from_generate_error(&e) as i32;
-            format!("[exit:{exit_code}] {}", e)
-        })
+pub fn handle_gen_command(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
+    handle_generate(command, context, "command")
 }
 
-pub fn handle_gen_query(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.generate_command_handler.clone())
-        .execute(GenerateRequest {
-            generator_type: "query",
-            name: &name,
-            feature: command.option("feature"),
-            params: command.option("param"),
-        })
-        .map_err(|e| {
-            let exit_code = ExitCodes::from_generate_error(&e) as i32;
-            format!("[exit:{exit_code}] {}", e)
-        })
+pub fn handle_gen_query(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
+    handle_generate(command, context, "query")
 }
 
+fn handle_generate(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+    generator_type: &str,
+) -> Result<(), String> {
+    let no_input = command.option("no-input").is_some();
+    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+    GenerateCliCommand::new(
+        context.generate_command_handler.clone(),
+        n_framework_core_cli_inquire::InquirerPromptService::new(),
+    )
+    .execute(GenerateRequest {
+        generator_type,
+        name: command.option("name"),
+        feature: command.option("feature"),
+        params: command.option("param"),
+        param_json: command.option("param-json"),
+        no_input,
+        is_interactive_terminal,
+    })
+    .map_err(|e| {
+        let exit_code = ExitCodes::from_generate_error(&e) as i32;
+        format!("[exit:{exit_code}] {}", e)
+    })
+}
 
 /// Extension trait to parse exit code from error string protocol.
 /// This improves reliability of the exit code extraction with better validation.

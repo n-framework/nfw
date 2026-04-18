@@ -2,7 +2,7 @@ use n_framework_nfw_core_domain::features::template_management::template_paramet
 use n_framework_nfw_core_domain::features::versioning::version::Version;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ServiceGenerationPlan {
     pub service_name: String,
     pub output_root: PathBuf,

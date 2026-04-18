@@ -12,8 +12,13 @@ impl FileSystemTemplateRootResolver {
 }
 
 impl TemplateRootResolver for FileSystemTemplateRootResolver {
-    fn resolve(&self, nfw_yaml: &YamlValue, template_id: &str, workspace_root: &Path) -> Result<PathBuf, String> {
-        // Check if there is a template_sources.local entry mapping to a local directory
+    fn resolve(
+        &self,
+        nfw_yaml: &YamlValue,
+        template_id: &str,
+        workspace_root: &Path,
+    ) -> Result<PathBuf, String> {
+        // Check if there is a 'template_sources.local' workspace setting mapping to a local directory
         if let Some(sources) = nfw_yaml.get("template_sources")
             && let Some(local) = sources.get("local")
             && let Some(local_path) = local.as_str()

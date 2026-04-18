@@ -87,4 +87,3 @@ pub struct CliServiceCollection {
     pub generate_command_handler: CliGenerateCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
 }
-

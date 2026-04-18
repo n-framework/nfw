@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::features::template_management::models::template_error::TemplateError;
+use std::fmt;
 
 /// Errors produced by the code generation service.
 #[derive(Debug, Clone)]

@@ -28,6 +28,10 @@ impl PromptService for TestPromptService {
         Ok(true)
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        Ok("test-password".to_owned())
+    }
+
     fn select(
         &self,
         _message: &str,
@@ -44,6 +48,15 @@ impl PromptService for TestPromptService {
         _default_index: Option<usize>,
     ) -> Result<usize, PromptError> {
         Ok(0)
+    }
+
+    fn multiselect(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_indices: &[usize],
+    ) -> Result<Vec<SelectOption>, PromptError> {
+        Ok(Vec::new())
     }
 }
 

@@ -43,6 +43,10 @@ impl PromptService for StubPromptService {
         Ok(true)
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        Ok("stub-password".to_owned())
+    }
+
     fn select(
         &self,
         _message: &str,
@@ -59,6 +63,15 @@ impl PromptService for StubPromptService {
         _default_index: Option<usize>,
     ) -> Result<usize, PromptError> {
         Ok(0)
+    }
+
+    fn multiselect(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_indices: &[usize],
+    ) -> Result<Vec<SelectOption>, PromptError> {
+        Ok(Vec::new())
     }
 }
 

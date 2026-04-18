@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -96,7 +96,7 @@ fn descriptor(id: &str, cache_path: PathBuf) -> TemplateDescriptor {
     TemplateDescriptor::new(metadata, cache_path)
 }
 
-fn create_template_dir(root: &PathBuf, template_name: &str, template_type: &str) -> PathBuf {
+fn create_template_dir(root: &Path, template_name: &str, template_type: &str) -> PathBuf {
     let template_root = root.join(template_name);
     fs::create_dir_all(template_root.join("content"))
         .expect("template content directory should be created");
@@ -120,6 +120,6 @@ fn create_sandbox_directory(test_name: &str) -> PathBuf {
     path
 }
 
-fn cleanup_sandbox_directory(path: &PathBuf) {
+fn cleanup_sandbox_directory(path: &Path) {
     let _ = fs::remove_dir_all(path);
 }

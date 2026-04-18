@@ -29,11 +29,12 @@ fn execute_render_step_creates_file() {
             source: "hello.txt.tera".to_string(),
             destination: "hello.txt".to_string(),
         }],
+        vec![],
     )
     .unwrap();
 
     let mut parameters = TemplateParameters::new();
-    parameters.insert("Name", "World");
+    let _ = parameters.insert("Name", "World");
 
     let engine = FileSystemTemplateEngine::new();
     engine
@@ -62,6 +63,7 @@ fn prevents_path_traversal_in_render_destination() {
             source: "leak.txt".to_string(),
             destination: "../outside.txt".to_string(),
         }],
+        vec![],
     )
     .unwrap();
 
@@ -94,6 +96,7 @@ fn prevents_absolute_path_traversal() {
             source: "leak.txt".to_string(),
             destination: "/tmp/evil.txt".to_string(),
         }],
+        vec![],
     )
     .unwrap();
 
@@ -130,6 +133,7 @@ fn inject_at_end_works() {
             destination: "app.txt".to_string(),
             injection_target: InjectionTarget::AtEnd,
         }],
+        vec![],
     )
     .unwrap();
 
@@ -171,6 +175,7 @@ fn inject_region_works() {
             destination: "app.txt".to_string(),
             injection_target: InjectionTarget::Region("deps".to_string()),
         }],
+        vec![],
     )
     .unwrap();
 
@@ -211,6 +216,7 @@ fn inject_region_fails_when_start_marker_is_missing() {
             destination: "app.txt".to_string(),
             injection_target: InjectionTarget::Region("deps".to_string()),
         }],
+        vec![],
     )
     .unwrap();
 
@@ -249,6 +255,7 @@ fn inject_region_fails_when_end_marker_is_missing() {
             destination: "app.txt".to_string(),
             injection_target: InjectionTarget::Region("deps".to_string()),
         }],
+        vec![],
     )
     .unwrap();
 
@@ -285,11 +292,12 @@ fn render_folder_step_copies_and_renders_directory_tree() {
             source: "components".to_string(),
             destination: "out_components".to_string(),
         }],
+        vec![],
     )
     .unwrap();
 
     let mut parameters = TemplateParameters::new();
-    parameters.insert("Name", "World");
+    let _ = parameters.insert("Name", "World");
 
     let engine = FileSystemTemplateEngine::new();
     engine
@@ -319,6 +327,7 @@ fn render_step_fails_when_source_file_missing() {
             source: "does_not_exist.txt".to_string(),
             destination: "out.txt".to_string(),
         }],
+        vec![],
     )
     .unwrap();
 
@@ -357,6 +366,7 @@ fn inject_fails_when_destination_file_missing() {
             destination: "missing_target.txt".to_string(),
             injection_target: InjectionTarget::AtEnd,
         }],
+        vec![],
     )
     .unwrap();
 
@@ -399,6 +409,7 @@ fn execute_fails_on_parent_directory_creation_failure() {
             source: "hello.txt".to_string(),
             destination: "file_blocking_dir/nested/hello.txt".to_string(),
         }],
+        vec![],
     )
     .unwrap();
 
@@ -436,6 +447,7 @@ fn execute_fails_on_template_syntax_error() {
             source: "bad.txt.tera".to_string(),
             destination: "out.txt".to_string(),
         }],
+        vec![],
     )
     .unwrap();
 

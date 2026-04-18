@@ -62,8 +62,6 @@ impl CliServiceCollectionFactory {
             ),
             template_engine: n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
         }
-
-
     }
 }
 

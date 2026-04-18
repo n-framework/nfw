@@ -81,7 +81,9 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
 
             let parameters = TemplateParameters::new()
                 .with_name(&resolution.workspace_name)
-                .with_namespace(&resolution.namespace_base);
+                .map_err(|e| e.to_string())?
+                .with_namespace(&resolution.namespace_base)
+                .map_err(|e| e.to_string())?;
 
             let mut parameters = parameters;
             let _ = parameters.insert("WorkspaceName", &resolution.workspace_name);

@@ -44,16 +44,23 @@ impl ServiceGenerationPlanBuilder {
 
         let mut parameters = TemplateParameters::new()
             .with_name(service_name)
-            .with_namespace(&namespace);
+            .map_err(AddServiceError::InvalidWorkspaceContext)?
+            .with_namespace(&namespace)
+            .map_err(AddServiceError::InvalidWorkspaceContext)?;
 
         // Standard parameters
-        parameters.insert("WorkspaceName", &workspace_name).expect("valid key");
-        parameters.insert("ServiceName", service_name).expect("valid key");
-        parameters.insert(
-            "ProjectGuid",
-            stable_project_guid(service_name, &qualified_template_id),
-        ).expect("valid key");
-
+        parameters
+            .insert("WorkspaceName", &workspace_name)
+            .expect("valid key");
+        parameters
+            .insert("ServiceName", service_name)
+            .expect("valid key");
+        parameters
+            .insert(
+                "ProjectGuid",
+                stable_project_guid(service_name, &qualified_template_id),
+            )
+            .expect("valid key");
 
         Ok(ServiceGenerationPlan {
             service_name: service_name.to_owned(),
@@ -89,8 +96,7 @@ fn load_workspace_yaml(workspace_root: &Path) -> Result<Value, String> {
     let path = workspace_root.join("nfw.yaml");
     let content = fs::read_to_string(&path)
         .map_err(|e| format!("failed to read {}: {}", path.display(), e))?;
-    serde_yaml::from_str::<Value>(&content)
-        .map_err(|e| format!("failed to parse nfw.yaml: {}", e))
+    serde_yaml::from_str::<Value>(&content).map_err(|e| format!("failed to parse nfw.yaml: {}", e))
 }
 
 fn stable_project_guid(service_name: &str, template_id: &str) -> String {

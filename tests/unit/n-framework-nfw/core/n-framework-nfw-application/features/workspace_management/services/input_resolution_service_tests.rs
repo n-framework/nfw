@@ -28,6 +28,14 @@ impl PromptService for StubPromptService {
         Ok(true)
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        if let Some(failure) = &self.failure {
+            return Err(PromptError::internal(failure.clone()));
+        }
+
+        Ok(self.answer.clone().unwrap_or_default())
+    }
+
     fn select(
         &self,
         _message: &str,
@@ -44,6 +52,15 @@ impl PromptService for StubPromptService {
         _default_index: Option<usize>,
     ) -> Result<usize, PromptError> {
         Ok(0)
+    }
+
+    fn multiselect(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_indices: &[usize],
+    ) -> Result<Vec<SelectOption>, PromptError> {
+        Ok(Vec::new())
     }
 }
 

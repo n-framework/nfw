@@ -301,8 +301,8 @@ fn warns_about_stale_data_when_using_cached_templates() {
     fs::create_dir_all(&cache_path).expect("failed to create cache directory");
 
     let git_dir = cache_path.join(".git");
-    fs::create_dir_all(&git_dir.join("objects")).expect("failed to create .git/objects");
-    fs::create_dir_all(&git_dir.join("refs")).expect("failed to create .git/refs");
+    fs::create_dir_all(git_dir.join("objects")).expect("failed to create .git/objects");
+    fs::create_dir_all(git_dir.join("refs")).expect("failed to create .git/refs");
 
     fs::write(git_dir.join("HEAD"), "ref: refs/heads/main\n").expect("failed to write HEAD");
     let metadata_content = r#"

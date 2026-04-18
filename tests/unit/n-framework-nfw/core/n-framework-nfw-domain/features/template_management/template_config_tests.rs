@@ -5,7 +5,7 @@ use n_framework_nfw_core_domain::features::template_management::template_config:
 
 #[test]
 fn template_config_validate_succeeds_on_empty_steps() {
-    let config = TemplateConfig::new(None, vec![]);
+    let config = TemplateConfig::new(None, vec![], vec![]);
     // Empty steps are allowed for legacy template support
     assert!(config.is_ok());
 }
@@ -18,6 +18,7 @@ fn template_config_validate_fails_on_invalid_step() {
             source: "".to_string(), // Invalid: empty source
             destination: "dest".to_string(),
         }],
+        vec![],
     );
     assert!(config.is_err());
     assert!(matches!(
@@ -34,13 +35,14 @@ fn template_config_validate_succeeds_with_valid_steps() {
             source: "src".to_string(),
             destination: "dest".to_string(),
         }],
+        vec![],
     );
     assert!(config.is_ok());
 }
 
 #[test]
 fn template_config_validate_fails_on_invalid_id() {
-    let config = TemplateConfig::new(Some("invalid id with spaces".to_string()), vec![]);
+    let config = TemplateConfig::new(Some("invalid id with spaces".to_string()), vec![], vec![]);
     assert!(config.is_err());
     assert!(matches!(
         config.unwrap_err(),
@@ -50,6 +52,6 @@ fn template_config_validate_fails_on_invalid_id() {
 
 #[test]
 fn template_config_validate_succeeds_with_namespaced_id() {
-    let config = TemplateConfig::new(Some("official/dotnet-service".to_string()), vec![]);
+    let config = TemplateConfig::new(Some("official/dotnet-service".to_string()), vec![], vec![]);
     assert!(config.is_ok());
 }
