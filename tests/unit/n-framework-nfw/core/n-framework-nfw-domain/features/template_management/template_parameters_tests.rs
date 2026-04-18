@@ -30,7 +30,7 @@ fn with_namespace_sets_namespace() {
 #[test]
 fn insert_validates_key_format() {
     let mut params = TemplateParameters::new();
-    
+
     // Valid keys
     assert!(params.insert("HelloWorld123", "val").is_ok());
     assert!(params.insert("key.with.dots", "val").is_ok());
@@ -38,7 +38,7 @@ fn insert_validates_key_format() {
     assert!(params.insert("key_with_underscores", "val").is_ok());
     assert!(params.insert("{{TOKEN}}", "val").is_ok());
     assert!(params.insert("__TOKEN__", "val").is_ok());
-    
+
     // Invalid keys
     assert!(params.insert("", "val").is_err());
     assert!(params.insert("  ", "val").is_err());
@@ -51,7 +51,7 @@ fn insert_overwrites_existing_key() {
     let mut params = TemplateParameters::new();
     assert!(params.insert("Key", "Value1").is_ok());
     assert_eq!(params.get("Key"), Some("Value1"));
-    
+
     assert!(params.insert("Key", "Value2").is_ok());
     assert_eq!(params.get("Key"), Some("Value2"));
 }
@@ -62,7 +62,7 @@ fn with_methods_ignore_empty_values() {
         .with_name("  ")
         .with_feature("")
         .with_namespace("\t");
-        
+
     assert!(params.name().is_none());
     assert!(params.feature().is_none());
     assert!(params.namespace().is_none());

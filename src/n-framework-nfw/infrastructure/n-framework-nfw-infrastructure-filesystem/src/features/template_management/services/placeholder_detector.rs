@@ -38,6 +38,7 @@ fn placeholder_regex() -> &'static Regex {
     static PLACEHOLDER_REGEX: OnceLock<Regex> = OnceLock::new();
     PLACEHOLDER_REGEX.get_or_init(|| {
         // Matches either {{TOKEN}} or __TOKEN__ format
-        Regex::new(r"(\{\{[A-Z][A-Za-z0-9]*\}\}|__[A-Z][A-Za-z0-9]*__)").expect("invalid placeholder regex")
+        Regex::new(r"(\{\{[A-Z][A-Za-z0-9]*\}\}|__[A-Z][A-Za-z0-9]*__)")
+            .expect("invalid placeholder regex")
     })
 }

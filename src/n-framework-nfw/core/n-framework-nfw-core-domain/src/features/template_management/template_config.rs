@@ -8,7 +8,11 @@ pub struct TemplateConfig {
     /// Optional unique identifier for the template.
     id: Option<String>,
     /// The sequence of rendering steps to perform.
+    #[serde(default)]
     steps: Vec<TemplateStep>,
+    /// The input parameters accepted by this template.
+    #[serde(default)]
+    inputs: Vec<TemplateInput>,
 }
 
 #[derive(Deserialize)]
@@ -16,6 +20,39 @@ struct TemplateConfigShadow {
     id: Option<String>,
     #[serde(default)]
     steps: Vec<TemplateStep>,
+    #[serde(default)]
+    inputs: Vec<TemplateInput>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TemplateInputType {
+    Text,
+    Password,
+    Confirm,
+    Select,
+    Multiselect,
+    Object,
+    List,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TemplateInput {
+    /// Unique identifier for the input variable, not strictly required for list elements.
+    pub id: Option<String>,
+    /// Input type (e.g., text, confirm, select).
+    #[serde(rename = "type")]
+    pub input_type: TemplateInputType,
+    /// Message displayed to the user when prompted.
+    pub prompt: String,
+    /// Optional default value.
+    pub default: Option<serde_json::Value>,
+    /// Valid choices for select/multiselect types.
+    pub options: Option<Vec<String>>,
+    /// Nested properties for 'object' type inputs.
+    pub properties: Option<Vec<TemplateInput>>,
+    /// Element schema for 'list' type inputs.
+    pub items: Option<Box<TemplateInput>>,
 }
 
 impl TryFrom<TemplateConfigShadow> for TemplateConfig {
@@ -25,6 +62,7 @@ impl TryFrom<TemplateConfigShadow> for TemplateConfig {
         let config = Self {
             id: shadow.id,
             steps: shadow.steps,
+            inputs: shadow.inputs,
         };
         config.validate()?;
         Ok(config)
@@ -36,8 +74,12 @@ impl TemplateConfig {
     ///
     /// # Errors
     /// Returns an error if the configuration is invalid.
-    pub fn new(id: Option<String>, steps: Vec<TemplateStep>) -> Result<Self, TemplateConfigError> {
-        let config = Self { id, steps };
+    pub fn new(
+        id: Option<String>,
+        steps: Vec<TemplateStep>,
+        inputs: Vec<TemplateInput>,
+    ) -> Result<Self, TemplateConfigError> {
+        let config = Self { id, steps, inputs };
         config.validate()?;
         Ok(config)
     }
@@ -88,7 +130,8 @@ impl TemplateConfig {
                     if !destination.is_empty() && destination.trim().is_empty() {
                         return Err(TemplateConfigError::InvalidStep {
                             index: i,
-                            message: "render_folder destination cannot be just whitespace".to_string(),
+                            message: "render_folder destination cannot be just whitespace"
+                                .to_string(),
                         });
                     }
                 }
@@ -131,6 +174,11 @@ impl TemplateConfig {
     pub fn steps(&self) -> &[TemplateStep] {
         &self.steps
     }
+
+    /// Returns the list of template inputs (parameters).
+    pub fn inputs(&self) -> &[TemplateInput] {
+        &self.inputs
+    }
 }
 
 fn validate_id_format(id: &str) -> Result<(), TemplateConfigError> {
@@ -151,7 +199,6 @@ fn validate_id_format(id: &str) -> Result<(), TemplateConfigError> {
     }
     Ok(())
 }
-
 
 /// A single step in the template rendering process.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

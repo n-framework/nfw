@@ -1,12 +1,13 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::BTreeMap;
 
 /// A type-safe container for template parameters used during rendering.
 /// Standardizes keys like 'Name', 'Namespace', and 'Feature' while allowing
 /// arbitrary custom parameters. Validates that keys are valid identifiers.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct TemplateParameters {
-    inner: BTreeMap<String, String>,
+    inner: BTreeMap<String, Value>,
 }
 
 impl TemplateParameters {
@@ -19,7 +20,8 @@ impl TemplateParameters {
     pub fn with_name(mut self, name: impl Into<String>) -> Self {
         let name_val = name.into();
         if !name_val.trim().is_empty() {
-            self.inner.insert("Name".to_string(), name_val);
+            self.inner
+                .insert("Name".to_string(), Value::String(name_val));
         }
         self
     }
@@ -28,7 +30,8 @@ impl TemplateParameters {
     pub fn with_feature(mut self, feature: impl Into<String>) -> Self {
         let feature_val = feature.into();
         if !feature_val.trim().is_empty() {
-            self.inner.insert("Feature".to_string(), feature_val);
+            self.inner
+                .insert("Feature".to_string(), Value::String(feature_val));
         }
         self
     }
@@ -37,12 +40,13 @@ impl TemplateParameters {
     pub fn with_namespace(mut self, namespace: impl Into<String>) -> Self {
         let namespace_val = namespace.into();
         if !namespace_val.trim().is_empty() {
-            self.inner.insert("Namespace".to_string(), namespace_val);
+            self.inner
+                .insert("Namespace".to_string(), Value::String(namespace_val));
         }
         self
     }
 
-    /// Inserts a custom parameter. Validates the key is a valid identifier.
+    /// Inserts a custom string parameter. Validates the key is a valid identifier.
     ///
     /// # Errors
     /// Returns an error if the key contains invalid characters or is empty.
@@ -51,15 +55,17 @@ impl TemplateParameters {
         key: impl Into<String>,
         value: impl Into<String>,
     ) -> Result<(), String> {
+        self.insert_value(key, Value::String(value.into()))
+    }
+
+    /// Inserts a custom JSON parameter. Validates the key is a valid identifier.
+    pub fn insert_value(&mut self, key: impl Into<String>, value: Value) -> Result<(), String> {
         let k = key.into();
-        let v = value.into();
 
         if k.trim().is_empty() {
             return Err("parameter key cannot be empty".to_string());
         }
 
-        // Validate key format (alphanumeric, underscores, dots, hyphens, and braces/underscores for legacy)
-        // We allow {{TOKEN}} and __TOKEN__ format keys for backward compatibility but encourage clean names.
         let re = get_parameter_key_regex();
         if !re.is_match(&k) {
             return Err(format!(
@@ -68,13 +74,18 @@ impl TemplateParameters {
             ));
         }
 
-        self.inner.insert(k, v);
+        self.inner.insert(k, value);
         Ok(())
     }
 
-    /// Gets a parameter by key.
+    /// Gets a string parameter by key.
     pub fn get(&self, key: &str) -> Option<&str> {
-        self.inner.get(key).map(|s| s.as_str())
+        self.inner.get(key).and_then(|v| v.as_str())
+    }
+
+    /// Gets a json parameter by key.
+    pub fn get_value(&self, key: &str) -> Option<&Value> {
+        self.inner.get(key)
     }
 
     /// Returns the name parameter if set.
@@ -93,7 +104,7 @@ impl TemplateParameters {
     }
 
     /// Returns a reference to the underlying map.
-    pub fn as_map(&self) -> &BTreeMap<String, String> {
+    pub fn as_map(&self) -> &BTreeMap<String, Value> {
         &self.inner
     }
 }
@@ -106,9 +117,19 @@ fn get_parameter_key_regex() -> &'static regex::Regex {
     })
 }
 
-
 impl From<BTreeMap<String, String>> for TemplateParameters {
     fn from(inner: BTreeMap<String, String>) -> Self {
+        Self {
+            inner: inner
+                .into_iter()
+                .map(|(k, v)| (k, Value::String(v)))
+                .collect(),
+        }
+    }
+}
+
+impl From<BTreeMap<String, Value>> for TemplateParameters {
+    fn from(inner: BTreeMap<String, Value>) -> Self {
         Self { inner }
     }
 }

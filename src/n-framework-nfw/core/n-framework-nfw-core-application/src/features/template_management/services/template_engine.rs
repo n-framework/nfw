@@ -7,7 +7,7 @@ use std::path::Path;
 ///
 /// The engine is responsible for iterating over the steps defined in a `TemplateConfig`,
 /// resolving paths, rendering content via a renderer, and performing injections.
-/// 
+///
 /// **Security Note:** Implementations MUST ensure path traversal protection. Output paths
 /// must be constrained to the `output_root`, preventing templates from writing outside
 /// the intended boundaries via malicious placeholder values or template source paths.

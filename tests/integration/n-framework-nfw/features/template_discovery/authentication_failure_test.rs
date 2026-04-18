@@ -75,7 +75,7 @@ fn handles_git_not_installed_error() {
             );
         }
         Err(error) => {
-            assert!(error.len() > 0, "error message should not be empty");
+            assert!(!error.is_empty(), "error message should not be empty");
             println!("Git check failed with error: {}", error);
         }
     }

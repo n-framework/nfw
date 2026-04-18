@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -97,6 +98,17 @@ impl PromptService for FailingPromptService {
     ) -> Result<usize, PromptError> {
         Err(PromptError::internal(
             "select-index prompt is unavailable in test",
+        ))
+    }
+
+    fn multiselect(
+        &self,
+        _message: &str,
+        _options: &[SelectOption],
+        _default_indices: &[usize],
+    ) -> Result<Vec<SelectOption>, PromptError> {
+        Err(PromptError::internal(
+            "multiselect prompt is unavailable in test",
         ))
     }
 }
