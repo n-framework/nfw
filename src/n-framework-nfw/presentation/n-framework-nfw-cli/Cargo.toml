@@ -7,6 +7,10 @@ edition = "2024"
 name = "n-framework-nfw-cli"
 path = "src/main.rs"
 
+[lib]
+name = "n_framework_nfw_cli"
+path = "src/lib.rs"
+
 [dependencies]
 n-framework-core-cli-abstractions = { workspace = true }
 n-framework-core-cli-clap = { workspace = true }
@@ -17,10 +21,20 @@ n-framework-nfw-infrastructure-filesystem = { path = "../../infrastructure/n-fra
 n-framework-nfw-infrastructure-git = { path = "../../infrastructure/n-framework-nfw-infrastructure-git" }
 n-framework-nfw-infrastructure-versioning = { path = "../../infrastructure/n-framework-nfw-infrastructure-versioning" }
 n-framework-nfw-infrastructure-yaml = { path = "../../infrastructure/n-framework-nfw-infrastructure-yaml" }
+serde_yaml = "0.9"
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.10"
 
 [[test]]
 name = "new_command_routing_tests"
 path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/runtime/new_command_routing_tests.rs"
+
+[[test]]
+name = "generate_command_tests"
+path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/commands/generate/generate_tests.rs"
 
 [[test]]
 name = "add_service_command_routing_tests"
@@ -121,3 +135,7 @@ path = "../../../../tests/integration/n-framework-nfw/features/architecture_chec
 [[test]]
 name = "architecture_check_polyglot_go_test"
 path = "../../../../tests/integration/n-framework-nfw/features/architecture_check/polyglot_go_check_tests.rs"
+
+[[test]]
+name = "generate_smoke_test"
+path = "../../../../tests/integration/n-framework-nfw/features/generate/generate_smoke_test.rs"

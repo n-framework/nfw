@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[allow(dead_code)]
 pub struct ProjectConfig<'a> {
     pub workspace_root: &'a Path,
     pub relative_project_dir: &'a str,
@@ -30,6 +31,7 @@ pub fn create_workspace(test_name: &str) -> PathBuf {
     root
 }
 
+#[allow(dead_code)]
 pub fn add_project(config: ProjectConfig) -> PathBuf {
     let project_dir = config.workspace_root.join(config.relative_project_dir);
     fs::create_dir_all(&project_dir).expect("project directory should be created");

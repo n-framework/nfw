@@ -1,7 +1,6 @@
-use std::collections::BTreeMap;
-use std::path::PathBuf;
-
+use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 use n_framework_nfw_core_domain::features::versioning::version::Version;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ServiceGenerationPlan {
@@ -11,5 +10,5 @@ pub struct ServiceGenerationPlan {
     pub template_id: String,
     pub template_version: Version,
     pub namespace: String,
-    pub placeholder_values: BTreeMap<String, String>,
+    pub placeholder_values: TemplateParameters,
 }

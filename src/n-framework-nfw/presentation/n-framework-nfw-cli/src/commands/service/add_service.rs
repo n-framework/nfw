@@ -35,6 +35,13 @@ where
         no_input: bool,
         is_interactive_terminal: bool,
     ) -> Result<(), AddServiceError> {
+        tracing::info!(
+            "Executing add-service command (name: {:?}, template: {:?}, no_input: {})",
+            service_name,
+            template_id,
+            no_input
+        );
+
         let command = AddServiceCommand::new(
             service_name.map(ToOwned::to_owned),
             template_id.map(ToOwned::to_owned),
@@ -42,7 +49,11 @@ where
             is_interactive_terminal,
         );
 
-        let result = self.handler.handle(&command)?;
+        let result = self.handler.handle(&command).map_err(|e| {
+            tracing::error!("Failed to add service: {}", e);
+            e
+        })?;
+
         println!(
             "Created service '{}' at '{}'.",
             result.service_name,
@@ -50,6 +61,12 @@ where
         );
         println!("Template: {}", result.template_id);
         println!("Template version: {}", result.template_version);
+
+        tracing::info!(
+            "Successfully created service '{}' using template '{}'",
+            result.service_name,
+            result.template_id
+        );
 
         Ok(())
     }

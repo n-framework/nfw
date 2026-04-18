@@ -6,9 +6,11 @@ edition = "2024"
 [dependencies]
 n-framework-core-cli-abstractions = { path = "../../../../packages/n-framework-core-cli/src/n-framework-core-cli-abstractions" }
 n-framework-nfw-core-domain = { path = "../n-framework-nfw-core-domain" }
+n-framework-core-template-abstractions = { workspace = true }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
 regex = "1"
+thiserror = "2"
 
 [dev-dependencies]
 semver = "1"

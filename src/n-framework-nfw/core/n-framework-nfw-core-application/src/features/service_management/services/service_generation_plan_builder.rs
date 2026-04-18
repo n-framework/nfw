@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 use std::fs;
 use std::path::Path;
 
@@ -29,32 +29,31 @@ impl ServiceGenerationPlanBuilder {
             ));
         }
 
-        let workspace_namespace =
-            read_workspace_namespace(workspace_root).unwrap_or_else(|| "NFramework".to_owned());
-        let workspace_name =
-            read_workspace_name(workspace_root).unwrap_or_else(|| "workspace".to_owned());
+        let workspace_namespace = read_workspace_namespace(workspace_root).map_err(|e| {
+            AddServiceError::InvalidWorkspaceContext(format!(
+                "failed to read workspace namespace from nfw.yaml: {e}"
+            ))
+        })?;
+        let workspace_name = read_workspace_name(workspace_root).map_err(|e| {
+            AddServiceError::InvalidWorkspaceContext(format!(
+                "failed to read workspace name from nfw.yaml: {e}"
+            ))
+        })?;
         let namespace = format!("{workspace_namespace}.{service_name}");
         let qualified_template_id = template_resolution.qualified_template_id();
 
-        let mut placeholder_values = BTreeMap::<String, String>::new();
+        let mut parameters = TemplateParameters::new()
+            .with_name(service_name)
+            .with_namespace(&namespace);
 
-        // Mustache format: {{TokenName}}
-        placeholder_values.insert("{{WorkspaceName}}".to_owned(), workspace_name.clone());
-        placeholder_values.insert("{{ServiceName}}".to_owned(), service_name.to_owned());
-        placeholder_values.insert("{{Namespace}}".to_owned(), namespace.clone());
-        placeholder_values.insert(
-            "{{ProjectGuid}}".to_owned(),
+        // Standard parameters
+        parameters.insert("WorkspaceName", &workspace_name).expect("valid key");
+        parameters.insert("ServiceName", service_name).expect("valid key");
+        parameters.insert(
+            "ProjectGuid",
             stable_project_guid(service_name, &qualified_template_id),
-        );
+        ).expect("valid key");
 
-        // Alternative format: __TokenName__
-        placeholder_values.insert("__WorkspaceName__".to_owned(), workspace_name.clone());
-        placeholder_values.insert("__ServiceName__".to_owned(), service_name.to_owned());
-        placeholder_values.insert("__Namespace__".to_owned(), namespace.clone());
-        placeholder_values.insert(
-            "__ProjectGuid__".to_owned(),
-            stable_project_guid(service_name, &qualified_template_id),
-        );
 
         Ok(ServiceGenerationPlan {
             service_name: service_name.to_owned(),
@@ -63,31 +62,35 @@ impl ServiceGenerationPlanBuilder {
             template_id: qualified_template_id,
             template_version: template_resolution.resolved_version.clone(),
             namespace,
-            placeholder_values,
+            placeholder_values: parameters,
         })
     }
 }
 
-fn read_workspace_namespace(workspace_root: &Path) -> Option<String> {
+fn read_workspace_namespace(workspace_root: &Path) -> Result<String, String> {
     let yaml = load_workspace_yaml(workspace_root)?;
-    yaml.get("workspace")?
-        .get("namespace")?
-        .as_str()
+    yaml.get("workspace")
+        .and_then(|w| w.get("namespace"))
+        .and_then(|n| n.as_str())
         .map(ToOwned::to_owned)
+        .ok_or_else(|| "missing 'workspace.namespace' in nfw.yaml".to_string())
 }
 
-fn read_workspace_name(workspace_root: &Path) -> Option<String> {
+fn read_workspace_name(workspace_root: &Path) -> Result<String, String> {
     let yaml = load_workspace_yaml(workspace_root)?;
-    yaml.get("workspace")?
-        .get("name")?
-        .as_str()
+    yaml.get("workspace")
+        .and_then(|w| w.get("name"))
+        .and_then(|n| n.as_str())
         .map(ToOwned::to_owned)
+        .ok_or_else(|| "missing 'workspace.name' in nfw.yaml".to_string())
 }
 
-fn load_workspace_yaml(workspace_root: &Path) -> Option<Value> {
+fn load_workspace_yaml(workspace_root: &Path) -> Result<Value, String> {
     let path = workspace_root.join("nfw.yaml");
-    let content = fs::read_to_string(path).ok()?;
-    serde_yaml::from_str::<Value>(&content).ok()
+    let content = fs::read_to_string(&path)
+        .map_err(|e| format!("failed to read {}: {}", path.display(), e))?;
+    serde_yaml::from_str::<Value>(&content)
+        .map_err(|e| format!("failed to parse nfw.yaml: {}", e))
 }
 
 fn stable_project_guid(service_name: &str, template_id: &str) -> String {
