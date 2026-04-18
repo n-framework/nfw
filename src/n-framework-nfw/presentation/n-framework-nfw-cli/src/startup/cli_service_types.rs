@@ -1,5 +1,4 @@
 use n_framework_core_cli_inquire::InquirerPromptService;
-use n_framework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
@@ -64,6 +63,16 @@ pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     FileSystemServiceTemplateRenderer,
     n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter,
 >;
+use n_framework_nfw_core_application::features::template_management::commands::generate::generate_command_handler::GenerateCommandHandler;
+use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
+
+pub type CliGenerateCommandHandler = GenerateCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+>;
+
+use n_framework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
 pub type CliCheckCommandHandler = CheckCommandHandler;
 
 pub struct CliServiceCollection {
@@ -75,5 +84,7 @@ pub struct CliServiceCollection {
     pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,
     pub refresh_templates_command_handler: CliRefreshTemplatesCommandHandler,
     pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
+    pub generate_command_handler: CliGenerateCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
 }
+

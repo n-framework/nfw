@@ -5,6 +5,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum TemplateError {
     /// Error in template configuration or metadata.
+    /// This error indicates that the definition of the template (e.g. `template.yaml`) is missing or invalid.
     #[error("template configuration error for {}: {message}", .template_id.as_deref().unwrap_or("unknown"))]
     TemplateConfigError {
         /// The error message.
@@ -14,6 +15,8 @@ pub enum TemplateError {
     },
 
     /// Error during template rendering or folder processing.
+    /// Unlike `TemplateConfigError`, this occurs when the template itself is valid, but the
+    /// executing engine fails to interpolate placeholders, resolve paths, or write the actual file.
     #[error("template rendering error at step {} in {}: {message}", 
         .step_index.map(|i| i.to_string()).unwrap_or_else(|| "?".to_string()),
         .template_id.as_deref().unwrap_or("unknown")

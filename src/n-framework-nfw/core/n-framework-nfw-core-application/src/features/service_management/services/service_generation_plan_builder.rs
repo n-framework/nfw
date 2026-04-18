@@ -29,10 +29,16 @@ impl ServiceGenerationPlanBuilder {
             ));
         }
 
-        let workspace_namespace =
-            read_workspace_namespace(workspace_root).unwrap_or_else(|| "NFramework".to_owned());
-        let workspace_name =
-            read_workspace_name(workspace_root).unwrap_or_else(|| "workspace".to_owned());
+        let workspace_namespace = read_workspace_namespace(workspace_root).map_err(|e| {
+            AddServiceError::InvalidWorkspaceContext(format!(
+                "failed to read workspace namespace from nfw.yaml: {e}"
+            ))
+        })?;
+        let workspace_name = read_workspace_name(workspace_root).map_err(|e| {
+            AddServiceError::InvalidWorkspaceContext(format!(
+                "failed to read workspace name from nfw.yaml: {e}"
+            ))
+        })?;
         let namespace = format!("{workspace_namespace}.{service_name}");
         let qualified_template_id = template_resolution.qualified_template_id();
 
@@ -41,30 +47,13 @@ impl ServiceGenerationPlanBuilder {
             .with_namespace(&namespace);
 
         // Standard parameters
-        parameters.insert("WorkspaceName", &workspace_name);
-        parameters.insert("ServiceName", service_name);
+        parameters.insert("WorkspaceName", &workspace_name).expect("valid key");
+        parameters.insert("ServiceName", service_name).expect("valid key");
         parameters.insert(
             "ProjectGuid",
             stable_project_guid(service_name, &qualified_template_id),
-        );
+        ).expect("valid key");
 
-        // Mustache format: {{TokenName}} - for backward compatibility
-        parameters.insert("{{WorkspaceName}}", &workspace_name);
-        parameters.insert("{{ServiceName}}", service_name);
-        parameters.insert("{{Namespace}}", &namespace);
-        parameters.insert(
-            "{{ProjectGuid}}",
-            stable_project_guid(service_name, &qualified_template_id),
-        );
-
-        // Alternative format: __TokenName__ - for backward compatibility
-        parameters.insert("__WorkspaceName__", &workspace_name);
-        parameters.insert("__ServiceName__", service_name);
-        parameters.insert("__Namespace__", &namespace);
-        parameters.insert(
-            "__ProjectGuid__",
-            stable_project_guid(service_name, &qualified_template_id),
-        );
 
         Ok(ServiceGenerationPlan {
             service_name: service_name.to_owned(),
@@ -78,26 +67,30 @@ impl ServiceGenerationPlanBuilder {
     }
 }
 
-fn read_workspace_namespace(workspace_root: &Path) -> Option<String> {
+fn read_workspace_namespace(workspace_root: &Path) -> Result<String, String> {
     let yaml = load_workspace_yaml(workspace_root)?;
-    yaml.get("workspace")?
-        .get("namespace")?
-        .as_str()
+    yaml.get("workspace")
+        .and_then(|w| w.get("namespace"))
+        .and_then(|n| n.as_str())
         .map(ToOwned::to_owned)
+        .ok_or_else(|| "missing 'workspace.namespace' in nfw.yaml".to_string())
 }
 
-fn read_workspace_name(workspace_root: &Path) -> Option<String> {
+fn read_workspace_name(workspace_root: &Path) -> Result<String, String> {
     let yaml = load_workspace_yaml(workspace_root)?;
-    yaml.get("workspace")?
-        .get("name")?
-        .as_str()
+    yaml.get("workspace")
+        .and_then(|w| w.get("name"))
+        .and_then(|n| n.as_str())
         .map(ToOwned::to_owned)
+        .ok_or_else(|| "missing 'workspace.name' in nfw.yaml".to_string())
 }
 
-fn load_workspace_yaml(workspace_root: &Path) -> Option<Value> {
+fn load_workspace_yaml(workspace_root: &Path) -> Result<Value, String> {
     let path = workspace_root.join("nfw.yaml");
-    let content = fs::read_to_string(path).ok()?;
-    serde_yaml::from_str::<Value>(&content).ok()
+    let content = fs::read_to_string(&path)
+        .map_err(|e| format!("failed to read {}: {}", path.display(), e))?;
+    serde_yaml::from_str::<Value>(&content)
+        .map_err(|e| format!("failed to parse nfw.yaml: {}", e))
 }
 
 fn stable_project_guid(service_name: &str, template_id: &str) -> String {

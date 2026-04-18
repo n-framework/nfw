@@ -1,6 +1,7 @@
 use crate::features::check::models::errors::CheckError;
 use crate::features::check::models::{ExitOutcome, ValidationSummary};
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
+use crate::features::template_management::models::errors::generate_error::GenerateError;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 
 #[repr(i32)]
@@ -52,6 +53,18 @@ impl ExitCodes {
         }
     }
 
+    pub fn from_generate_error(error: &GenerateError) -> Self {
+        match error {
+            GenerateError::InvalidIdentifier(_) | GenerateError::InvalidParameter(_) => {
+                Self::ValidationError
+            }
+            GenerateError::ConfigError(_) => Self::Conflict,
+            GenerateError::TemplateNotFound(_) => Self::NotFound,
+            GenerateError::ExecutionFailed(_) => Self::ExternalDependencyFailure,
+            GenerateError::WorkspaceError(_) => Self::InternalError,
+        }
+    }
+
     pub fn from_check_error(error: &CheckError) -> Self {
         match error {
             CheckError::InvalidWorkspaceContext(_) => Self::ValidationError,
@@ -68,3 +81,4 @@ impl ExitCodes {
         }
     }
 }
+

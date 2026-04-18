@@ -57,7 +57,7 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
                 .map_err(|e| AddServiceError::RenderFailed(e.to_string()))?;
             // Set ID if missing in subfolder config
             if config.id().is_none() {
-                config.set_id(plan.template_id.clone());
+                let _ = config.set_id(plan.template_id.clone());
             }
             (config, template_root.join("add-service"))
         } else if root_config_path.exists() {
@@ -73,6 +73,9 @@ impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
             // Instead we check config.steps().is_empty() below.
 
             if !config.steps().is_empty() {
+                config
+                    .validate()
+                    .map_err(|e| AddServiceError::RenderFailed(e.to_string()))?;
                 (config, template_root.to_path_buf())
             } else {
                 // Root config exists but has no steps, and no subfolder config found.

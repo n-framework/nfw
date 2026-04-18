@@ -48,19 +48,7 @@ impl TemplateConfig {
     /// that might use an empty template.yaml and rely on default content/ rendering.
     pub fn validate(&self) -> Result<(), TemplateConfigError> {
         if let Some(id) = &self.id {
-            // Allow alphanumeric, hyphens, underscores, dots, and slashes (for namespaces)
-            let re = regex::Regex::new("^[a-zA-Z0-9_\\-./]+$").map_err(|e| {
-                TemplateConfigError::General(format!("internal error: invalid regex: {}", e))
-            })?;
-            if !re.is_match(id) {
-                return Err(TemplateConfigError::InvalidFormat {
-                    field: "id".to_string(),
-                    message: format!(
-                        "invalid template id '{}'. Only alphanumeric characters, hyphens, underscores, dots, and slashes are allowed.",
-                        id
-                    ),
-                });
-            }
+            validate_id_format(id)?;
         }
 
         for (i, step) in self.steps.iter().enumerate() {
@@ -82,11 +70,25 @@ impl TemplateConfig {
                         });
                     }
                 }
-                TemplateStep::RenderFolder { source, .. } => {
+                TemplateStep::RenderFolder {
+                    source,
+                    destination,
+                } => {
                     if source.trim().is_empty() {
                         return Err(TemplateConfigError::InvalidStep {
                             index: i,
                             message: "render_folder source cannot be empty".to_string(),
+                        });
+                    }
+                    // Even if we render to root, we want an explicit path (e.g. "." or "")
+                    // but the validator should ensure it's not JUST whitespace if it was provided.
+                    // Actually, let's keep it consistent with Render/Inject.
+                    // We allow empty destination for the root of the output directory.
+                    // If it is just whitespace but not empty, we still error.
+                    if !destination.is_empty() && destination.trim().is_empty() {
+                        return Err(TemplateConfigError::InvalidStep {
+                            index: i,
+                            message: "render_folder destination cannot be just whitespace".to_string(),
                         });
                     }
                 }
@@ -118,9 +120,11 @@ impl TemplateConfig {
         self.id.as_deref()
     }
 
-    /// Sets the template ID.
-    pub fn set_id(&mut self, id: String) {
+    /// Sets the template ID and validates it.
+    pub fn set_id(&mut self, id: String) -> Result<(), TemplateConfigError> {
+        validate_id_format(&id)?;
         self.id = Some(id);
+        Ok(())
     }
 
     /// Returns the list of rendering steps.
@@ -128,6 +132,26 @@ impl TemplateConfig {
         &self.steps
     }
 }
+
+fn validate_id_format(id: &str) -> Result<(), TemplateConfigError> {
+    use std::sync::OnceLock;
+    static ID_REGEX: OnceLock<regex::Regex> = OnceLock::new();
+    let re = ID_REGEX.get_or_init(|| {
+        regex::Regex::new("^[a-zA-Z0-9_\\-./]+$").expect("invalid template id regex")
+    });
+
+    if !re.is_match(id) {
+        return Err(TemplateConfigError::InvalidFormat {
+            field: "id".to_string(),
+            message: format!(
+                "invalid template id '{}'. Only alphanumeric characters, hyphens, underscores, dots, and slashes are allowed.",
+                id
+            ),
+        });
+    }
+    Ok(())
+}
+
 
 /// A single step in the template rendering process.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

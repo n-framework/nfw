@@ -254,29 +254,36 @@ fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> 
     RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
 }
 
-fn handle_gen_command(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
+pub fn handle_gen_command(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.template_engine.clone())
+    GenerateCliCommand::new(context.generate_command_handler.clone())
         .execute(GenerateRequest {
             generator_type: "command",
             name: &name,
             feature: command.option("feature"),
             params: command.option("param"),
         })
-        .map_err(|e| format!("[exit:1] {}", e))
+        .map_err(|e| {
+            let exit_code = ExitCodes::from_generate_error(&e) as i32;
+            format!("[exit:{exit_code}] {}", e)
+        })
 }
 
-fn handle_gen_query(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
+pub fn handle_gen_query(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
     let name = required_option(command, "name")?;
-    GenerateCliCommand::new(context.template_engine.clone())
+    GenerateCliCommand::new(context.generate_command_handler.clone())
         .execute(GenerateRequest {
             generator_type: "query",
             name: &name,
             feature: command.option("feature"),
             params: command.option("param"),
         })
-        .map_err(|e| format!("[exit:1] {}", e))
+        .map_err(|e| {
+            let exit_code = ExitCodes::from_generate_error(&e) as i32;
+            format!("[exit:{exit_code}] {}", e)
+        })
 }
+
 
 /// Extension trait to parse exit code from error string protocol.
 /// This improves reliability of the exit code extraction with better validation.

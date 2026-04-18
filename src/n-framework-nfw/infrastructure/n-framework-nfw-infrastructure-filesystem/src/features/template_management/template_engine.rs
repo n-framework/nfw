@@ -24,6 +24,10 @@ impl Default for FileSystemTemplateEngine {
 }
 
 impl FileSystemTemplateEngine {
+    /// Creates a new instance of the file system template engine.
+    ///
+    /// This initializes the underlying generator and renderer required
+    /// to process templates, render contents securely, and prevent path traversal.
     pub fn new() -> Self {
         Self {
             generator: TeraFileGenerator::default(),
@@ -157,7 +161,10 @@ impl TemplateEngine for FileSystemTemplateEngine {
                     if let Some(parent) = dest_path.parent() {
                         fs::create_dir_all(parent).map_err(|e| {
                             TemplateError::io(
-                                format!("failed to create parent directory: {e}"),
+                                format!(
+                                    "failed to create parent directory for {}: {e}",
+                                    dest_path.display()
+                                ),
                                 parent,
                             )
                         })?;
@@ -171,7 +178,7 @@ impl TemplateEngine for FileSystemTemplateEngine {
                     })?;
                     let rendered_content = self
                         .renderer
-                        .render_content(&content, &core_context)
+                        .render_content(&content, ctx.core_context)
                         .map_err(|e| {
                             Self::map_error(
                                 e,
@@ -193,7 +200,7 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         self.resolve_paths(source, destination, &ctx, i)?;
 
                     self.generator
-                        .generate(&source_path, &dest_path, &core_context)
+                        .generate(&source_path, &dest_path, ctx.core_context)
                         .map_err(|e| {
                             Self::map_error(
                                 e,
@@ -219,7 +226,7 @@ impl TemplateEngine for FileSystemTemplateEngine {
                     })?;
                     let rendered_inject_content = self
                         .renderer
-                        .render_content(&inject_content_raw, &core_context)
+                        .render_content(&inject_content_raw, ctx.core_context)
                         .map_err(|e| {
                             Self::map_error(
                                 e,
@@ -254,13 +261,15 @@ impl TemplateEngine for FileSystemTemplateEngine {
                                     file_content
                                         .insert_str(absolute_end_pos, &rendered_inject_content);
                                 } else {
+                                    let snippet = get_snippet(&file_content, start_pos);
                                     return Err(TemplateError::TemplateInjectionError {
                                         message: format!(
-                                            "region end marker '{}' not found in '{}'. Regions must follow the format: // region: {} ... // endregion: {}",
+                                            "region end marker '{}' not found in '{}' after start marker. Regions must follow the format: // region: {} ... // endregion: {}.\nContext around start marker:\n{}",
                                             end_marker,
                                             dest_path.display(),
                                             name,
-                                            name
+                                            name,
+                                            snippet
                                         ),
                                         file_path: Some(dest_path.display().to_string()),
                                         region: Some(name.clone()),
@@ -282,6 +291,7 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         }
                     }
 
+
                     fs::write(&dest_path, file_content).map_err(|e| {
                         TemplateError::io(format!("failed to write injected file: {e}"), dest_path)
                     })?;
@@ -291,4 +301,17 @@ impl TemplateEngine for FileSystemTemplateEngine {
 
         Ok(())
     }
+}
+
+fn get_snippet(content: &str, pos: usize) -> String {
+    let start = pos.saturating_sub(100);
+    let end = (pos + 100).min(content.len());
+    let mut snippet = content[start..end].to_string();
+    if start > 0 {
+        snippet.insert_str(0, "...");
+    }
+    if end < content.len() {
+        snippet.push_str("...");
+    }
+    snippet
 }

@@ -84,18 +84,18 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
                 .with_namespace(&resolution.namespace_base);
 
             let mut parameters = parameters;
-            parameters.insert("WorkspaceName", &resolution.workspace_name);
+            let _ = parameters.insert("WorkspaceName", &resolution.workspace_name);
 
             // Note: ProjectGuid is typically used in C# templates, providing it for compatibility
             let project_guid = crate::features::workspace_management::services::file_system_workspace_writer::render_support::stable_project_guid(
                 &resolution.workspace_name,
                 &resolution.template_id
             );
-            parameters.insert("ProjectGuid", project_guid);
+            let _ = parameters.insert("ProjectGuid", project_guid);
 
             self.engine
                 .execute(&config, &tiered_root, &resolution.output_path, &parameters)
-                .map_err(|e| format!("{e}"))?;
+                .map_err(|e| e.to_string())?;
         } else {
             copy_template_content(
                 &resolution.template_cache_path,

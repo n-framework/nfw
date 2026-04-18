@@ -27,3 +27,7 @@ path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/featu
 [[test]]
 name = "workspace_blueprint_tests"
 path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/workspace_management/workspace_blueprint_tests.rs"
+
+[[test]]
+name = "template_parameters_tests"
+path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/template_management/template_parameters_tests.rs"
