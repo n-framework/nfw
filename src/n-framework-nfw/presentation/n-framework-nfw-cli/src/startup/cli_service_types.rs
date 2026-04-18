@@ -72,13 +72,6 @@ pub type CliGenerateCommandHandler = GenerateCommandHandler<
     FileSystemTemplateEngine,
 >;
 
-pub type CliGenerateCliCommand = crate::commands::generate::GenerateCliCommand<
-    CliWorkingDirectoryProvider,
-    FileSystemTemplateRootResolver,
-    FileSystemTemplateEngine,
-    InquirerPromptService,
->;
-
 use n_framework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
 pub type CliCheckCommandHandler = CheckCommandHandler;
 

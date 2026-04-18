@@ -25,4 +25,12 @@ pub enum TemplateConfigError {
         /// Description of why the format is invalid.
         message: String,
     },
+    /// A specific input has validation errors.
+    #[error("input '{id}': {message}")]
+    InvalidInput {
+        /// The identifier of the invalid input.
+        id: String,
+        /// Description of the validation failure.
+        message: String,
+    },
 }

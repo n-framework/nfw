@@ -37,22 +37,35 @@ pub enum TemplateInputType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(try_from = "TemplateInputShadow")]
 pub struct TemplateInput {
-    /// Unique identifier for the input variable, not strictly required for list elements.
-    pub id: Option<String>,
+    /// Unique identifier for the input variable.
+    id: String,
     /// Input type (e.g., text, confirm, select).
     #[serde(rename = "type")]
-    pub input_type: TemplateInputType,
+    input_type: TemplateInputType,
     /// Message displayed to the user when prompted.
-    pub prompt: String,
+    prompt: String,
     /// Optional default value.
-    pub default: Option<serde_json::Value>,
+    default: Option<serde_json::Value>,
     /// Valid choices for select/multiselect types.
-    pub options: Option<Vec<String>>,
+    options: Option<Vec<String>>,
     /// Nested properties for 'object' type inputs.
-    pub properties: Option<Vec<TemplateInput>>,
+    properties: Option<Vec<TemplateInput>>,
     /// Element schema for 'list' type inputs.
-    pub items: Option<Box<TemplateInput>>,
+    items: Option<Box<TemplateInput>>,
+}
+
+#[derive(Deserialize)]
+struct TemplateInputShadow {
+    id: Option<String>,
+    #[serde(rename = "type")]
+    input_type: TemplateInputType,
+    prompt: String,
+    default: Option<serde_json::Value>,
+    options: Option<Vec<String>>,
+    properties: Option<Vec<TemplateInput>>,
+    items: Option<Box<TemplateInput>>,
 }
 
 impl TryFrom<TemplateConfigShadow> for TemplateConfig {
@@ -66,6 +79,37 @@ impl TryFrom<TemplateConfigShadow> for TemplateConfig {
         };
         config.validate()?;
         Ok(config)
+    }
+}
+
+impl TryFrom<TemplateInputShadow> for TemplateInput {
+    type Error = TemplateConfigError;
+
+    fn try_from(shadow: TemplateInputShadow) -> Result<Self, Self::Error> {
+        let id = shadow.id.ok_or_else(|| TemplateConfigError::InvalidInput {
+            id: "unknown".to_string(),
+            message: "missing 'id' for template input".to_string(),
+        })?;
+
+        if id.trim().is_empty() {
+            return Err(TemplateConfigError::InvalidInput {
+                id: "unknown".to_string(),
+                message: "template input 'id' cannot be empty".to_string(),
+            });
+        }
+
+        let input = Self {
+            id,
+            input_type: shadow.input_type,
+            prompt: shadow.prompt,
+            default: shadow.default,
+            options: shadow.options,
+            properties: shadow.properties,
+            items: shadow.items,
+        };
+        // Perform initial validation during deserialization
+        input.validate(0, None)?;
+        Ok(input)
     }
 }
 
@@ -163,20 +207,74 @@ impl TemplateConfig {
 }
 
 impl TemplateInput {
+    /// Creates a new template input.
+    pub fn new(id: String, input_type: TemplateInputType, prompt: String) -> Self {
+        Self {
+            id,
+            input_type,
+            prompt,
+            default: None,
+            options: None,
+            properties: None,
+            items: None,
+        }
+    }
+
+    pub fn with_default(mut self, default: serde_json::Value) -> Self {
+        self.default = Some(default);
+        self
+    }
+
+    pub fn with_options(mut self, options: Vec<String>) -> Self {
+        self.options = Some(options);
+        self
+    }
+
+    pub fn with_properties(mut self, properties: Vec<TemplateInput>) -> Self {
+        self.properties = Some(properties);
+        self
+    }
+
+    pub fn with_items(mut self, items: TemplateInput) -> Self {
+        self.items = Some(Box::new(items));
+        self
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn input_type(&self) -> &TemplateInputType {
+        &self.input_type
+    }
+
+    pub fn prompt(&self) -> &str {
+        &self.prompt
+    }
+
+    pub fn default(&self) -> Option<&serde_json::Value> {
+        self.default.as_ref()
+    }
+
+    pub fn options(&self) -> Option<&[String]> {
+        self.options.as_deref()
+    }
+
+    pub fn properties(&self) -> Option<&[TemplateInput]> {
+        self.properties.as_deref()
+    }
+
+    pub fn items(&self) -> Option<&TemplateInput> {
+        self.items.as_ref().map(|i| i.as_ref())
+    }
+
     fn validate(&self, index: usize, parent_id: Option<&str>) -> Result<(), TemplateConfigError> {
-        let input_id = self.id.as_deref().unwrap_or("unknown");
+        let input_id = self.id.as_str();
         let context = if let Some(parent) = parent_id {
             format!("property '{}' of object '{}'", input_id, parent)
         } else {
             format!("input '{}' at index {}", input_id, index)
         };
-
-        if self.id.is_none() && parent_id.is_some() {
-            return Err(TemplateConfigError::InvalidFormat {
-                field: "id".to_string(),
-                message: format!("missing id for {}", context),
-            });
-        }
 
         match self.input_type {
             TemplateInputType::Select | TemplateInputType::Multiselect => {

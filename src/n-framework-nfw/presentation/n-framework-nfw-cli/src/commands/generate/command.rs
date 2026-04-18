@@ -45,10 +45,10 @@ where
     }
 
     pub fn execute(&self, request: GenerateRequest) -> Result<(), GenerateError> {
+        let context = self.handler.prepare_context(request.generator_type)?;
         let name = self.resolve_name(&request)?;
-        let config = self.handler.get_template_config(request.generator_type)?;
 
-        let resolved_params = self.resolve_params(&request, config.inputs())?;
+        let resolved_params = self.resolve_params(&request, context.config.inputs())?;
 
         let params_opt = if resolved_params.as_object().is_none_or(|o| o.is_empty()) {
             None
@@ -63,7 +63,7 @@ where
             params_opt,
         );
 
-        self.handler.handle(&command, Some(config))?;
+        self.handler.handle(&command, context)?;
 
         println!(
             "Generated '{}' '{}' successfully.",
@@ -103,12 +103,7 @@ where
         // 1. Resolve from --param (Key=Value, comma separated, supports quotes)
         if let Some(params_str) = request.params {
             for (key, value) in self.parse_param_pairs(params_str)? {
-                let json_value = match value.to_lowercase().as_str() {
-                    "true" => serde_json::Value::Bool(true),
-                    "false" => serde_json::Value::Bool(false),
-                    _ => serde_json::Value::String(value),
-                };
-                map.insert(key, json_value);
+                map.insert(key, serde_json::Value::String(value));
             }
         }
 
@@ -120,23 +115,28 @@ where
 
             if let serde_json::Value::Object(json_map) = json_val {
                 for (k, v) in json_map {
+                    if map.contains_key(&k) {
+                        return Err(GenerateError::InvalidParameter(format!(
+                            "parameter conflict: '{}' is defined in both --param and --param-json. Use one or the other for each key.",
+                            k
+                        )));
+                    }
                     map.insert(k, v);
                 }
             } else {
                 return Err(GenerateError::InvalidParameter(
-                    "--param-json must be a JSON object".to_string(),
+                    "--param-json must be a JSON object (e.g., --param-json '{\"key\": \"value\"}')"
+                        .to_string(),
                 ));
             }
         }
 
         if !request.no_input && request.is_interactive_terminal {
             for input in inputs {
-                let id = input.id.as_ref().ok_or_else(|| {
-                    GenerateError::InvalidParameter("template input is missing an 'id'".to_string())
-                })?;
+                let id = input.id();
                 if !map.contains_key(id) {
                     let value = self.prompt_for_input(input)?;
-                    map.insert(id.clone(), value);
+                    map.insert(id.to_string(), value);
                 }
             }
         }
@@ -144,9 +144,7 @@ where
         // Final validation: Ensure all defined inputs have been resolved.
         // This catches missing parameters when in --no-input mode.
         for input in inputs {
-            let id = input.id.as_ref().ok_or_else(|| {
-                GenerateError::InvalidParameter("template input is missing an 'id'".to_string())
-            })?;
+            let id = input.id();
             if !map.contains_key(id) {
                 return Err(GenerateError::InvalidParameter(format!(
                     "required parameter '{}' was not provided",
@@ -162,75 +160,68 @@ where
         &self,
         input: &TemplateInput,
     ) -> Result<serde_json::Value, GenerateError> {
-        match &input.input_type {
-            TemplateInputType::Text => {
-                let default_str = input.default.as_ref().and_then(|v| v.as_str());
-                self.prompt
-                    .text(&input.prompt, default_str)
-                    .map(serde_json::Value::String)
-                    .map_err(|e| GenerateError::WorkspaceError(e.to_string()))
-            }
+        match input.input_type() {
+            TemplateInputType::Text => self
+                .prompt
+                .text(input.prompt(), None)
+                .map(serde_json::Value::String)
+                .map_err(|e| GenerateError::WorkspaceError(e.to_string())),
             TemplateInputType::Password => self
                 .prompt
-                .password(&input.prompt)
+                .password(input.prompt())
                 .map(serde_json::Value::String)
                 .map_err(|e| GenerateError::WorkspaceError(e.to_string())),
             TemplateInputType::Confirm => {
-                let default_bool = input
-                    .default
-                    .as_ref()
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
+                let default_bool = input.default().and_then(|v| v.as_bool()).unwrap_or(false);
                 let result = self
                     .prompt
-                    .confirm(&input.prompt, default_bool)
+                    .confirm(input.prompt(), default_bool)
                     .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
                 Ok(serde_json::Value::Bool(result))
             }
             TemplateInputType::Select => {
-                let options = input.options.as_deref().ok_or_else(|| {
+                let options = input.options().ok_or_else(|| {
                     GenerateError::InvalidParameter(format!(
                         "select input '{}' has no options defined",
-                        input.id.as_deref().unwrap_or("unknown")
+                        input.id()
                     ))
                 })?;
                 if options.is_empty() {
                     return Err(GenerateError::InvalidParameter(format!(
                         "select input '{}' has an empty options list",
-                        input.id.as_deref().unwrap_or("unknown")
+                        input.id()
                     )));
                 }
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
                 let default_idx = input
-                    .default
-                    .as_ref()
+                    .default()
                     .and_then(|v| v.as_str())
                     .and_then(|d| options.iter().position(|o| o == d));
                 let selected = self
                     .prompt
-                    .select(&input.prompt, &select_options, default_idx)
+                    .select(input.prompt(), &select_options, default_idx)
                     .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
                 Ok(serde_json::Value::String(selected.value().to_string()))
             }
             TemplateInputType::Multiselect => {
-                let options = input.options.as_deref().ok_or_else(|| {
+                let options = input.options().ok_or_else(|| {
                     GenerateError::InvalidParameter(format!(
                         "multiselect input '{}' has no options defined",
-                        input.id.as_deref().unwrap_or("unknown")
+                        input.id()
                     ))
                 })?;
                 if options.is_empty() {
                     return Err(GenerateError::InvalidParameter(format!(
                         "multiselect input '{}' has an empty options list",
-                        input.id.as_deref().unwrap_or("unknown")
+                        input.id()
                     )));
                 }
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
                 let selected = self
                     .prompt
-                    .multiselect(&input.prompt, &select_options, &[])
+                    .multiselect(input.prompt(), &select_options, &[])
                     .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
                 let selected_values: Vec<serde_json::Value> = selected
                     .iter()
@@ -239,32 +230,28 @@ where
                 Ok(serde_json::Value::Array(selected_values))
             }
             TemplateInputType::Object => {
-                println!("{}", input.prompt);
+                println!("{}", input.prompt());
                 let mut obj_map = serde_json::Map::new();
-                let props = input.properties.as_ref().ok_or_else(|| {
+                let props = input.properties().ok_or_else(|| {
                     GenerateError::InvalidParameter(format!(
                         "object input '{}' has no properties defined",
-                        input.id.as_deref().unwrap_or("unknown")
+                        input.id()
                     ))
                 })?;
                 for prop in props {
-                    let id = prop.id.as_ref().ok_or_else(|| {
-                        GenerateError::InvalidParameter(
-                            "template object property is missing an 'id'".to_string(),
-                        )
-                    })?;
+                    let id = prop.id();
                     let value = self.prompt_for_input(prop)?;
-                    obj_map.insert(id.clone(), value);
+                    obj_map.insert(id.to_string(), value);
                 }
                 Ok(serde_json::Value::Object(obj_map))
             }
             TemplateInputType::List => {
                 let mut list = Vec::new();
-                if let Some(item_schema) = &input.items {
+                if let Some(item_schema) = input.items() {
                     loop {
                         let add_more = self
                             .prompt
-                            .confirm(&format!("Add an item to {}?", input.prompt), false)
+                            .confirm(&format!("Add an item to {}?", input.prompt()), false)
                             .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
                         if !add_more {
                             break;
@@ -294,12 +281,16 @@ where
                     in_key = false;
                 }
                 ',' if !in_key && !in_quotes => {
-                    if !current_key.trim().is_empty() {
-                        pairs.push((
-                            current_key.trim().to_string(),
-                            current_value.trim().to_string(),
+                    if current_key.trim().is_empty() {
+                        return Err(GenerateError::InvalidParameter(
+                            "parameter key cannot be empty in --param. Check for trailing or consecutive commas."
+                                .to_string(),
                         ));
                     }
+                    pairs.push((
+                        current_key.trim().to_string(),
+                        current_value.trim().to_string(),
+                    ));
                     current_key.clear();
                     current_value.clear();
                     in_key = true;
@@ -317,16 +308,28 @@ where
             }
         }
 
+        if in_quotes {
+            return Err(GenerateError::InvalidParameter(
+                "unclosed quotes in --param. Ensure all opening quotes have a matching closing quote."
+                    .to_string(),
+            ));
+        }
+
         if !current_key.trim().is_empty() {
             if in_key {
                 return Err(GenerateError::InvalidParameter(format!(
-                    "invalid parameter format '{}'. Missing '='",
+                    "invalid parameter format '{}' in --param. Each parameter must be in Key=Value format.",
                     current_key
                 )));
             }
             pairs.push((
                 current_key.trim().to_string(),
                 current_value.trim().to_string(),
+            ));
+        } else if !current_value.trim().is_empty() {
+            return Err(GenerateError::InvalidParameter(
+                "parameter key cannot be empty in --param. Check for leading commas or missing keys."
+                    .to_string(),
             ));
         }
 

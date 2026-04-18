@@ -1,6 +1,6 @@
 use serde_yaml::Value as YamlValue;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
@@ -16,6 +16,13 @@ pub struct GenerateCommandHandler<W, R, E> {
     working_dir_provider: W,
     root_resolver: R,
     engine: E,
+}
+
+pub struct GenerateContext {
+    pub workspace_root: PathBuf,
+    pub nfw_yaml: YamlValue,
+    pub template_root: PathBuf,
+    pub config: TemplateConfig,
 }
 
 impl<W, R, E> GenerateCommandHandler<W, R, E>
@@ -35,42 +42,25 @@ where
     pub fn handle(
         &self,
         command: &GenerateCommand,
-        config: Option<TemplateConfig>,
+        context: GenerateContext,
     ) -> Result<(), GenerateError> {
         self.validate_identifiers(command)?;
 
-        let current_dir = self.working_dir_provider.current_dir().map_err(|e| {
-            GenerateError::WorkspaceError(format!("failed to get current directory: {e}"))
-        })?;
-
-        let workspace_root = self.resolve_workspace_root(&current_dir).ok_or_else(|| {
-            GenerateError::WorkspaceError(
-                "could not find nfw.yaml in current or parent directories".to_string(),
-            )
-        })?;
-
-        let nfw_yaml = self.load_nfw_yaml(&workspace_root)?;
-        let parameters = self.build_parameters(&nfw_yaml, command)?;
-
-        let template_root =
-            self.resolve_template_root(&nfw_yaml, &command.generator_type, &workspace_root)?;
-
-        let config = match config {
-            Some(c) => c,
-            None => self.load_and_validate_template_config(&template_root)?,
-        };
+        let parameters = self.build_parameters(&context.nfw_yaml, command)?;
 
         self.engine
-            .execute(&config, &template_root, &workspace_root, &parameters)
+            .execute(
+                &context.config,
+                &context.template_root,
+                &context.workspace_root,
+                &parameters,
+            )
             .map_err(GenerateError::ExecutionFailed)?;
 
         Ok(())
     }
 
-    pub fn get_template_config(
-        &self,
-        generator_type: &str,
-    ) -> Result<TemplateConfig, GenerateError> {
+    pub fn prepare_context(&self, generator_type: &str) -> Result<GenerateContext, GenerateError> {
         let current_dir = self.working_dir_provider.current_dir().map_err(|e| {
             GenerateError::WorkspaceError(format!("failed to get current directory: {e}"))
         })?;
@@ -84,7 +74,14 @@ where
         let nfw_yaml = self.load_nfw_yaml(&workspace_root)?;
         let template_root =
             self.resolve_template_root(&nfw_yaml, generator_type, &workspace_root)?;
-        self.load_and_validate_template_config(&template_root)
+        let config = self.load_and_validate_template_config(&template_root)?;
+
+        Ok(GenerateContext {
+            workspace_root,
+            nfw_yaml,
+            template_root,
+            config,
+        })
     }
 
     fn resolve_template_root(

@@ -536,3 +536,149 @@ fn template_parameters_builders_validate_empty_input() {
     let valid = params.with_name("Test").unwrap();
     assert_eq!(valid.name(), Some("Test"));
 }
+
+#[test]
+fn execute_fails_on_param_conflict() {
+    let sandbox = create_sandbox();
+    std::fs::write(
+        sandbox.path().join("nfw.yaml"),
+        "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n",
+    ).unwrap();
+
+    let template_root = sandbox.path().join("templates").join("mock-cmd");
+    std::fs::create_dir_all(&template_root).unwrap();
+    std::fs::write(
+        template_root.join("template.yaml"),
+        "id: mock-cmd\nsteps: []\n",
+    )
+    .unwrap();
+
+    let command = create_command_with_mocks(
+        sandbox.path().to_path_buf(),
+        Some(template_root),
+        MockTemplateEngine::success(),
+    );
+
+    let result = command.execute(GenerateRequest {
+        generator_type: "command",
+        name: Some("ValidName"),
+        feature: None,
+        params: Some("Conflict=Value1"),
+        param_json: Some("{\"Conflict\": \"Value2\"}"),
+        no_input: true,
+        is_interactive_terminal: false,
+    });
+
+    assert!(result.is_err());
+    let err = result.unwrap_err().to_string();
+    assert!(err.contains("parameter conflict"), "Error was: {}", err);
+    assert!(err.contains("'Conflict'"), "Error was: {}", err);
+}
+
+#[test]
+fn execute_fails_on_malformed_param_json() {
+    let sandbox = create_sandbox();
+    std::fs::write(
+        sandbox.path().join("nfw.yaml"),
+        "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n",
+    ).unwrap();
+
+    let template_root = sandbox.path().join("templates").join("mock-cmd");
+    std::fs::create_dir_all(&template_root).unwrap();
+    std::fs::write(
+        template_root.join("template.yaml"),
+        "id: mock-cmd\nsteps: []\n",
+    )
+    .unwrap();
+
+    let command = create_command_with_mocks(
+        sandbox.path().to_path_buf(),
+        Some(template_root),
+        MockTemplateEngine::success(),
+    );
+
+    let result = command.execute(GenerateRequest {
+        generator_type: "command",
+        name: Some("ValidName"),
+        feature: None,
+        params: None,
+        param_json: Some("{ invalid json"),
+        no_input: true,
+        is_interactive_terminal: false,
+    });
+
+    assert!(result.is_err());
+    let err = result.unwrap_err().to_string();
+    assert!(
+        err.contains("invalid JSON in --param-json"),
+        "Error was: {}",
+        err
+    );
+}
+
+#[test]
+fn execute_fails_on_empty_select_options() {
+    let sandbox = create_sandbox();
+    std::fs::write(
+        sandbox.path().join("nfw.yaml"),
+        "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n",
+    ).unwrap();
+
+    let template_root = sandbox.path().join("templates").join("mock-cmd");
+    std::fs::create_dir_all(&template_root).unwrap();
+    // Select input with empty options should fail validation
+    std::fs::write(
+        template_root.join("template.yaml"),
+        "id: mock-cmd\ninputs:\n  - id: my-select\n    type: select\n    prompt: Choose\n    options: []\nsteps: []\n",
+    ).unwrap();
+
+    let command = create_command_with_mocks(
+        sandbox.path().to_path_buf(),
+        Some(template_root),
+        MockTemplateEngine::success(),
+    );
+
+    let result = command.execute(no_input_request(
+        "command",
+        Some("ValidName"),
+        None,
+        Some("my-select=val"),
+    ));
+
+    assert!(result.is_err());
+    let err = result.unwrap_err().to_string();
+    assert!(err.contains("empty options list"), "Error was: {}", err);
+}
+
+#[test]
+fn execute_fails_on_missing_required_params_no_input() {
+    let sandbox = create_sandbox();
+    std::fs::write(
+        sandbox.path().join("nfw.yaml"),
+        "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n",
+    ).unwrap();
+
+    let template_root = sandbox.path().join("templates").join("mock-cmd");
+    std::fs::create_dir_all(&template_root).unwrap();
+    std::fs::write(
+        template_root.join("template.yaml"),
+        "id: mock-cmd\ninputs:\n  - id: required-field\n    type: text\n    prompt: Enter something\nsteps: []\n",
+    ).unwrap();
+
+    let command = create_command_with_mocks(
+        sandbox.path().to_path_buf(),
+        Some(template_root),
+        MockTemplateEngine::success(),
+    );
+
+    // Missing 'required-field' in --no-input mode should fail
+    let result = command.execute(no_input_request("command", Some("ValidName"), None, None));
+
+    assert!(result.is_err());
+    let err = result.unwrap_err().to_string();
+    assert!(
+        err.contains("required parameter 'required-field' was not provided"),
+        "Error was: {}",
+        err
+    );
+}

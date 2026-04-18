@@ -5,12 +5,27 @@ use std::collections::BTreeMap;
 /// A type-safe container for template parameters used during rendering.
 /// Standardizes keys like 'Name', 'Namespace', and 'Feature' while allowing
 /// arbitrary custom parameters. Validates that keys are valid identifiers.
+///
+/// # Security
+///
+/// This container enforces that all keys are valid identifiers (alphanumeric, dots,
+/// hyphens, underscores, or curly braces for interpolation). This prevents
+/// injection attacks where malicious keys could manipulate template logic.
+/// Standard keys like `Name` and `Namespace` are protected with dedicated setters
+/// that enforce non-empty invariants.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct TemplateParameters {
     inner: BTreeMap<String, Value>,
 }
 
 impl TemplateParameters {
+    /// Reserved key for the project/item name.
+    pub const KEY_NAME: &'static str = "Name";
+    /// Reserved key for the feature name.
+    pub const KEY_FEATURE: &'static str = "Feature";
+    /// Reserved key for the workspace namespace.
+    pub const KEY_NAMESPACE: &'static str = "Namespace";
+
     /// Creates a new, empty set of template parameters.
     pub fn new() -> Self {
         Self::default()
@@ -23,7 +38,7 @@ impl TemplateParameters {
             return Err("name parameter cannot be empty".to_string());
         }
         self.inner
-            .insert("Name".to_string(), Value::String(name_val));
+            .insert(Self::KEY_NAME.to_string(), Value::String(name_val));
         Ok(self)
     }
 
@@ -34,7 +49,7 @@ impl TemplateParameters {
             return Err("feature parameter cannot be empty".to_string());
         }
         self.inner
-            .insert("Feature".to_string(), Value::String(feature_val));
+            .insert(Self::KEY_FEATURE.to_string(), Value::String(feature_val));
         Ok(self)
     }
 
@@ -44,8 +59,10 @@ impl TemplateParameters {
         if namespace_val.trim().is_empty() {
             return Err("namespace parameter cannot be empty".to_string());
         }
-        self.inner
-            .insert("Namespace".to_string(), Value::String(namespace_val));
+        self.inner.insert(
+            Self::KEY_NAMESPACE.to_string(),
+            Value::String(namespace_val),
+        );
         Ok(self)
     }
 
@@ -93,17 +110,17 @@ impl TemplateParameters {
 
     /// Returns the name parameter if set.
     pub fn name(&self) -> Option<&str> {
-        self.get("Name")
+        self.get(Self::KEY_NAME)
     }
 
     /// Returns the feature parameter if set.
     pub fn feature(&self) -> Option<&str> {
-        self.get("Feature")
+        self.get(Self::KEY_FEATURE)
     }
 
     /// Returns the namespace parameter if set.
     pub fn namespace(&self) -> Option<&str> {
-        self.get("Namespace")
+        self.get(Self::KEY_NAMESPACE)
     }
 
     /// Returns a reference to the underlying map.
@@ -120,19 +137,43 @@ fn get_parameter_key_regex() -> &'static regex::Regex {
     })
 }
 
-impl From<BTreeMap<String, String>> for TemplateParameters {
-    fn from(inner: BTreeMap<String, String>) -> Self {
-        Self {
-            inner: inner
-                .into_iter()
-                .map(|(k, v)| (k, Value::String(v)))
-                .collect(),
+impl TryFrom<BTreeMap<String, String>> for TemplateParameters {
+    type Error = String;
+
+    fn try_from(inner: BTreeMap<String, String>) -> Result<Self, Self::Error> {
+        let mut params = Self::new();
+        for (k, v) in inner {
+            params.insert(k, v)?;
         }
+        Ok(params)
     }
 }
 
-impl From<BTreeMap<String, Value>> for TemplateParameters {
-    fn from(inner: BTreeMap<String, Value>) -> Self {
-        Self { inner }
+impl TryFrom<BTreeMap<String, Value>> for TemplateParameters {
+    type Error = String;
+
+    fn try_from(inner: BTreeMap<String, Value>) -> Result<Self, Self::Error> {
+        let mut params = Self::new();
+        for (k, v) in inner {
+            params.insert_value(k, v)?;
+        }
+        Ok(params)
+    }
+}
+
+impl TryFrom<serde_json::Value> for TemplateParameters {
+    type Error = String;
+
+    fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
+        match value {
+            Value::Object(map) => {
+                let mut params = Self::new();
+                for (k, v) in map {
+                    params.insert_value(k, v)?;
+                }
+                Ok(params)
+            }
+            _ => Err("TemplateParameters must be constructed from a JSON object".to_string()),
+        }
     }
 }

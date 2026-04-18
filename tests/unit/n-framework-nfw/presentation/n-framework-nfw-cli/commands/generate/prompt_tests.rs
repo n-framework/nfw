@@ -206,15 +206,7 @@ fn run_prompt_test(
 
 #[test]
 fn test_text_prompt() {
-    let input = TemplateInput {
-        id: Some("id".into()),
-        input_type: TemplateInputType::Text,
-        prompt: "Prompt".into(),
-        default: None,
-        options: None,
-        properties: None,
-        items: None,
-    };
+    let input = TemplateInput::new("id".into(), TemplateInputType::Text, "Prompt".into());
     let (val, calls) = run_prompt_test(&input, vec![json!("hello")]);
     assert_eq!(val, json!("hello"));
     assert_eq!(calls, vec!["text: Prompt"]);
@@ -222,15 +214,7 @@ fn test_text_prompt() {
 
 #[test]
 fn test_password_prompt() {
-    let input = TemplateInput {
-        id: Some("id".into()),
-        input_type: TemplateInputType::Password,
-        prompt: "Prompt".into(),
-        default: None,
-        options: None,
-        properties: None,
-        items: None,
-    };
+    let input = TemplateInput::new("id".into(), TemplateInputType::Password, "Prompt".into());
     let (val, calls) = run_prompt_test(&input, vec![json!("secret")]);
     assert_eq!(val, json!("secret"));
     assert_eq!(calls, vec!["password: Prompt"]);
@@ -238,15 +222,7 @@ fn test_password_prompt() {
 
 #[test]
 fn test_confirm_prompt() {
-    let input = TemplateInput {
-        id: Some("id".into()),
-        input_type: TemplateInputType::Confirm,
-        prompt: "Prompt".into(),
-        default: None,
-        options: None,
-        properties: None,
-        items: None,
-    };
+    let input = TemplateInput::new("id".into(), TemplateInputType::Confirm, "Prompt".into());
     let (val, calls) = run_prompt_test(&input, vec![json!(true)]);
     assert_eq!(val, json!(true));
     assert_eq!(calls, vec!["confirm: Prompt"]);
@@ -254,15 +230,8 @@ fn test_confirm_prompt() {
 
 #[test]
 fn test_select_prompt() {
-    let input = TemplateInput {
-        id: Some("id".into()),
-        input_type: TemplateInputType::Select,
-        prompt: "Prompt".into(),
-        default: None,
-        options: Some(vec!["opt1".into(), "opt2".into()]),
-        properties: None,
-        items: None,
-    };
+    let input = TemplateInput::new("id".into(), TemplateInputType::Select, "Prompt".into())
+        .with_options(vec!["opt1".into(), "opt2".into()]);
     let (val, calls) = run_prompt_test(&input, vec![json!("opt2")]);
     assert_eq!(val, json!("opt2"));
     assert_eq!(calls, vec!["select: Prompt"]);
@@ -270,15 +239,8 @@ fn test_select_prompt() {
 
 #[test]
 fn test_multiselect_prompt() {
-    let input = TemplateInput {
-        id: Some("id".into()),
-        input_type: TemplateInputType::Multiselect,
-        prompt: "Prompt".into(),
-        default: None,
-        options: Some(vec!["opt1".into(), "opt2".into(), "opt3".into()]),
-        properties: None,
-        items: None,
-    };
+    let input = TemplateInput::new("id".into(), TemplateInputType::Multiselect, "Prompt".into())
+        .with_options(vec!["opt1".into(), "opt2".into(), "opt3".into()]);
     let (val, calls) = run_prompt_test(&input, vec![json!(vec!["opt1", "opt2"])]);
     assert_eq!(val, json!(vec!["opt1", "opt2"]));
     assert_eq!(calls, vec!["multiselect: Prompt"]);
@@ -286,34 +248,23 @@ fn test_multiselect_prompt() {
 
 #[test]
 fn test_object_prompt_recursive() {
-    let input = TemplateInput {
-        id: Some("obj".to_string()),
-        input_type: TemplateInputType::Object,
-        prompt: "ignored".to_string(),
-        default: None,
-        options: None,
-        properties: Some(vec![
-            TemplateInput {
-                id: Some("p1".to_string()),
-                input_type: TemplateInputType::Text,
-                prompt: "P1 Prompt".to_string(),
-                default: None,
-                options: None,
-                properties: None,
-                items: None,
-            },
-            TemplateInput {
-                id: Some("p2".to_string()),
-                input_type: TemplateInputType::Text,
-                prompt: "P2 Prompt".to_string(),
-                default: None,
-                options: None,
-                properties: None,
-                items: None,
-            },
-        ]),
-        items: None,
-    };
+    let input = TemplateInput::new(
+        "obj".to_string(),
+        TemplateInputType::Object,
+        "ignored".to_string(),
+    )
+    .with_properties(vec![
+        TemplateInput::new(
+            "p1".to_string(),
+            TemplateInputType::Text,
+            "P1 Prompt".to_string(),
+        ),
+        TemplateInput::new(
+            "p2".to_string(),
+            TemplateInputType::Text,
+            "P2 Prompt".to_string(),
+        ),
+    ]);
 
     let (val, calls) = run_prompt_test(&input, vec![json!("val1"), json!("val2")]);
     assert_json_eq!(val, json!({ "p1": "val1", "p2": "val2" }));
@@ -322,23 +273,16 @@ fn test_object_prompt_recursive() {
 
 #[test]
 fn test_list_prompt_dynamic() {
-    let input = TemplateInput {
-        id: Some("list".to_string()),
-        input_type: TemplateInputType::List,
-        prompt: "List Prompt".to_string(),
-        default: None,
-        options: None,
-        properties: None,
-        items: Some(Box::new(TemplateInput {
-            id: None,
-            input_type: TemplateInputType::Text,
-            prompt: "Item Prompt".to_string(),
-            default: None,
-            options: None,
-            properties: None,
-            items: None,
-        })),
-    };
+    let input = TemplateInput::new(
+        "list".to_string(),
+        TemplateInputType::List,
+        "List Prompt".to_string(),
+    )
+    .with_items(TemplateInput::new(
+        "item".to_string(),
+        TemplateInputType::Text,
+        "Item Prompt".to_string(),
+    ));
 
     let (val, calls) = run_prompt_test(
         &input,
