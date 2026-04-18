@@ -155,9 +155,80 @@ impl TemplateConfig {
                 }
             }
         }
+        for (i, input) in self.inputs.iter().enumerate() {
+            input.validate(i, None)?;
+        }
         Ok(())
     }
+}
 
+impl TemplateInput {
+    fn validate(&self, index: usize, parent_id: Option<&str>) -> Result<(), TemplateConfigError> {
+        let input_id = self.id.as_deref().unwrap_or("unknown");
+        let context = if let Some(parent) = parent_id {
+            format!("property '{}' of object '{}'", input_id, parent)
+        } else {
+            format!("input '{}' at index {}", input_id, index)
+        };
+
+        if self.id.is_none() && parent_id.is_some() {
+            return Err(TemplateConfigError::InvalidFormat {
+                field: "id".to_string(),
+                message: format!("missing id for {}", context),
+            });
+        }
+
+        match self.input_type {
+            TemplateInputType::Select | TemplateInputType::Multiselect => {
+                let opts =
+                    self.options
+                        .as_ref()
+                        .ok_or_else(|| TemplateConfigError::InvalidFormat {
+                            field: "options".to_string(),
+                            message: format!("{} must have options defined", context),
+                        })?;
+                if opts.is_empty() {
+                    return Err(TemplateConfigError::InvalidFormat {
+                        field: "options".to_string(),
+                        message: format!("{} has an empty options list", context),
+                    });
+                }
+            }
+            TemplateInputType::Object => {
+                let props =
+                    self.properties
+                        .as_ref()
+                        .ok_or_else(|| TemplateConfigError::InvalidFormat {
+                            field: "properties".to_string(),
+                            message: format!("{} must have properties defined", context),
+                        })?;
+                if props.is_empty() {
+                    return Err(TemplateConfigError::InvalidFormat {
+                        field: "properties".to_string(),
+                        message: format!("{} has an empty properties list", context),
+                    });
+                }
+                for (j, prop) in props.iter().enumerate() {
+                    prop.validate(j, Some(input_id))?;
+                }
+            }
+            TemplateInputType::List => {
+                if self.items.is_none() {
+                    return Err(TemplateConfigError::InvalidFormat {
+                        field: "items".to_string(),
+                        message: format!("{} must have an items schema defined", context),
+                    });
+                }
+                // Recursively validate list items
+                self.items.as_ref().unwrap().validate(0, Some(input_id))?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+impl TemplateConfig {
     /// Returns the template ID if set.
     pub fn id(&self) -> Option<&str> {
         self.id.as_deref()

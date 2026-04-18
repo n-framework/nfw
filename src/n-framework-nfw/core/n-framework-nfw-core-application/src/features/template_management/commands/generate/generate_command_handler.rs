@@ -32,7 +32,11 @@ where
         }
     }
 
-    pub fn handle(&self, command: &GenerateCommand) -> Result<(), GenerateError> {
+    pub fn handle(
+        &self,
+        command: &GenerateCommand,
+        config: Option<TemplateConfig>,
+    ) -> Result<(), GenerateError> {
         self.validate_identifiers(command)?;
 
         let current_dir = self.working_dir_provider.current_dir().map_err(|e| {
@@ -50,7 +54,11 @@ where
 
         let template_root =
             self.resolve_template_root(&nfw_yaml, &command.generator_type, &workspace_root)?;
-        let config = self.load_and_validate_template_config(&template_root)?;
+
+        let config = match config {
+            Some(c) => c,
+            None => self.load_and_validate_template_config(&template_root)?,
+        };
 
         self.engine
             .execute(&config, &template_root, &workspace_root, &parameters)
@@ -184,12 +192,17 @@ where
                 )
             })?;
 
-        let mut parameters = TemplateParameters::new()
+        let parameters = TemplateParameters::new()
             .with_name(&command.name)
-            .with_namespace(namespace);
+            .map_err(GenerateError::InvalidParameter)?
+            .with_namespace(namespace)
+            .map_err(GenerateError::InvalidParameter)?;
 
+        let mut parameters = parameters;
         if let Some(ref feature) = command.feature {
-            parameters = parameters.with_feature(feature);
+            parameters = parameters
+                .with_feature(feature)
+                .map_err(GenerateError::InvalidParameter)?;
         }
 
         if let Some(ref val) = command.params {

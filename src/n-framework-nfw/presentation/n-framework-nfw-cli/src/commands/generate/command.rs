@@ -25,6 +25,8 @@ pub struct GenerateRequest<'a> {
     pub feature: Option<&'a str>,
     /// Optional arbitrary parameters as 'Key=Value' pairs.
     pub params: Option<&'a str>,
+    /// Optional JSON parameters as a raw JSON string.
+    pub param_json: Option<&'a str>,
     /// Whether interactive prompts are disabled.
     pub no_input: bool,
     /// Whether the current terminal is interactive.
@@ -61,7 +63,7 @@ where
             params_opt,
         );
 
-        self.handler.handle(&command)?;
+        self.handler.handle(&command, Some(config))?;
 
         println!(
             "Generated '{}' '{}' successfully.",
@@ -98,49 +100,81 @@ where
     ) -> Result<serde_json::Value, GenerateError> {
         let mut map = serde_json::Map::new();
 
+        // 1. Resolve from --param (Key=Value, comma separated, supports quotes)
         if let Some(params_str) = request.params {
-            for param_pair in params_str.split(',') {
-                if let Some((key, value)) = param_pair.split_once('=') {
-                    let key = key.trim();
-                    let value = value.trim();
-                    let json_value = match value.to_lowercase().as_str() {
-                        "true" => serde_json::Value::Bool(true),
-                        "false" => serde_json::Value::Bool(false),
-                        _ => serde_json::Value::String(value.to_string()),
-                    };
-                    map.insert(key.to_string(), json_value);
-                } else {
-                    return Err(GenerateError::InvalidParameter(format!(
-                        "invalid parameter format '{}'. expected Key=Value",
-                        param_pair
-                    )));
+            for (key, value) in self.parse_param_pairs(params_str)? {
+                let json_value = match value.to_lowercase().as_str() {
+                    "true" => serde_json::Value::Bool(true),
+                    "false" => serde_json::Value::Bool(false),
+                    _ => serde_json::Value::String(value),
+                };
+                map.insert(key, json_value);
+            }
+        }
+
+        // 2. Resolve from --param-json (Raw JSON object)
+        if let Some(json_str) = request.param_json {
+            let json_val: serde_json::Value = serde_json::from_str(json_str).map_err(|e| {
+                GenerateError::InvalidParameter(format!("invalid JSON in --param-json: {e}"))
+            })?;
+
+            if let serde_json::Value::Object(json_map) = json_val {
+                for (k, v) in json_map {
+                    map.insert(k, v);
                 }
+            } else {
+                return Err(GenerateError::InvalidParameter(
+                    "--param-json must be a JSON object".to_string(),
+                ));
             }
         }
 
         if !request.no_input && request.is_interactive_terminal {
             for input in inputs {
-                let id = input.id.clone().unwrap_or_else(|| "Unknown".to_string());
-                if !map.contains_key(&id) {
+                let id = input.id.as_ref().ok_or_else(|| {
+                    GenerateError::InvalidParameter("template input is missing an 'id'".to_string())
+                })?;
+                if !map.contains_key(id) {
                     let value = self.prompt_for_input(input)?;
-                    map.insert(id, value);
+                    map.insert(id.clone(), value);
                 }
+            }
+        }
+
+        // Final validation: Ensure all defined inputs have been resolved.
+        // This catches missing parameters when in --no-input mode.
+        for input in inputs {
+            let id = input.id.as_ref().ok_or_else(|| {
+                GenerateError::InvalidParameter("template input is missing an 'id'".to_string())
+            })?;
+            if !map.contains_key(id) {
+                return Err(GenerateError::InvalidParameter(format!(
+                    "required parameter '{}' was not provided",
+                    id
+                )));
             }
         }
 
         Ok(serde_json::Value::Object(map))
     }
 
-    fn prompt_for_input(&self, input: &TemplateInput) -> Result<serde_json::Value, GenerateError> {
+    pub fn prompt_for_input(
+        &self,
+        input: &TemplateInput,
+    ) -> Result<serde_json::Value, GenerateError> {
         match &input.input_type {
-            TemplateInputType::Text | TemplateInputType::Password => {
+            TemplateInputType::Text => {
                 let default_str = input.default.as_ref().and_then(|v| v.as_str());
-                let result = self
-                    .prompt
+                self.prompt
                     .text(&input.prompt, default_str)
-                    .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
-                Ok(serde_json::Value::String(result))
+                    .map(serde_json::Value::String)
+                    .map_err(|e| GenerateError::WorkspaceError(e.to_string()))
             }
+            TemplateInputType::Password => self
+                .prompt
+                .password(&input.prompt)
+                .map(serde_json::Value::String)
+                .map_err(|e| GenerateError::WorkspaceError(e.to_string())),
             TemplateInputType::Confirm => {
                 let default_bool = input
                     .default
@@ -154,7 +188,18 @@ where
                 Ok(serde_json::Value::Bool(result))
             }
             TemplateInputType::Select => {
-                let options = input.options.as_deref().unwrap_or(&[]);
+                let options = input.options.as_deref().ok_or_else(|| {
+                    GenerateError::InvalidParameter(format!(
+                        "select input '{}' has no options defined",
+                        input.id.as_deref().unwrap_or("unknown")
+                    ))
+                })?;
+                if options.is_empty() {
+                    return Err(GenerateError::InvalidParameter(format!(
+                        "select input '{}' has an empty options list",
+                        input.id.as_deref().unwrap_or("unknown")
+                    )));
+                }
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
                 let default_idx = input
@@ -169,7 +214,18 @@ where
                 Ok(serde_json::Value::String(selected.value().to_string()))
             }
             TemplateInputType::Multiselect => {
-                let options = input.options.as_deref().unwrap_or(&[]);
+                let options = input.options.as_deref().ok_or_else(|| {
+                    GenerateError::InvalidParameter(format!(
+                        "multiselect input '{}' has no options defined",
+                        input.id.as_deref().unwrap_or("unknown")
+                    ))
+                })?;
+                if options.is_empty() {
+                    return Err(GenerateError::InvalidParameter(format!(
+                        "multiselect input '{}' has an empty options list",
+                        input.id.as_deref().unwrap_or("unknown")
+                    )));
+                }
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
                 let selected = self
@@ -185,12 +241,20 @@ where
             TemplateInputType::Object => {
                 println!("{}", input.prompt);
                 let mut obj_map = serde_json::Map::new();
-                if let Some(props) = &input.properties {
-                    for prop in props {
-                        let id = prop.id.clone().unwrap_or_else(|| "Unknown".to_string());
-                        let value = self.prompt_for_input(prop)?;
-                        obj_map.insert(id, value);
-                    }
+                let props = input.properties.as_ref().ok_or_else(|| {
+                    GenerateError::InvalidParameter(format!(
+                        "object input '{}' has no properties defined",
+                        input.id.as_deref().unwrap_or("unknown")
+                    ))
+                })?;
+                for prop in props {
+                    let id = prop.id.as_ref().ok_or_else(|| {
+                        GenerateError::InvalidParameter(
+                            "template object property is missing an 'id'".to_string(),
+                        )
+                    })?;
+                    let value = self.prompt_for_input(prop)?;
+                    obj_map.insert(id.clone(), value);
                 }
                 Ok(serde_json::Value::Object(obj_map))
             }
@@ -212,5 +276,60 @@ where
                 Ok(serde_json::Value::Array(list))
             }
         }
+    }
+
+    /// Parses 'Key=Value' pairs from a comma-separated string, respecting quotes.
+    /// Example: 'Key1=Value1,Key2="Value with, comma"'
+    fn parse_param_pairs(&self, input: &str) -> Result<Vec<(String, String)>, GenerateError> {
+        let mut pairs = Vec::new();
+        let mut current_key = String::new();
+        let mut current_value = String::new();
+        let mut in_quotes = false;
+        let mut in_key = true;
+        let chars = input.chars();
+
+        for c in chars {
+            match c {
+                '=' if in_key && !in_quotes => {
+                    in_key = false;
+                }
+                ',' if !in_key && !in_quotes => {
+                    if !current_key.trim().is_empty() {
+                        pairs.push((
+                            current_key.trim().to_string(),
+                            current_value.trim().to_string(),
+                        ));
+                    }
+                    current_key.clear();
+                    current_value.clear();
+                    in_key = true;
+                }
+                '"' => {
+                    in_quotes = !in_quotes;
+                }
+                _ => {
+                    if in_key {
+                        current_key.push(c);
+                    } else {
+                        current_value.push(c);
+                    }
+                }
+            }
+        }
+
+        if !current_key.trim().is_empty() {
+            if in_key {
+                return Err(GenerateError::InvalidParameter(format!(
+                    "invalid parameter format '{}'. Missing '='",
+                    current_key
+                )));
+            }
+            pairs.push((
+                current_key.trim().to_string(),
+                current_value.trim().to_string(),
+            ));
+        }
+
+        Ok(pairs)
     }
 }

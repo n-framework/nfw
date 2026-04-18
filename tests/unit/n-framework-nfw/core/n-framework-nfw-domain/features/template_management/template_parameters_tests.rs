@@ -8,21 +8,23 @@ fn new_creates_empty_parameters() {
 
 #[test]
 fn with_name_sets_name() {
-    let params = TemplateParameters::new().with_name("MyService");
+    let params = TemplateParameters::new().with_name("MyService").unwrap();
     assert_eq!(params.name(), Some("MyService"));
     assert_eq!(params.get("Name"), Some("MyService"));
 }
 
 #[test]
 fn with_feature_sets_feature() {
-    let params = TemplateParameters::new().with_feature("Auth");
+    let params = TemplateParameters::new().with_feature("Auth").unwrap();
     assert_eq!(params.feature(), Some("Auth"));
     assert_eq!(params.get("Feature"), Some("Auth"));
 }
 
 #[test]
 fn with_namespace_sets_namespace() {
-    let params = TemplateParameters::new().with_namespace("Com.Example");
+    let params = TemplateParameters::new()
+        .with_namespace("Com.Example")
+        .unwrap();
     assert_eq!(params.namespace(), Some("Com.Example"));
     assert_eq!(params.get("Namespace"), Some("Com.Example"));
 }
@@ -57,13 +59,10 @@ fn insert_overwrites_existing_key() {
 }
 
 #[test]
-fn with_methods_ignore_empty_values() {
-    let params = TemplateParameters::new()
-        .with_name("  ")
-        .with_feature("")
-        .with_namespace("\t");
+fn with_methods_fail_on_empty_values() {
+    let params = TemplateParameters::new();
 
-    assert!(params.name().is_none());
-    assert!(params.feature().is_none());
-    assert!(params.namespace().is_none());
+    assert!(params.clone().with_name("  ").is_err());
+    assert!(params.clone().with_feature("").is_err());
+    assert!(params.clone().with_namespace("\t").is_err());
 }

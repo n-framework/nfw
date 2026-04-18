@@ -44,7 +44,9 @@ impl ServiceGenerationPlanBuilder {
 
         let mut parameters = TemplateParameters::new()
             .with_name(service_name)
-            .with_namespace(&namespace);
+            .map_err(AddServiceError::InvalidWorkspaceContext)?
+            .with_namespace(&namespace)
+            .map_err(AddServiceError::InvalidWorkspaceContext)?;
 
         // Standard parameters
         parameters

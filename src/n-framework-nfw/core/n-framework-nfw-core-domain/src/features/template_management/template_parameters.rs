@@ -17,33 +17,36 @@ impl TemplateParameters {
     }
 
     /// Sets the 'Name' parameter.
-    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+    pub fn with_name(mut self, name: impl Into<String>) -> Result<Self, String> {
         let name_val = name.into();
-        if !name_val.trim().is_empty() {
-            self.inner
-                .insert("Name".to_string(), Value::String(name_val));
+        if name_val.trim().is_empty() {
+            return Err("name parameter cannot be empty".to_string());
         }
-        self
+        self.inner
+            .insert("Name".to_string(), Value::String(name_val));
+        Ok(self)
     }
 
     /// Sets the 'Feature' parameter.
-    pub fn with_feature(mut self, feature: impl Into<String>) -> Self {
+    pub fn with_feature(mut self, feature: impl Into<String>) -> Result<Self, String> {
         let feature_val = feature.into();
-        if !feature_val.trim().is_empty() {
-            self.inner
-                .insert("Feature".to_string(), Value::String(feature_val));
+        if feature_val.trim().is_empty() {
+            return Err("feature parameter cannot be empty".to_string());
         }
-        self
+        self.inner
+            .insert("Feature".to_string(), Value::String(feature_val));
+        Ok(self)
     }
 
     /// Sets the 'Namespace' parameter.
-    pub fn with_namespace(mut self, namespace: impl Into<String>) -> Self {
+    pub fn with_namespace(mut self, namespace: impl Into<String>) -> Result<Self, String> {
         let namespace_val = namespace.into();
-        if !namespace_val.trim().is_empty() {
-            self.inner
-                .insert("Namespace".to_string(), Value::String(namespace_val));
+        if namespace_val.trim().is_empty() {
+            return Err("namespace parameter cannot be empty".to_string());
         }
-        self
+        self.inner
+            .insert("Namespace".to_string(), Value::String(namespace_val));
+        Ok(self)
     }
 
     /// Inserts a custom string parameter. Validates the key is a valid identifier.

@@ -28,6 +28,10 @@ impl PromptService for TestPromptService {
         Ok(true)
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        Ok("test-password".to_owned())
+    }
+
     fn select(
         &self,
         _message: &str,

@@ -79,6 +79,12 @@ impl PromptService for FailingPromptService {
         ))
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        Err(PromptError::internal(
+            "password prompt is unavailable in test",
+        ))
+    }
+
     fn select(
         &self,
         _message: &str,

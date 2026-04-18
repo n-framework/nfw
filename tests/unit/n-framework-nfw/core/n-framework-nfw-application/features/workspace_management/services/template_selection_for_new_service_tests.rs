@@ -43,6 +43,10 @@ impl PromptService for StubPromptService {
         Ok(true)
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        Ok("stub-password".to_owned())
+    }
+
     fn select(
         &self,
         _message: &str,

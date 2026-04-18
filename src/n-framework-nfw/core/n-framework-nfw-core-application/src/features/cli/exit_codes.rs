@@ -55,10 +55,9 @@ impl ExitCodes {
 
     pub fn from_generate_error(error: &GenerateError) -> Self {
         match error {
-            GenerateError::InvalidIdentifier(_) | GenerateError::InvalidParameter(_) => {
-                Self::ValidationError
-            }
-            GenerateError::ConfigError(_) => Self::Conflict,
+            GenerateError::ConfigError(_)
+            | GenerateError::InvalidIdentifier(_)
+            | GenerateError::InvalidParameter(_) => Self::ValidationError,
             GenerateError::TemplateNotFound(_) => Self::NotFound,
             GenerateError::ExecutionFailed(_) => Self::ExternalDependencyFailure,
             GenerateError::WorkspaceError(_) => Self::InternalError,

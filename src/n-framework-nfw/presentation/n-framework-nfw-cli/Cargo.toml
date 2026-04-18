@@ -38,6 +38,10 @@ name = "generate_command_tests"
 path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/commands/generate/generate_tests.rs"
 
 [[test]]
+name = "generate_prompt_tests"
+path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/commands/generate/prompt_tests.rs"
+
+[[test]]
 name = "add_service_command_routing_tests"
 path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/runtime/add_service_command_routing_tests.rs"
 

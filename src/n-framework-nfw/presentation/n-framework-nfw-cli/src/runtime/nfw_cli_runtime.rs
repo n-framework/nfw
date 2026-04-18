@@ -126,6 +126,10 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                                     .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
                             )
                             .with_option(
+                                CliOptionSpec::new("param-json", "param-json")
+                                    .with_help("JSON string of parameters for the template (e.g. '{\"Key\": \"Value\"}')"),
+                            )
+                            .with_option(
                                 CliOptionSpec::new("no-input", "no-input")
                                     .with_help("Disable all interactive prompts")
                                     .flag(),
@@ -145,6 +149,10 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                             .with_option(
                                 CliOptionSpec::new("param", "param")
                                     .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("param-json", "param-json")
+                                    .with_help("JSON string of parameters for the template (e.g. '{\"Key\": \"Value\"}')"),
                             )
                             .with_option(
                                 CliOptionSpec::new("no-input", "no-input")
@@ -266,29 +274,20 @@ pub fn handle_gen_command(
     command: &dyn Command,
     context: &CliServiceCollection,
 ) -> Result<(), String> {
-    let no_input = command.option("no-input").is_some();
-    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-    GenerateCliCommand::new(
-        context.generate_command_handler.clone(),
-        n_framework_core_cli_inquire::InquirerPromptService::new(),
-    )
-    .execute(GenerateRequest {
-        generator_type: "command",
-        name: command.option("name"),
-        feature: command.option("feature"),
-        params: command.option("param"),
-        no_input,
-        is_interactive_terminal,
-    })
-    .map_err(|e| {
-        let exit_code = ExitCodes::from_generate_error(&e) as i32;
-        format!("[exit:{exit_code}] {}", e)
-    })
+    handle_generate(command, context, "command")
 }
 
 pub fn handle_gen_query(
     command: &dyn Command,
     context: &CliServiceCollection,
+) -> Result<(), String> {
+    handle_generate(command, context, "query")
+}
+
+fn handle_generate(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+    generator_type: &str,
 ) -> Result<(), String> {
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
@@ -297,10 +296,11 @@ pub fn handle_gen_query(
         n_framework_core_cli_inquire::InquirerPromptService::new(),
     )
     .execute(GenerateRequest {
-        generator_type: "query",
+        generator_type,
         name: command.option("name"),
         feature: command.option("feature"),
         params: command.option("param"),
+        param_json: command.option("param-json"),
         no_input,
         is_interactive_terminal,
     })

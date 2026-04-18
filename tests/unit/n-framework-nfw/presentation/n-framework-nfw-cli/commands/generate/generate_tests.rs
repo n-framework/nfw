@@ -84,6 +84,10 @@ impl PromptService for MockPromptService {
         Ok(default)
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        Ok(String::new())
+    }
+
     fn select(
         &self,
         _message: &str,
@@ -155,6 +159,7 @@ fn no_input_request<'a>(
         name,
         feature,
         params,
+        param_json: None,
         no_input: true,
         is_interactive_terminal: false,
     }
@@ -445,4 +450,89 @@ fn execute_fails_on_engine_error() {
         "Expected engine failure message but got: {}",
         err
     );
+}
+
+#[test]
+fn execute_supports_quoted_commas_in_params() {
+    let sandbox = create_sandbox();
+    std::fs::write(
+        sandbox.path().join("nfw.yaml"),
+        "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n",
+    )
+    .unwrap();
+
+    let template_root = sandbox.path().join("templates").join("mock-cmd");
+    std::fs::create_dir_all(&template_root).unwrap();
+    std::fs::write(
+        template_root.join("template.yaml"),
+        "id: mock-cmd\nsteps: []\n",
+    )
+    .unwrap();
+
+    let command = create_command_with_mocks(
+        sandbox.path().to_path_buf(),
+        Some(template_root),
+        MockTemplateEngine::success(),
+    );
+
+    let result = command.execute(GenerateRequest {
+        generator_type: "command",
+        name: Some("ValidName"),
+        feature: None,
+        params: Some("Key1=Value1,Key2=\"Value with, comma\""),
+        param_json: None,
+        no_input: true,
+        is_interactive_terminal: false,
+    });
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn execute_supports_param_json() {
+    let sandbox = create_sandbox();
+    std::fs::write(
+        sandbox.path().join("nfw.yaml"),
+        "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n",
+    )
+    .unwrap();
+
+    let template_root = sandbox.path().join("templates").join("mock-cmd");
+    std::fs::create_dir_all(&template_root).unwrap();
+    std::fs::write(
+        template_root.join("template.yaml"),
+        "id: mock-cmd\nsteps: []\n",
+    )
+    .unwrap();
+
+    let command = create_command_with_mocks(
+        sandbox.path().to_path_buf(),
+        Some(template_root),
+        MockTemplateEngine::success(),
+    );
+
+    let result = command.execute(GenerateRequest {
+        generator_type: "command",
+        name: Some("ValidName"),
+        feature: None,
+        params: None,
+        param_json: Some("{\"Complex\": {\"Target\": 123}}"),
+        no_input: true,
+        is_interactive_terminal: false,
+    });
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn template_parameters_builders_validate_empty_input() {
+    let params = TemplateParameters::new();
+
+    assert!(params.clone().with_name("").is_err());
+    assert!(params.clone().with_name("  ").is_err());
+    assert!(params.clone().with_feature("").is_err());
+    assert!(params.clone().with_namespace("").is_err());
+
+    let valid = params.with_name("Test").unwrap();
+    assert_eq!(valid.name(), Some("Test"));
 }

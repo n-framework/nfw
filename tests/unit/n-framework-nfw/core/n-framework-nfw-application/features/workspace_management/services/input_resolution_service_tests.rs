@@ -28,6 +28,14 @@ impl PromptService for StubPromptService {
         Ok(true)
     }
 
+    fn password(&self, _message: &str) -> Result<String, PromptError> {
+        if let Some(failure) = &self.failure {
+            return Err(PromptError::internal(failure.clone()));
+        }
+
+        Ok(self.answer.clone().unwrap_or_default())
+    }
+
     fn select(
         &self,
         _message: &str,
