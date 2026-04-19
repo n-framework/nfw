@@ -204,3 +204,7 @@ fn parse_language(value: String) -> Result<Language, TemplateCatalogError> {
         _ => Err(TemplateCatalogError::UnsupportedLanguage { value }),
     }
 }
+
+#[cfg(test)]
+#[path = "template_catalog_parser.tests.rs"]
+mod tests;

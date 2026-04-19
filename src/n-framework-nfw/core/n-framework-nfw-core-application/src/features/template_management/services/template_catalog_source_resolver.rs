@@ -83,3 +83,7 @@ where
         Ok(TemplateCatalog::new(source_name.to_owned(), templates))
     }
 }
+
+#[cfg(test)]
+#[path = "template_catalog_source_resolver.tests.rs"]
+mod tests;

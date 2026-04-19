@@ -31,6 +31,9 @@ impl CliGitRepository {
     fn run_git_command(args: &[&str], working_dir: Option<&Path>) -> Result<String, String> {
         let mut command = Command::new("git");
         command.args(args);
+        // Prevent git from asking for interactive credentials
+        command.env("GIT_TERMINAL_PROMPT", "0");
+        command.env("GIT_ASKPASS", "echo");
 
         if let Some(path) = working_dir {
             command.current_dir(path);

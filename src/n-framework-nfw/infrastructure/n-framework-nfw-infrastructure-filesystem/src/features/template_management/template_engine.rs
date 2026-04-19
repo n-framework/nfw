@@ -314,3 +314,7 @@ fn get_snippet(content: &str, pos: usize) -> String {
     }
     snippet
 }
+
+#[cfg(test)]
+#[path = "template_engine.tests.rs"]
+mod tests;

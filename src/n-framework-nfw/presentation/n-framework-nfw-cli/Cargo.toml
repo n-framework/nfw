@@ -14,7 +14,7 @@ path = "src/lib.rs"
 [dependencies]
 n-framework-core-cli-abstractions = { workspace = true }
 n-framework-core-cli-clap = { workspace = true }
-n-framework-core-cli-inquire = { workspace = true }
+n-framework-core-cli-cliclack = { workspace = true }
 n-framework-nfw-core-application = { path = "../../core/n-framework-nfw-core-application" }
 n-framework-nfw-core-domain = { path = "../../core/n-framework-nfw-core-domain" }
 n-framework-nfw-infrastructure-filesystem = { path = "../../infrastructure/n-framework-nfw-infrastructure-filesystem" }
@@ -31,27 +31,20 @@ tempfile = "3.10"
 
 [[test]]
 name = "new_command_routing_tests"
-path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/runtime/new_command_routing_tests.rs"
+path = "../../../../tests/integration/presentation/routing/new_command_routing_tests.rs"
 
-[[test]]
-name = "generate_command_tests"
-path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/commands/generate/generate_tests.rs"
-
-[[test]]
-name = "generate_prompt_tests"
-path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/commands/generate/prompt_tests.rs"
 
 [[test]]
 name = "add_service_command_routing_tests"
-path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/runtime/add_service_command_routing_tests.rs"
+path = "../../../../tests/integration/presentation/routing/add_service_command_routing_tests.rs"
 
 [[test]]
 name = "check_command_routing_tests"
-path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_routing_tests.rs"
+path = "../../../../tests/integration/presentation/routing/check_command_routing_tests.rs"
 
 [[test]]
 name = "check_command_stdio_tests"
-path = "../../../../tests/unit/n-framework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_stdio_tests.rs"
+path = "../../../../tests/integration/presentation/routing/check_command_stdio_tests.rs"
 
 [[test]]
 name = "no_input_validation_test"

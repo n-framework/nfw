@@ -137,3 +137,7 @@ impl TemplateMetadata {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "template_metadata.tests.rs"]
+mod tests;

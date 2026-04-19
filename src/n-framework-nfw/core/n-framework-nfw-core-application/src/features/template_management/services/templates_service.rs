@@ -301,3 +301,7 @@ where
         self.list_templates_internal()
     }
 }
+
+#[cfg(test)]
+#[path = "templates_service.tests.rs"]
+mod tests;

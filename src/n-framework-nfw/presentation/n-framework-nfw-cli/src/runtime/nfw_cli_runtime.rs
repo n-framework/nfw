@@ -293,7 +293,7 @@ fn handle_generate(
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
     GenerateCliCommand::new(
         context.generate_command_handler.clone(),
-        n_framework_core_cli_inquire::InquirerPromptService::new(),
+        n_framework_core_cli_cliclack::CliclackPromptService::new(),
     )
     .execute(GenerateRequest {
         generator_type,

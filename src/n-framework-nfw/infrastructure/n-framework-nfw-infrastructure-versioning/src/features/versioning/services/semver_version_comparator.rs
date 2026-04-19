@@ -52,3 +52,7 @@ impl VersionComparator for SemverVersionComparator {
         Ok(parsed_requirement.matches(&parsed_version))
     }
 }
+
+#[cfg(test)]
+#[path = "semver_version_comparator.tests.rs"]
+mod tests;

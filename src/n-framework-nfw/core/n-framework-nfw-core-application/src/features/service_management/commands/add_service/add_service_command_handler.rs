@@ -12,7 +12,7 @@ use crate::features::service_management::services::add_service_workspace_context
 use crate::features::service_management::services::service_generation_plan_builder::ServiceGenerationPlanBuilder;
 use crate::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
-use n_framework_core_cli_abstractions::PromptService;
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
 #[derive(Debug, Clone)]
 pub struct AddServiceCommandHandler<D, S, P, Q, R, PS>
@@ -20,7 +20,7 @@ where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
-    Q: PromptService,
+    Q: InteractivePrompt + Logger,
     R: ServiceTemplateRenderer,
     PS: ServiceProvenanceStore,
 {
@@ -38,7 +38,7 @@ where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
-    Q: PromptService,
+    Q: InteractivePrompt + Logger,
     R: ServiceTemplateRenderer,
     PS: ServiceProvenanceStore,
 {

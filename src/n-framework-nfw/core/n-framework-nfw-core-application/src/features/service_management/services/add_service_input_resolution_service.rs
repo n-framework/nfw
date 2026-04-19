@@ -3,14 +3,14 @@ use crate::features::service_management::models::errors::add_service_error::AddS
 use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
 use crate::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
 use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
-use n_framework_core_cli_abstractions::{PromptError, PromptService};
+use n_framework_core_cli_abstractions::{InteractiveError, InteractivePrompt, Logger};
 
 #[derive(Debug, Clone)]
 pub struct AddServiceInputResolutionService<S, P, Q>
 where
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
-    Q: PromptService,
+    Q: InteractivePrompt + Logger,
 {
     template_selector: S,
     template_prompt: P,
@@ -21,7 +21,7 @@ impl<S, P, Q> AddServiceInputResolutionService<S, P, Q>
 where
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
-    Q: PromptService,
+    Q: InteractivePrompt + Logger,
 {
     pub fn new(template_selector: S, template_prompt: P, prompt_service: Q) -> Self {
         Self {
@@ -77,7 +77,7 @@ where
     }
 }
 
-fn map_prompt_error(error: PromptError) -> AddServiceError {
+fn map_prompt_error(error: InteractiveError) -> AddServiceError {
     if error.is_cancelled() {
         return AddServiceError::Interrupted;
     }

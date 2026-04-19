@@ -177,3 +177,7 @@ impl TryFrom<serde_json::Value> for TemplateParameters {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "template_parameters.tests.rs"]
+mod tests;

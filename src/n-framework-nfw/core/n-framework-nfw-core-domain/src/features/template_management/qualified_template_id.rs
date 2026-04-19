@@ -115,3 +115,7 @@ impl QualifiedTemplateId {
         Some(Self::unqualified(trimmed_identifier.to_owned()))
     }
 }
+
+#[cfg(test)]
+#[path = "qualified_template_id.tests.rs"]
+mod tests;

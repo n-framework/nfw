@@ -407,3 +407,7 @@ pub enum InjectionTarget {
     /// Insert the content into a specific named region (e.g. // region: name).
     Region(String),
 }
+
+#[cfg(test)]
+#[path = "template_config.tests.rs"]
+mod tests;

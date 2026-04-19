@@ -114,3 +114,7 @@ fn map_template_selection_error(error: TemplateSelectionError) -> AddServiceErro
         }
     }
 }
+
+#[cfg(test)]
+#[path = "service_template_selection_service.tests.rs"]
+mod tests;

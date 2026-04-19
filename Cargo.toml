@@ -12,6 +12,7 @@ members = [
   "packages/n-framework-core-cli/src/n-framework-core-cli-abstractions",
   "packages/n-framework-core-cli/src/n-framework-core-cli-clap",
   "packages/n-framework-core-cli/src/n-framework-core-cli-inquire",
+  "packages/n-framework-core-cli/src/n-framework-core-cli-cliclack",
   "packages/n-framework-core-template/src/n-framework-core-template-abstractions",
   "packages/n-framework-core-template/src/n-framework-core-template-mustache",
   "packages/n-framework-core-template/src/n-framework-core-template-tera",
@@ -22,6 +23,7 @@ n-framework-core-cli = { path = "packages/n-framework-core-cli/src/n-framework-c
 n-framework-core-cli-abstractions = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-abstractions" }
 n-framework-core-cli-clap = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-clap" }
 n-framework-core-cli-inquire = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-inquire" }
+n-framework-core-cli-cliclack = { path = "packages/n-framework-core-cli/src/n-framework-core-cli-cliclack" }
 n-framework-core-template = { path = "packages/n-framework-core-template/src/n-framework-core-template-abstractions" }
 n-framework-core-template-abstractions = { path = "packages/n-framework-core-template/src/n-framework-core-template-abstractions" }
 n-framework-core-template-mustache = { path = "packages/n-framework-core-template/src/n-framework-core-template-mustache" }

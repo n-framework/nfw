@@ -8,27 +8,3 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 regex = "1"
-
-[[test]]
-name = "template_config_tests"
-path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/template_management/template_config_tests.rs"
-
-[[test]]
-name = "template_metadata_tests"
-path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/template_management/template_metadata_tests.rs"
-
-[[test]]
-name = "qualified_template_id_tests"
-path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/template_management/qualified_template_id_tests.rs"
-
-[[test]]
-name = "version_tests"
-path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/versioning/version_tests.rs"
-
-[[test]]
-name = "workspace_blueprint_tests"
-path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/workspace_management/workspace_blueprint_tests.rs"
-
-[[test]]
-name = "template_parameters_tests"
-path = "../../../../tests/unit/n-framework-nfw/core/n-framework-nfw-domain/features/template_management/template_parameters_tests.rs"

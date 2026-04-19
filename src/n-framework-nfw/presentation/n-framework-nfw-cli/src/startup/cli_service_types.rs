@@ -1,4 +1,4 @@
-use n_framework_core_cli_inquire::InquirerPromptService;
+use n_framework_core_cli_cliclack::CliclackPromptService;
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
@@ -42,12 +42,12 @@ pub type CliListTemplatesQueryHandler = ListTemplatesQueryHandler<CliTemplatesSe
 pub type CliWorkspaceWriter = FileSystemWorkspaceWriter<FileSystemTemplateEngine>;
 pub type CliWorkingDirectoryProvider = StandardWorkingDirectoryProvider;
 pub type CliNewWorkspaceCommandHandler = NewWorkspaceCommandHandler<
-    InquirerPromptService,
+    CliclackPromptService,
     CliValidator,
     CliTemplatesService,
     CliWorkspaceWriter,
     CliWorkingDirectoryProvider,
-    InquirerPromptService,
+    CliclackPromptService,
 >;
 pub type CliAddTemplateSourceCommandHandler =
     AddTemplateSourceCommandHandler<CliConfigStore, CliValidator, CliGitRepository>;
@@ -58,8 +58,8 @@ pub type CliEnsureDefaultSourceCommandHandler = EnsureDefaultSourceCommandHandle
 pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     CliWorkingDirectoryProvider,
     n_framework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService<CliTemplatesService>,
-    crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt<InquirerPromptService>,
-    InquirerPromptService,
+    crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt<CliclackPromptService>,
+    CliclackPromptService,
     FileSystemServiceTemplateRenderer,
     n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter,
 >;

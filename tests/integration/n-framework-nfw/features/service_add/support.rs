@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use n_framework_core_cli_abstractions::{PromptError, PromptService, SelectOption};
+use n_framework_core_cli_abstractions::{InteractiveError, InteractivePrompt, Logger, LoggingError, SelectOption, Spinner};
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommandResult;
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
@@ -64,23 +64,25 @@ impl ServiceTemplatePrompt for FirstTemplatePrompt {
 #[derive(Debug, Clone, Copy)]
 pub struct FailingPromptService;
 
-impl PromptService for FailingPromptService {
+impl InteractivePrompt for FailingPromptService {
     fn is_interactive(&self) -> bool {
         false
     }
 
-    fn text(&self, _message: &str, _default: Option<&str>) -> Result<String, PromptError> {
-        Err(PromptError::internal("text prompt is unavailable in test"))
+    fn text(&self, _message: &str, _default: Option<&str>) -> Result<String, InteractiveError> {
+        Err(InteractiveError::internal(
+            "text prompt is unavailable in test",
+        ))
     }
 
-    fn confirm(&self, _message: &str, _default: bool) -> Result<bool, PromptError> {
-        Err(PromptError::internal(
+    fn confirm(&self, _message: &str, _default: bool) -> Result<bool, InteractiveError> {
+        Err(InteractiveError::internal(
             "confirm prompt is unavailable in test",
         ))
     }
 
-    fn password(&self, _message: &str) -> Result<String, PromptError> {
-        Err(PromptError::internal(
+    fn password(&self, _message: &str) -> Result<String, InteractiveError> {
+        Err(InteractiveError::internal(
             "password prompt is unavailable in test",
         ))
     }
@@ -90,8 +92,8 @@ impl PromptService for FailingPromptService {
         _message: &str,
         _options: &[SelectOption],
         _default_index: Option<usize>,
-    ) -> Result<SelectOption, PromptError> {
-        Err(PromptError::internal(
+    ) -> Result<SelectOption, InteractiveError> {
+        Err(InteractiveError::internal(
             "select prompt is unavailable in test",
         ))
     }
@@ -101,8 +103,8 @@ impl PromptService for FailingPromptService {
         _message: &str,
         _options: &[SelectOption],
         _default_index: Option<usize>,
-    ) -> Result<usize, PromptError> {
-        Err(PromptError::internal(
+    ) -> Result<usize, InteractiveError> {
+        Err(InteractiveError::internal(
             "select-index prompt is unavailable in test",
         ))
     }
@@ -112,10 +114,48 @@ impl PromptService for FailingPromptService {
         _message: &str,
         _options: &[SelectOption],
         _default_indices: &[usize],
-    ) -> Result<Vec<SelectOption>, PromptError> {
-        Err(PromptError::internal(
+    ) -> Result<Vec<SelectOption>, InteractiveError> {
+        Err(InteractiveError::internal(
             "multiselect prompt is unavailable in test",
         ))
+    }
+}
+
+impl Logger for FailingPromptService {
+    fn intro(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
+    fn outro(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
+    fn log_cancel(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
+    fn log_info(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
+    fn log_success(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
+    fn log_warning(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
+    fn log_error(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
+    fn spinner(&self, _message: &str) -> Result<Box<dyn Spinner>, LoggingError> {
+        struct NoopSpinner;
+        impl Spinner for NoopSpinner {
+            fn stop(&self, _message: &str) {}
+            fn success(&self, _message: &str) {}
+            fn error(&self, _message: &str) {}
+            fn cancel(&self, _message: &str) {}
+            fn set_message(&self, _message: &str) {}
+            fn is_finished(&self) -> bool {
+                true
+            }
+        }
+        Ok(Box::new(NoopSpinner))
     }
 }
 

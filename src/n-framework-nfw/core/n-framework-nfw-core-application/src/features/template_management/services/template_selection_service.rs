@@ -120,3 +120,7 @@ where
         })
     }
 }
+
+#[cfg(test)]
+#[path = "template_selection_service.tests.rs"]
+mod tests;

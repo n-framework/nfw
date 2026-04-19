@@ -14,3 +14,7 @@ impl WorkspaceBlueprint {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "workspace_blueprint.tests.rs"]
+mod tests;

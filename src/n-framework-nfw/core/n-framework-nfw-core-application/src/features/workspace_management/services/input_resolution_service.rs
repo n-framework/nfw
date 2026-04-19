@@ -1,12 +1,12 @@
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use crate::features::workspace_management::models::new_command_request::NewCommandRequest;
 use crate::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
-use n_framework_core_cli_abstractions::PromptService;
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
 #[derive(Debug, Clone)]
 pub struct InputResolutionService<P, V>
 where
-    P: PromptService,
+    P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator,
 {
     prompt_service: P,
@@ -15,7 +15,7 @@ where
 
 impl<P, V> InputResolutionService<P, V>
 where
-    P: PromptService,
+    P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator,
 {
     pub fn new(prompt_service: P, workspace_name_validator: V) -> Self {
@@ -65,3 +65,7 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "input_resolution_service.tests.rs"]
+mod tests;

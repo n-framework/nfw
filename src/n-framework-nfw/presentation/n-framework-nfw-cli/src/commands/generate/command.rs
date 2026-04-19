@@ -1,4 +1,4 @@
-use n_framework_core_cli_abstractions::{PromptService, SelectOption};
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use n_framework_nfw_core_application::features::template_management::commands::generate::generate_command::GenerateCommand;
 use n_framework_nfw_core_application::features::template_management::commands::generate::generate_command_handler::GenerateCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::generate_error::GenerateError;
@@ -38,7 +38,7 @@ where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
     E: TemplateEngine,
-    P: PromptService,
+    P: InteractivePrompt + Logger,
 {
     pub fn new(handler: GenerateCommandHandler<W, R, E>, prompt: P) -> Self {
         Self { handler, prompt }
@@ -336,3 +336,7 @@ where
         Ok(pairs)
     }
 }
+
+#[cfg(test)]
+#[path = "command.tests.rs"]
+mod tests;

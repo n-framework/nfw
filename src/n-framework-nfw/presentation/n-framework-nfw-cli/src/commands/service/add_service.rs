@@ -6,7 +6,7 @@ use n_framework_nfw_core_application::features::service_management::services::ab
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
-use n_framework_core_cli_abstractions::PromptService;
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
 #[derive(Debug, Clone)]
 pub struct AddServiceCliCommand<H> {
@@ -24,7 +24,7 @@ where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
     P: ServiceTemplatePrompt,
-    Q: PromptService,
+    Q: InteractivePrompt + Logger,
     R: ServiceTemplateRenderer,
     PS: ServiceProvenanceStore,
 {

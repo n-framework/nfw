@@ -1,18 +1,18 @@
-use n_framework_core_cli_abstractions::{PromptService, SelectOption};
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use n_framework_nfw_core_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
 
 #[derive(Debug, Clone)]
 pub struct InteractiveServiceTemplatePrompt<P>
 where
-    P: PromptService + Clone,
+    P: InteractivePrompt + Logger + Clone,
 {
     prompt_service: P,
 }
 
 impl<P> InteractiveServiceTemplatePrompt<P>
 where
-    P: PromptService + Clone,
+    P: InteractivePrompt + Logger + Clone,
 {
     pub fn new(prompt_service: P) -> Self {
         Self { prompt_service }
@@ -21,7 +21,7 @@ where
 
 impl<P> ServiceTemplatePrompt for InteractiveServiceTemplatePrompt<P>
 where
-    P: PromptService + Clone,
+    P: InteractivePrompt + Logger + Clone,
 {
     fn select_template(&self, templates: &[ServiceTemplateResolution]) -> Result<String, String> {
         let options = templates

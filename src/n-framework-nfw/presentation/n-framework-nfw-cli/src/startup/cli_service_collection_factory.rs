@@ -1,6 +1,6 @@
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use n_framework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
-use n_framework_core_cli_inquire::InquirerPromptService;
+use n_framework_core_cli_cliclack::CliclackPromptService;
 use n_framework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use n_framework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use n_framework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
@@ -164,7 +164,7 @@ impl TemplateFeatureFactory {
 #[derive(Clone)]
 struct WorkspaceFeatureServices {
     new_workspace_command_handler: NewWorkspaceCommandHandler<
-        InquirerPromptService,
+        CliclackPromptService,
         CliValidator,
         TemplatesService<
             GitTemplateCatalogSource<InfrastructureCliGitRepository, DirsPathResolver>,
@@ -177,7 +177,7 @@ struct WorkspaceFeatureServices {
         >,
         FileSystemWorkspaceWriter<n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine>,
         StandardWorkingDirectoryProvider,
-        InquirerPromptService,
+        CliclackPromptService,
     >,
 }
 
@@ -197,11 +197,11 @@ impl WorkspaceFeatureFactory {
         >,
     ) -> WorkspaceFeatureServices {
         let template_selection_for_new_service =
-            TemplateSelectionForNewService::new(templates_service, InquirerPromptService::new());
+            TemplateSelectionForNewService::new(templates_service, CliclackPromptService::new());
 
         WorkspaceFeatureServices {
             new_workspace_command_handler: NewWorkspaceCommandHandler::new(
-                InquirerPromptService::new(),
+                CliclackPromptService::new(),
                 CliValidator,
                 template_selection_for_new_service,
                 FileSystemWorkspaceWriter::new(n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new()),
@@ -229,8 +229,8 @@ struct ServiceFeatureServices {
                 InfrastructureCliGitRepository,
             >,
         >,
-        InteractiveServiceTemplatePrompt<InquirerPromptService>,
-        InquirerPromptService,
+        InteractiveServiceTemplatePrompt<CliclackPromptService>,
+        CliclackPromptService,
         FileSystemServiceTemplateRenderer,
         WorkspaceMetadataWriter,
     >,
@@ -253,8 +253,8 @@ impl ServiceFeatureFactory {
     ) -> ServiceFeatureServices {
         let add_service_input_resolution_service = AddServiceInputResolutionService::new(
             ServiceTemplateSelectionService::new(templates_service),
-            InteractiveServiceTemplatePrompt::new(InquirerPromptService::new()),
-            InquirerPromptService::new(),
+            InteractiveServiceTemplatePrompt::new(CliclackPromptService::new()),
+            CliclackPromptService::new(),
         );
 
         ServiceFeatureServices {

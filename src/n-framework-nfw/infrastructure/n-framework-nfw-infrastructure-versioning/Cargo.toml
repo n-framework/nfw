@@ -6,7 +6,3 @@ edition = "2024"
 [dependencies]
 n-framework-nfw-core-application = { path = "../../core/n-framework-nfw-core-application" }
 semver = "1"
-
-[[test]]
-name = "semver_version_comparator_tests"
-path = "../../../../tests/unit/n-framework-nfw/infrastructure/n-framework-nfw-infrastructure-versioning/features/versioning/services/semver_version_comparator_tests.rs"

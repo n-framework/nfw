@@ -10,17 +10,17 @@ use crate::features::workspace_management::services::namespace_resolver::Namespa
 use crate::features::workspace_management::services::new_command_validator::NewCommandValidator;
 use crate::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
 use crate::features::workspace_management::services::workspace_blueprint_builder::WorkspaceBlueprintBuilder;
-use n_framework_core_cli_abstractions::PromptService;
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
 #[derive(Clone)]
 pub struct WorkspaceInitializationService<P, V, T, W, D, PS>
 where
-    P: PromptService,
+    P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
-    PS: PromptService + Clone,
+    PS: InteractivePrompt + Logger + Clone,
 {
     input_resolution_service: InputResolutionService<P, V>,
     template_selection_service: TemplateSelectionForNewService<T, PS>,
@@ -33,12 +33,12 @@ where
 
 impl<P, V, T, W, D, PS> WorkspaceInitializationService<P, V, T, W, D, PS>
 where
-    P: PromptService,
+    P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
-    PS: PromptService + Clone,
+    PS: InteractivePrompt + Logger + Clone,
 {
     pub fn new(
         prompt_service: P,

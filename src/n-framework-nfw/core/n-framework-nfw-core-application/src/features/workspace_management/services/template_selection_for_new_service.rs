@@ -3,7 +3,7 @@ use crate::features::template_management::services::abstractions::template_catal
 use crate::features::template_management::services::template_selection_result::TemplateSelectionResult;
 use crate::features::template_management::services::template_type_resolver::read_template_type;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
-use n_framework_core_cli_abstractions::{PromptService, SelectOption};
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use n_framework_nfw_core_domain::features::template_management::template_descriptor::TemplateDescriptor;
 
 const DEFAULT_TEMPLATE_ID_PREFERENCES: [&str; 3] = ["blank-workspace", "blank", "workspace-blank"];
@@ -12,7 +12,7 @@ const DEFAULT_TEMPLATE_ID_PREFERENCES: [&str; 3] = ["blank-workspace", "blank", 
 pub struct TemplateSelectionForNewService<S, P>
 where
     S: TemplateCatalogDiscoveryService + Clone,
-    P: PromptService + Clone,
+    P: InteractivePrompt + Logger + Clone,
 {
     template_catalog_discovery_service: S,
     prompt_service: P,
@@ -21,7 +21,7 @@ where
 impl<S, P> TemplateSelectionForNewService<S, P>
 where
     S: TemplateCatalogDiscoveryService + Clone,
-    P: PromptService + Clone,
+    P: InteractivePrompt + Logger + Clone,
 {
     pub fn new(template_catalog_discovery_service: S, prompt_service: P) -> Self {
         Self {
@@ -242,3 +242,7 @@ fn is_workspace_template(template: &TemplateDescriptor) -> Result<bool, Workspac
 
     Ok(template_type.eq_ignore_ascii_case("workspace"))
 }
+
+#[cfg(test)]
+#[path = "template_selection_for_new_service.tests.rs"]
+mod tests;

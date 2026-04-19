@@ -1,4 +1,4 @@
-use n_framework_core_cli_abstractions::PromptService;
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
 use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::workspace_management::commands::new_workspace::new_workspace_command::{
@@ -26,12 +26,12 @@ use crate::features::workspace_management::services::workspace_blueprint_builder
 #[derive(Debug, Clone)]
 pub struct NewWorkspaceCommandHandler<P, V, T, W, D, PS>
 where
-    P: PromptService,
+    P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
-    PS: PromptService + Clone,
+    PS: InteractivePrompt + Logger + Clone,
 {
     input_resolution_service: InputResolutionService<P, V>,
     template_selection_service: TemplateSelectionForNewService<T, PS>,
@@ -44,12 +44,12 @@ where
 
 impl<P, V, T, W, D, PS> NewWorkspaceCommandHandler<P, V, T, W, D, PS>
 where
-    P: PromptService,
+    P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
-    PS: PromptService + Clone,
+    PS: InteractivePrompt + Logger + Clone,
 {
     pub fn new(
         prompt_service: P,

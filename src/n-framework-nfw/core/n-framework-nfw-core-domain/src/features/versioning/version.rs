@@ -146,3 +146,7 @@ fn parse_component(component: Option<&str>, label: &str) -> Result<u64, VersionP
         .parse::<u64>()
         .map_err(|_| VersionParseError::new(&format!("invalid {label}: {value}")))
 }
+
+#[cfg(test)]
+#[path = "version.tests.rs"]
+mod tests;

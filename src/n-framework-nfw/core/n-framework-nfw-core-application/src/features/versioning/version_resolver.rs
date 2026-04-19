@@ -101,3 +101,7 @@ where
         Ok(None)
     }
 }
+
+#[cfg(test)]
+#[path = "version_resolver.tests.rs"]
+mod tests;

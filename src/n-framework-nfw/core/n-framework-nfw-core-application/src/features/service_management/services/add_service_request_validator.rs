@@ -54,3 +54,7 @@ fn is_valid_service_name(value: &str) -> bool {
         .chars()
         .all(|character| character.is_ascii_alphanumeric() || character == '-' || character == '_')
 }
+
+#[cfg(test)]
+#[path = "add_service_request_validator.tests.rs"]
+mod tests;

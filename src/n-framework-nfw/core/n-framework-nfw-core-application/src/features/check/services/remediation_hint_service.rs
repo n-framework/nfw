@@ -58,3 +58,7 @@ impl RemediationHintService {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "remediation_hint_service.tests.rs"]
+mod tests;

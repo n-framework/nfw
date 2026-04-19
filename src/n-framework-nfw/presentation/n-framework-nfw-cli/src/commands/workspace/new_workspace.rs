@@ -1,7 +1,7 @@
 use n_framework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command::NewWorkspaceCommand;
 use n_framework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
 use n_framework_nfw_core_application::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
-use n_framework_core_cli_abstractions::PromptService;
+use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
@@ -22,12 +22,12 @@ impl<H> NewWorkspaceCliCommand<H> {
 
 impl<P, V, T, W, D, PS> NewWorkspaceCliCommand<NewWorkspaceCommandHandler<P, V, T, W, D, PS>>
 where
-    P: PromptService,
+    P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
     T: TemplateCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
-    PS: PromptService + Clone,
+    PS: InteractivePrompt + Logger + Clone,
 {
     pub fn execute(
         &self,
