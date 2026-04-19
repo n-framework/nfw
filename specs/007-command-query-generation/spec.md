@@ -4,15 +4,15 @@
 
 ### User Story 1 - Generate a Command (Priority: P1)
 
-As an application developer, I want to run `nfw gen command ApproveOrder Orders` so that all necessary Command, Handler, and Registration code is boilerplate-generated and injected correctly according to my workspace's template choice.
+As an application developer, I want to run `nfw add command ApproveOrder Orders` so that all necessary Command, Handler, and Registration code is boilerplate-generated and injected correctly according to my workspace's template choice.
 
 **Why this priority**: Core productivity feature for the framework.
 
-**Independent Test**: Run `nfw gen command` in a .NET workspace and verify it produces the expected files and injections defined in the mapped template.
+**Independent Test**: Run `nfw add command` in a .NET workspace and verify it produces the expected files and injections defined in the mapped template.
 
 **Acceptance Scenarios**:
 
-1. **Given** a workspace with `nfw.yaml` mapping `command` to `dotnet-mediator-v1`, **When** I run `nfw gen command CreateProduct Products`, **Then** NFW resolves the `dotnet-mediator-v1` template and executes its steps.
+1. **Given** a workspace with `nfw.yaml` mapping `command` to `dotnet-mediator-v1`, **When** I run `nfw add command CreateProduct Products`, **Then** NFW resolves the `dotnet-mediator-v1` template and executes its steps.
 2. **Given** the command is run, **When** generation completes, **Then** variables like `{{Name}}` (CreateProduct), `{{Feature}}` (Products), and `{{Namespace}}` are correctly passed to the template engine.
 
 ---
@@ -23,11 +23,11 @@ As a tech lead, I want to specify in `nfw.yaml` which templates should be used f
 
 **Why this priority**: Enables the "Clean Architecture" enforcement and flexibility requested by the user.
 
-**Independent Test**: Change the template mapping in `nfw.yaml` and verify `nfw gen command` uses the new template immediately.
+**Independent Test**: Change the template mapping in `nfw.yaml` and verify `nfw add command` uses the new template immediately.
 
 **Acceptance Scenarios**:
 
-1. **Given** `nfw.yaml` has `templates: { command: "custom-template" }`, **When** I run `nfw gen command MyCmd MyFeature`, **Then** the CLI uses the `custom-template` folder for execution.
+1. **Given** `nfw.yaml` has `templates: { command: "custom-template" }`, **When** I run `nfw add command MyCmd MyFeature`, **Then** the CLI uses the `custom-template` folder for execution.
 2. **Given** `nfw.yaml` is missing a mapping, **When** I run the command, **Then** the CLI fails with an actionable message explaining how to configure the mapping in `nfw.yaml`.
 
 ---
@@ -36,7 +36,7 @@ As a tech lead, I want to specify in `nfw.yaml` which templates should be used f
 
 ### Functional Requirements
 
-- **FR-001**: The CLI MUST implement `nfw gen command <NAME> <FEATURE>` and `nfw gen query <NAME> <FEATURE>`.
+- **FR-001**: The CLI MUST implement `nfw add command <NAME> <FEATURE>` and `nfw add query <NAME> <FEATURE>`.
 - **FR-002**: The CLI MUST read the `nfw.yaml` file from the workspace root to find template mappings.
 - **FR-003**: The `nfw.yaml` schema MUST support a `templates` section:
 
@@ -62,7 +62,7 @@ As a tech lead, I want to specify in `nfw.yaml` which templates should be used f
 
 ## Success Criteria
 
-- **SC-001**: Running `nfw gen command` successfully triggers the execution engine with the correct template and variables.
+- **SC-001**: Running `nfw add command` successfully triggers the execution engine with the correct template and variables.
 - **SC-002**: Missing configuration in `nfw.yaml` is handled with clear instructions for the user.
 - **SC-003**: Generation is fast (sub-second for typical scenarios).
 
