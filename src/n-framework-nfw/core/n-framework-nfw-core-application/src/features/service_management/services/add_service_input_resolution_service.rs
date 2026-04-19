@@ -60,7 +60,28 @@ where
             return Err(AddServiceError::MissingRequiredInput("template".to_owned()));
         }
 
-        let templates = self.template_selector.list_service_templates()?;
+        let spinner = if !request.is_non_interactive() && self.prompt_service.is_interactive() {
+            Some(
+                self.prompt_service
+                    .spinner("Discovering templates...")
+                    .map_err(|e| AddServiceError::PromptFailed(e.to_string()))?,
+            )
+        } else {
+            None
+        };
+
+        let templates_result = self.template_selector.list_service_templates();
+
+        if let Some(spinner) = &spinner {
+            if templates_result.is_ok() {
+                spinner.stop("Templates discovered");
+            } else {
+                spinner.error("Failed to discover templates");
+            }
+        }
+
+        let templates = templates_result?;
+
         if templates.is_empty() {
             return Err(AddServiceError::TemplateNotFound(
                 "<service template>".to_owned(),

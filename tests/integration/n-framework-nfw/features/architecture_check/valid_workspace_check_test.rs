@@ -18,10 +18,10 @@ fn check_succeeds_for_valid_workspace_fixture() {
     });
 
     let output = run_nfw_check(&workspace_root);
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
 
     assert!(output.status.success());
-    assert!(stdout.contains("architecture validation passed"));
+    assert!(stderr.contains("architecture validation passed"));
 
     cleanup_workspace(&workspace_root);
 }

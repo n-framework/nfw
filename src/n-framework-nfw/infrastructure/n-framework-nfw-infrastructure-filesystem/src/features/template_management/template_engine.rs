@@ -117,7 +117,12 @@ impl FileSystemTemplateEngine {
             .renderer
             .render_content(destination, ctx.core_context)
             .map_err(|e| Self::map_error(e, step_index, ctx.template_id.clone(), None))?;
-        let dest_path = ctx.output_root.join(rendered_dest);
+
+        let dest_path = if rendered_dest.is_empty() || rendered_dest == "." {
+            ctx.output_root.to_path_buf()
+        } else {
+            ctx.output_root.join(rendered_dest)
+        };
 
         self.ensure_safe_path(&dest_path, ctx.output_root, ctx.template_id.clone())?;
 

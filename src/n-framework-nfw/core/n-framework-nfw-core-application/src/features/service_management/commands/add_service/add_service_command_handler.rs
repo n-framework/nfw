@@ -2,6 +2,7 @@ use crate::features::service_management::commands::add_service::add_service_comm
     AddServiceCommand, AddServiceCommandResult,
 };
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
+use crate::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
 use crate::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
 use crate::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
 use crate::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
@@ -63,6 +64,14 @@ where
         &self,
         command: &AddServiceCommand,
     ) -> Result<AddServiceCommandResult, AddServiceError> {
+        let plan = self.prepare_generation_plan(command)?;
+        self.execute_generation_plan(&plan)
+    }
+
+    pub fn prepare_generation_plan(
+        &self,
+        command: &AddServiceCommand,
+    ) -> Result<ServiceGenerationPlan, AddServiceError> {
         let request = command.to_request();
         self.request_validator.validate_request(&request)?;
 
@@ -84,17 +93,29 @@ where
             .input_resolution_service
             .resolve_template_selection(&request)?;
 
-        let plan = self
-            .plan_builder
-            .build(&service_name, &workspace_root, &template_resolution)?;
+        self.plan_builder
+            .build(&service_name, &workspace_root, &template_resolution)
+    }
 
-        if let Err(error) = self.renderer.render_service(&plan) {
+    pub fn execute_generation_plan(
+        &self,
+        plan: &ServiceGenerationPlan,
+    ) -> Result<AddServiceCommandResult, AddServiceError> {
+        let current_directory = self
+            .working_directory_provider
+            .current_dir()
+            .map_err(AddServiceError::Internal)?;
+        let workspace_root = self
+            .workspace_context_guard
+            .ensure_workspace_root(&current_directory)?;
+
+        if let Err(error) = self.renderer.render_service(plan) {
             return Err(self.cleanup_and_wrap(&plan.output_root, error));
         }
 
         if let Err(error) = self.provenance_service.persist(
             &workspace_root,
-            &service_name,
+            &plan.service_name,
             &plan.template_id,
             &plan.template_version.to_string(),
         ) {
@@ -102,9 +123,9 @@ where
         }
 
         Ok(AddServiceCommandResult {
-            service_name,
-            output_path: plan.output_root,
-            template_id: plan.template_id,
+            service_name: plan.service_name.clone(),
+            output_path: plan.output_root.clone(),
+            template_id: plan.template_id.clone(),
             template_version: plan.template_version.to_string(),
         })
     }

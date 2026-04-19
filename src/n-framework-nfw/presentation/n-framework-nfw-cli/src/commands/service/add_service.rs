@@ -9,17 +9,18 @@ use n_framework_nfw_core_application::features::workspace_management::services::
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
 #[derive(Debug, Clone)]
-pub struct AddServiceCliCommand<H> {
+pub struct AddServiceCliCommand<H, P> {
     handler: H,
+    prompt: P,
 }
 
-impl<H> AddServiceCliCommand<H> {
-    pub fn new(handler: H) -> Self {
-        Self { handler }
+impl<H, P> AddServiceCliCommand<H, P> {
+    pub fn new(handler: H, prompt: P) -> Self {
+        Self { handler, prompt }
     }
 }
 
-impl<D, S, P, Q, R, PS> AddServiceCliCommand<AddServiceCommandHandler<D, S, P, Q, R, PS>>
+impl<D, S, P, Q, R, PS, Q2> AddServiceCliCommand<AddServiceCommandHandler<D, S, P, Q, R, PS>, Q2>
 where
     D: WorkingDirectoryProvider,
     S: ServiceTemplateSelector,
@@ -27,6 +28,7 @@ where
     Q: InteractivePrompt + Logger,
     R: ServiceTemplateRenderer,
     PS: ServiceProvenanceStore,
+    Q2: InteractivePrompt + Logger,
 {
     pub fn execute(
         &self,
@@ -35,6 +37,10 @@ where
         no_input: bool,
         is_interactive_terminal: bool,
     ) -> Result<(), AddServiceError> {
+        self.prompt
+            .intro("Add Service")
+            .map_err(|e| AddServiceError::Internal(e.to_string()))?;
+
         tracing::info!(
             "Executing add-service command (name: {:?}, template: {:?}, no_input: {})",
             service_name,
@@ -49,18 +55,33 @@ where
             is_interactive_terminal,
         );
 
-        let result = self.handler.handle(&command).map_err(|e| {
+        let plan = self.handler.prepare_generation_plan(&command)?;
+
+        let spinner = self
+            .prompt
+            .spinner(&format!("Adding service '{}'...", plan.service_name))
+            .map_err(|e| AddServiceError::Internal(e.to_string()))?;
+
+        let result = self.handler.execute_generation_plan(&plan).map_err(|e| {
+            spinner.error(&format!("Failed to add service: {e}"));
             tracing::error!("Failed to add service: {}", e);
             e
         })?;
 
-        println!(
-            "Created service '{}' at '{}'.",
-            result.service_name,
-            result.output_path.display()
-        );
-        println!("Template: {}", result.template_id);
-        println!("Template version: {}", result.template_version);
+        spinner.success(&format!(
+            "Service '{}' added successfully",
+            result.service_name
+        ));
+
+        self.prompt
+            .outro(&format!(
+                "Created service '{}' at '{}'.\nTemplate: {}\nTemplate version: {}",
+                result.service_name,
+                result.output_path.display(),
+                result.template_id,
+                result.template_version
+            ))
+            .map_err(|e| AddServiceError::Internal(e.to_string()))?;
 
         tracing::info!(
             "Successfully created service '{}' using template '{}'",

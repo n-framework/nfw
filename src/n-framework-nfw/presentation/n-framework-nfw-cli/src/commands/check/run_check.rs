@@ -25,27 +25,42 @@ impl std::fmt::Display for RunCheckError {
     }
 }
 
-pub struct RunCheckCliCommand<'a> {
+pub struct RunCheckCliCommand<'a, L> {
     handler: &'a CheckCommandHandler,
     formatter: CheckOutputFormatter,
+    logger: L,
 }
 
-impl<'a> RunCheckCliCommand<'a> {
-    pub fn new(handler: &'a CheckCommandHandler) -> Self {
+impl<'a, L> RunCheckCliCommand<'a, L>
+where
+    L: n_framework_core_cli_abstractions::Logger,
+{
+    pub fn new(handler: &'a CheckCommandHandler, logger: L) -> Self {
         Self {
             handler,
             formatter: CheckOutputFormatter::new(),
+            logger,
         }
     }
 
     pub fn execute(&self) -> Result<(), RunCheckError> {
+        self.logger
+            .intro("Architecture Check")
+            .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
+
         tracing::info!("Starting architecture check");
         let request = CheckCommandRequest::current_dir().map_err(|e| {
             tracing::error!("Failed to resolve current directory: {}", e);
             RunCheckError::CurrentDirectoryUnavailable(e)
         })?;
 
+        let spinner = self
+            .logger
+            .spinner("Checking workspace architecture...")
+            .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
+
         let result = self.handler.execute(&request).map_err(|e| {
+            spinner.error(&format!("Check failed: {e}"));
             tracing::error!("Check command execution failed: {}", e);
             RunCheckError::CommandError(e)
         })?;
@@ -57,16 +72,28 @@ impl<'a> RunCheckCliCommand<'a> {
 
         match result.summary.exit_outcome {
             ExitOutcome::Success => {
-                println!("{}", self.formatter.success_message(&result));
+                spinner.success("No architecture violations found");
+                self.logger
+                    .outro(&self.formatter.success_message(&result))
+                    .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
                 Ok(())
             }
             ExitOutcome::ViolationFound => {
-                eprintln!("{}", self.formatter.failure_message(&result));
+                spinner.error(&format!(
+                    "Found {} architecture violation(s)",
+                    result.summary.total_findings
+                ));
+                self.logger
+                    .outro(&self.formatter.failure_message(&result))
+                    .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
                 tracing::warn!("Architecture check found violations");
                 Err(RunCheckError::ValidationFailed)
             }
             ExitOutcome::ExecutionInterrupted => {
-                eprintln!("{}", self.formatter.failure_message(&result));
+                spinner.cancel("Architecture check interrupted");
+                self.logger
+                    .outro(&self.formatter.failure_message(&result))
+                    .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
                 tracing::warn!("Architecture check was interrupted");
                 Err(RunCheckError::Interrupted)
             }

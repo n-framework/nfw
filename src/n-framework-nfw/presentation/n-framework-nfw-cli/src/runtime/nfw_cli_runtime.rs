@@ -215,35 +215,41 @@ fn handle_add_service(command: &dyn Command, context: &CliServiceCollection) -> 
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
 
-    AddServiceCliCommand::new(context.add_service_command_handler.clone())
-        .execute(
-            command.option("name"),
-            command.option("template"),
-            no_input,
-            is_interactive_terminal,
-        )
-        .map_err(|error| {
-            let exit_code = match error {
-                AddServiceError::Interrupted => 130,
-                _ => ExitCodes::from_add_service_error(&error) as i32,
-            };
-            format!("[exit:{exit_code}] {error}")
-        })
+    AddServiceCliCommand::new(
+        context.add_service_command_handler.clone(),
+        n_framework_core_cli_cliclack::CliclackPromptService::new(),
+    )
+    .execute(
+        command.option("name"),
+        command.option("template"),
+        no_input,
+        is_interactive_terminal,
+    )
+    .map_err(|error| {
+        let exit_code = match error {
+            AddServiceError::Interrupted => 130,
+            _ => ExitCodes::from_add_service_error(&error) as i32,
+        };
+        format!("[exit:{exit_code}] {error}")
+    })
 }
 
 fn handle_check(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    RunCheckCliCommand::new(&context.check_command_handler)
-        .execute()
-        .map_err(|error| {
-            let exit_code = match error {
-                RunCheckError::ValidationFailed => ExitCodes::ValidationError as i32,
-                RunCheckError::Interrupted => ExitCodes::Interrupted as i32,
-                RunCheckError::CurrentDirectoryUnavailable(_) => ExitCodes::InternalError as i32,
-                RunCheckError::CommandError(_) => ExitCodes::InternalError as i32,
-            };
+    RunCheckCliCommand::new(
+        &context.check_command_handler,
+        n_framework_core_cli_cliclack::CliclackPromptService::new(),
+    )
+    .execute()
+    .map_err(|error| {
+        let exit_code = match error {
+            RunCheckError::ValidationFailed => ExitCodes::ValidationError as i32,
+            RunCheckError::Interrupted => ExitCodes::Interrupted as i32,
+            RunCheckError::CurrentDirectoryUnavailable(_) => ExitCodes::InternalError as i32,
+            RunCheckError::CommandError(_) => ExitCodes::InternalError as i32,
+        };
 
-            format!("[exit:{exit_code}] {error}")
-        })
+        format!("[exit:{exit_code}] {error}")
+    })
 }
 
 fn handle_templates_list(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {

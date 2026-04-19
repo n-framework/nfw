@@ -27,11 +27,11 @@ fn check_uses_service_make_lint_and_not_workspace_root() {
     .expect("service Makefile should be written");
 
     let output = run_nfw_check(&workspace_root);
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     assert!(output.status.success());
-    assert!(stdout.contains("architecture validation passed"));
+    assert!(stderr.contains("architecture validation passed"));
     assert!(!stderr.contains("type=lint_issue"));
 
     cleanup_workspace(&workspace_root);

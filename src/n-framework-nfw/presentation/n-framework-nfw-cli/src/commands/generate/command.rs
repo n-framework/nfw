@@ -45,6 +45,10 @@ where
     }
 
     pub fn execute(&self, request: GenerateRequest) -> Result<(), GenerateError> {
+        self.prompt
+            .intro(&format!("Generate {}", request.generator_type))
+            .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
+
         let context = self.handler.prepare_context(request.generator_type)?;
         let name = self.resolve_name(&request)?;
 
@@ -63,12 +67,33 @@ where
             params_opt,
         );
 
-        self.handler.handle(&command, context)?;
+        let spinner = self
+            .prompt
+            .spinner(&format!(
+                "Generating {} '{}'...",
+                request.generator_type, name
+            ))
+            .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
 
-        println!(
-            "Generated '{}' '{}' successfully.",
+        self.handler.handle(&command, context).map_err(|e| {
+            spinner.error(&format!(
+                "Failed to generate {}: {}",
+                request.generator_type, e
+            ));
+            e
+        })?;
+
+        spinner.success(&format!(
+            "{} '{}' generated successfully",
             request.generator_type, name
-        );
+        ));
+
+        self.prompt
+            .outro(&format!(
+                "Generated '{}' '{}' successfully.",
+                request.generator_type, name
+            ))
+            .map_err(|e| GenerateError::WorkspaceError(e.to_string()))?;
 
         Ok(())
     }
