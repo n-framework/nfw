@@ -241,24 +241,33 @@ pub fn create_workspace_root(test_name: &str) -> PathBuf {
     root
 }
 
-pub fn create_service_template(root: &Path, template_name: &str, template_type: &str) -> PathBuf {
+pub fn create_service_template(root: &Path, template_name: &str, _template_type: &str) -> PathBuf {
     let template_root = root.join(template_name);
-    let content_root = template_root.join("content");
+    let service_root = template_root.join("service");
+    let content_root = service_root.join("content");
+
     fs::create_dir_all(content_root.join("Domain"))
         .expect("domain template directory should be created");
     fs::create_dir_all(content_root.join("Application"))
         .expect("application template directory should be created");
     fs::create_dir_all(content_root.join("Infrastructure"))
         .expect("infrastructure template directory should be created");
-    fs::create_dir_all(content_root.join("Api")).expect("api template directory should be created");
+    fs::create_dir_all(content_root.join("Api"))
+        .expect("api template directory should be created");
 
+    // Root template.yaml — identity metadata only, no steps
     fs::write(
         template_root.join("template.yaml"),
-        format!(
-            "id: {template_name}\nname: {template_name}\ndescription: test\nversion: 1.0.0\ntype: {template_type}\n"
-        ),
+        format!("id: {template_name}\nname: {template_name}\ndescription: test\nversion: 1.0.0\n"),
     )
-    .expect("template metadata should be written");
+    .expect("root template metadata should be written");
+
+    // Service sub-template — owns the rendering steps
+    fs::write(
+        service_root.join("template.yaml"),
+        format!("id: {template_name}/service\nname: {template_name} service\ndescription: test\nversion: 1.0.0\nsteps:\n  - action: render_folder\n    source: 'content/'\n    destination: '.'\n"),
+    )
+    .expect("service template.yaml should be written");
 
     fs::write(
         content_root.join("Domain/{{ServiceName}}.Domain.csproj"),

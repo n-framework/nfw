@@ -1,9 +1,9 @@
 use crate::features::template_management::models::template_error::TemplateError;
 use std::fmt;
 
-/// Errors produced by the code generation service.
+/// Errors produced by the artifact adding service.
 #[derive(Debug, Clone)]
-pub enum GenerateError {
+pub enum AddArtifactError {
     /// The 'name' or 'feature' argument contained invalid characters.
     InvalidIdentifier(String),
     /// The workspace root could not be located.
@@ -18,7 +18,7 @@ pub enum GenerateError {
     ExecutionFailed(TemplateError),
 }
 
-impl fmt::Display for GenerateError {
+impl fmt::Display for AddArtifactError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidIdentifier(msg) => write!(f, "{}", msg),
@@ -31,7 +31,7 @@ impl fmt::Display for GenerateError {
     }
 }
 
-impl std::error::Error for GenerateError {
+impl std::error::Error for AddArtifactError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::ExecutionFailed(err) => Some(err),

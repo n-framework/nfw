@@ -135,5 +135,5 @@ name = "architecture_check_polyglot_go_test"
 path = "../../../../tests/integration/n-framework-nfw/features/architecture_check/polyglot_go_check_tests.rs"
 
 [[test]]
-name = "generate_smoke_test"
-path = "../../../../tests/integration/n-framework-nfw/features/generate/generate_smoke_test.rs"
+name = "artifact_smoke_test"
+path = "../../../../tests/integration/n-framework-nfw/features/artifact/artifact_smoke_test.rs"

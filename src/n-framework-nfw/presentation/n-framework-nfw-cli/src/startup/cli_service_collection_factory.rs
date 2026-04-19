@@ -9,7 +9,7 @@ use n_framework_nfw_core_application::features::template_management::commands::e
 use n_framework_nfw_core_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
 use n_framework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
-use n_framework_nfw_core_application::features::template_management::commands::generate::generate_command_handler::GenerateCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::add_artifact::add_artifact_command_handler::AddArtifactCommandHandler;
 use n_framework_nfw_core_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use n_framework_nfw_core_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
 use n_framework_nfw_core_application::features::template_management::services::templates_service::TemplatesService;
@@ -54,7 +54,7 @@ impl CliServiceCollectionFactory {
                 .remove_template_source_command_handler,
             refresh_templates_command_handler: templates.refresh_templates_command_handler,
             ensure_default_source_command_handler: templates.ensure_default_source_command_handler,
-            generate_command_handler: GenerateCommandHandler::new(
+            add_artifact_command_handler: AddArtifactCommandHandler::new(
                 StandardWorkingDirectoryProvider::new(),
                 FileSystemTemplateRootResolver::new(),
                 n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),

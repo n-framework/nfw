@@ -31,7 +31,7 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["path", "template", "generatedAtUtc"],
+        "required": ["path", "template"],
         "properties": {
           "path": {
             "type": "string",
@@ -51,10 +51,6 @@
               }
             },
             "additionalProperties": true
-          },
-          "generatedAtUtc": {
-            "type": "string",
-            "minLength": 1
           }
         },
         "additionalProperties": true

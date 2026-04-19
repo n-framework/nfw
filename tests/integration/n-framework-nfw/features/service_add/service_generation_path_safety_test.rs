@@ -18,10 +18,10 @@ fn rejects_rendered_paths_that_escape_service_output_root() {
 
     let template_root =
         support::create_service_template(&workspace_root, "dotnet-service-template", "service");
-    fs::create_dir_all(template_root.join("content/{{WorkspaceName}}"))
+    fs::create_dir_all(template_root.join("service/content/{{WorkspaceName}}"))
         .expect("malicious placeholder directory should be created");
     fs::write(
-        template_root.join("content/{{WorkspaceName}}/payload.txt"),
+        template_root.join("service/content/{{WorkspaceName}}/payload.txt"),
         "unsafe path payload",
     )
     .expect("malicious placeholder file should be written");

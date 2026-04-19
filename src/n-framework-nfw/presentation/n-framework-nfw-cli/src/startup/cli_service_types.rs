@@ -63,10 +63,10 @@ pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     FileSystemServiceTemplateRenderer,
     n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter,
 >;
-use n_framework_nfw_core_application::features::template_management::commands::generate::generate_command_handler::GenerateCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::add_artifact::add_artifact_command_handler::AddArtifactCommandHandler;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
 
-pub type CliGenerateCommandHandler = GenerateCommandHandler<
+pub type CliAddArtifactCommandHandler = AddArtifactCommandHandler<
     CliWorkingDirectoryProvider,
     FileSystemTemplateRootResolver,
     FileSystemTemplateEngine,
@@ -84,6 +84,6 @@ pub struct CliServiceCollection {
     pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,
     pub refresh_templates_command_handler: CliRefreshTemplatesCommandHandler,
     pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
-    pub generate_command_handler: CliGenerateCommandHandler,
+    pub add_artifact_command_handler: CliAddArtifactCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
 }

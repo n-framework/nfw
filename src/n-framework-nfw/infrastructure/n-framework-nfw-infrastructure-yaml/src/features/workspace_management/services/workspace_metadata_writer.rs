@@ -81,10 +81,6 @@ impl ServiceProvenanceStore for WorkspaceMetadataWriter {
             Value::String("template".to_owned()),
             Value::Mapping(template_mapping),
         );
-        service_entry.insert(
-            Value::String("generatedAtUtc".to_owned()),
-            Value::String(record.generated_at_utc.clone()),
-        );
 
         services_mapping.insert(
             Value::String(record.service_name.clone()),

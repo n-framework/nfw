@@ -8,8 +8,8 @@ use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
+use crate::commands::artifact::{AddArtifactCliCommand, AddArtifactRequest};
 use crate::commands::check::run_check::{RunCheckCliCommand, RunCheckError};
-use crate::commands::generate::{GenerateCliCommand, GenerateRequest};
 use crate::commands::service::add_service::AddServiceCliCommand;
 use crate::commands::templates::add_source::AddSourceCliCommand;
 use crate::commands::templates::list_templates::TemplatesCliCommand;
@@ -104,12 +104,7 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                                     .with_help("Disable all interactive prompts")
                                     .flag(),
                             ),
-                    ),
-            )
-            .with_command(
-                CliCommandSpec::new("gen")
-                    .with_about("Generate code from templates defined in nfw.yaml")
-                    .require_subcommand()
+                    )
                     .with_subcommand(
                         CliCommandSpec::new("command")
                             .with_about("Generate a mediator command")
@@ -159,11 +154,10 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                                     .with_help("Disable all interactive prompts")
                                     .flag(),
                             ),
-                    ),
-            ),
+                    )
+            )
     )
 }
-
 pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliServiceCollection> {
     println!("{NFRAMEWORK_ASCII_BANNER}");
     println!();
@@ -172,8 +166,8 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("new", handle_workspace_new)
         .register_handler("check", handle_check)
         .register_handler("add/service", handle_add_service)
-        .register_handler("gen/command", handle_gen_command)
-        .register_handler("gen/query", handle_gen_query)
+        .register_handler("add/command", handle_add_artifact_command)
+        .register_handler("add/query", handle_add_artifact_query)
         .register_handler("templates/list", handle_templates_list)
         .register_handler("templates/add", handle_templates_add)
         .register_handler("templates/remove", handle_templates_remove)
@@ -279,32 +273,32 @@ fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> 
     RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
 }
 
-pub fn handle_gen_command(
+pub fn handle_add_artifact_command(
     command: &dyn Command,
     context: &CliServiceCollection,
 ) -> Result<(), String> {
-    handle_generate(command, context, "command")
+    handle_add_artifact(command, context, "command")
 }
 
-pub fn handle_gen_query(
+pub fn handle_add_artifact_query(
     command: &dyn Command,
     context: &CliServiceCollection,
 ) -> Result<(), String> {
-    handle_generate(command, context, "query")
+    handle_add_artifact(command, context, "query")
 }
 
-fn handle_generate(
+fn handle_add_artifact(
     command: &dyn Command,
     context: &CliServiceCollection,
     generator_type: &str,
 ) -> Result<(), String> {
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-    GenerateCliCommand::new(
-        context.generate_command_handler.clone(),
+    AddArtifactCliCommand::new(
+        context.add_artifact_command_handler.clone(),
         n_framework_core_cli_cliclack::CliclackPromptService::new(),
     )
-    .execute(GenerateRequest {
+    .execute(AddArtifactRequest {
         generator_type,
         name: command.option("name"),
         feature: command.option("feature"),
@@ -314,7 +308,7 @@ fn handle_generate(
         is_interactive_terminal,
     })
     .map_err(|e| {
-        let exit_code = ExitCodes::from_generate_error(&e) as i32;
+        let exit_code = ExitCodes::from_add_artifact_error(&e) as i32;
         format!("[exit:{exit_code}] {}", e)
     })
 }

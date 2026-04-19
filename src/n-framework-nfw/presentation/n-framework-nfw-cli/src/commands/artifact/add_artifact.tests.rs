@@ -5,7 +5,7 @@ use serde_json::json;
 use serde_yaml::Value as YamlValue;
 use tempfile::TempDir;
 use n_framework_core_cli_abstractions::{InteractiveError, InteractivePrompt, Logger, LoggingError, SelectOption, Spinner};
-use n_framework_nfw_core_application::features::template_management::commands::generate::generate_command_handler::GenerateCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::add_artifact::add_artifact_command_handler::AddArtifactCommandHandler;
 use n_framework_nfw_core_application::features::template_management::models::template_error::TemplateError;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
@@ -244,20 +244,20 @@ fn create_command_with_mocks(
     template_root: Option<PathBuf>,
     engine_result: Result<(), TemplateError>,
     prompt: SpyPromptService,
-) -> GenerateCliCommand<
+) -> AddArtifactCliCommand<
     MockWorkingDirectoryProvider,
     MockTemplateRootResolver,
     MockTemplateEngine,
     SpyPromptService,
 > {
-    let handler = GenerateCommandHandler::new(
+    let handler = AddArtifactCommandHandler::new(
         MockWorkingDirectoryProvider { current_dir },
         MockTemplateRootResolver { template_root },
         MockTemplateEngine {
             result: engine_result,
         },
     );
-    GenerateCliCommand::new(handler, prompt)
+    AddArtifactCliCommand::new(handler, prompt)
 }
 
 fn create_sandbox() -> TempDir {
@@ -269,8 +269,8 @@ fn no_input_request<'a>(
     name: Option<&'a str>,
     feature: Option<&'a str>,
     params: Option<&'a str>,
-) -> GenerateRequest<'a> {
-    GenerateRequest {
+) -> AddArtifactRequest<'a> {
+    AddArtifactRequest {
         generator_type,
         name,
         feature,
@@ -403,7 +403,7 @@ fn test_object_prompt_recursive() {
 #[test]
 fn execute_fails_on_invalid_name() {
     let sandbox = create_sandbox();
-    std::fs::write(sandbox.path().join("nfw.yaml"), "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n").unwrap();
+    std::fs::write(sandbox.path().join("nfw.yaml"), "workspace:\n  name: test\n  namespace: App\nservices:\n  TestService:\n    path: src/TestService\n    template:\n      id: mock-service\ntemplate_sources:\n  local: templates\n").unwrap();
     let template_root = sandbox.path().join("templates").join("mock-cmd");
     std::fs::create_dir_all(&template_root).unwrap();
     std::fs::write(
@@ -430,7 +430,7 @@ fn execute_fails_on_invalid_name() {
 #[test]
 fn execute_supports_quoted_commas_in_params() {
     let sandbox = create_sandbox();
-    std::fs::write(sandbox.path().join("nfw.yaml"), "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n").unwrap();
+    std::fs::write(sandbox.path().join("nfw.yaml"), "workspace:\n  name: test\n  namespace: App\nservices:\n  TestService:\n    path: src/TestService\n    template:\n      id: mock-service\ntemplate_sources:\n  local: templates\n").unwrap();
     let template_root = sandbox.path().join("templates").join("mock-cmd");
     std::fs::create_dir_all(&template_root).unwrap();
     std::fs::write(
@@ -444,7 +444,7 @@ fn execute_supports_quoted_commas_in_params() {
         Ok(()),
         SpyPromptService::non_interactive(),
     );
-    let result = command.execute(GenerateRequest {
+    let result = command.execute(AddArtifactRequest {
         generator_type: "command",
         name: Some("ValidName"),
         feature: None,
@@ -459,7 +459,7 @@ fn execute_supports_quoted_commas_in_params() {
 #[test]
 fn execute_fails_on_param_conflict() {
     let sandbox = create_sandbox();
-    std::fs::write(sandbox.path().join("nfw.yaml"), "workspace:\n  name: test\n  namespace: App\ntemplate_sources:\n  local: templates\ntemplates:\n  command: mock-cmd\n").unwrap();
+    std::fs::write(sandbox.path().join("nfw.yaml"), "workspace:\n  name: test\n  namespace: App\nservices:\n  TestService:\n    path: src/TestService\n    template:\n      id: mock-service\ntemplate_sources:\n  local: templates\n").unwrap();
     let template_root = sandbox.path().join("templates").join("mock-cmd");
     std::fs::create_dir_all(&template_root).unwrap();
     std::fs::write(
@@ -473,7 +473,7 @@ fn execute_fails_on_param_conflict() {
         Ok(()),
         SpyPromptService::non_interactive(),
     );
-    let result = command.execute(GenerateRequest {
+    let result = command.execute(AddArtifactRequest {
         generator_type: "command",
         name: Some("ValidName"),
         feature: None,

@@ -46,6 +46,8 @@ pub struct TemplateInput {
     input_type: TemplateInputType,
     /// Message displayed to the user when prompted.
     prompt: String,
+    /// Optional description displayed below the prompt.
+    description: Option<String>,
     /// Optional default value.
     default: Option<serde_json::Value>,
     /// Valid choices for select/multiselect types.
@@ -62,6 +64,7 @@ struct TemplateInputShadow {
     #[serde(rename = "type")]
     input_type: TemplateInputType,
     prompt: String,
+    description: Option<String>,
     default: Option<serde_json::Value>,
     options: Option<Vec<String>>,
     properties: Option<Vec<TemplateInput>>,
@@ -102,6 +105,7 @@ impl TryFrom<TemplateInputShadow> for TemplateInput {
             id,
             input_type: shadow.input_type,
             prompt: shadow.prompt,
+            description: shadow.description,
             default: shadow.default,
             options: shadow.options,
             properties: shadow.properties,
@@ -213,11 +217,17 @@ impl TemplateInput {
             id,
             input_type,
             prompt,
+            description: None,
             default: None,
             options: None,
             properties: None,
             items: None,
         }
+    }
+
+    pub fn with_description(mut self, description: String) -> Self {
+        self.description = Some(description);
+        self
     }
 
     pub fn with_default(mut self, default: serde_json::Value) -> Self {
@@ -250,6 +260,10 @@ impl TemplateInput {
 
     pub fn prompt(&self) -> &str {
         &self.prompt
+    }
+
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
     }
 
     pub fn default(&self) -> Option<&serde_json::Value> {

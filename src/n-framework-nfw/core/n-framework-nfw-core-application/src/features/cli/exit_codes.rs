@@ -1,7 +1,7 @@
 use crate::features::check::models::errors::CheckError;
 use crate::features::check::models::{ExitOutcome, ValidationSummary};
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
-use crate::features::template_management::models::errors::generate_error::GenerateError;
+use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 
 #[repr(i32)]
@@ -54,14 +54,14 @@ impl ExitCodes {
         }
     }
 
-    pub fn from_generate_error(error: &GenerateError) -> Self {
+    pub fn from_add_artifact_error(error: &AddArtifactError) -> Self {
         match error {
-            GenerateError::ConfigError(_)
-            | GenerateError::InvalidIdentifier(_)
-            | GenerateError::InvalidParameter(_) => Self::ValidationError,
-            GenerateError::TemplateNotFound(_) => Self::NotFound,
-            GenerateError::ExecutionFailed(_) => Self::ExternalDependencyFailure,
-            GenerateError::WorkspaceError(_) => Self::InternalError,
+            AddArtifactError::ConfigError(_)
+            | AddArtifactError::InvalidIdentifier(_)
+            | AddArtifactError::InvalidParameter(_) => Self::ValidationError,
+            AddArtifactError::TemplateNotFound(_) => Self::NotFound,
+            AddArtifactError::ExecutionFailed(_) => Self::ExternalDependencyFailure,
+            AddArtifactError::WorkspaceError(_) => Self::InternalError,
         }
     }
 

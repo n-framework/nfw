@@ -7,7 +7,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use n_framework_core_cli_abstractions::Command;
-use n_framework_nfw_cli::runtime::nfw_cli_runtime::handle_gen_command;
+use n_framework_nfw_cli::runtime::nfw_cli_runtime::handle_add_artifact_command;
 use n_framework_nfw_cli::startup::cli_service_collection_factory::CliServiceCollectionFactory;
 
 // Tests in this file must run sequentially because they temporarily mutate
@@ -46,10 +46,13 @@ fn make_opts(name: &str, param: Option<&str>, param_json: Option<&str>) -> HashM
 fn setup_template(sandbox: &Path, template_yaml: &str, tera_source: &str) {
     fs::write(
         sandbox.join("nfw.yaml"),
-        "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: \"templates\"\ntemplates:\n  command: mock-cmd-template\n",
+        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  TestService:\n    path: src/TestService\n    template:\n      id: mock-cmd-template\ntemplate_sources:\n  local: \"templates\"\n",
     ).expect("failed to write nfw.yaml");
 
-    let tpl_dir = sandbox.join("templates").join("mock-cmd-template");
+    let tpl_dir = sandbox
+        .join("templates")
+        .join("mock-cmd-template")
+        .join("command");
     fs::create_dir_all(&tpl_dir).expect("failed to create template dir");
     fs::write(tpl_dir.join("template.yaml"), template_yaml).expect("failed to write template.yaml");
     fs::write(tpl_dir.join("cmd.rs.tera"), tera_source).expect("failed to write tera source");
@@ -60,7 +63,7 @@ fn run(sandbox: &Path, opts: HashMap<String, String>) -> Result<(), String> {
     let services = CliServiceCollectionFactory::create();
     let original_dir = std::env::current_dir().expect("should have current dir");
     std::env::set_current_dir(sandbox).expect("should set current dir");
-    let result = handle_gen_command(&TestCommand { opts }, &services);
+    let result = handle_add_artifact_command(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).expect("should restore current dir");
     result
 }
@@ -68,7 +71,7 @@ fn run(sandbox: &Path, opts: HashMap<String, String>) -> Result<(), String> {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn generate_command_creates_files_from_template() {
+fn artifact_smoke_test_creates_files_from_template() {
     let sandbox = support::create_sandbox_directory("generate-smoke");
 
     setup_template(
@@ -83,7 +86,7 @@ fn generate_command_creates_files_from_template() {
     );
     assert!(result.is_ok(), "Generation failed: {:?}", result.err());
 
-    let generated_file = sandbox.join("src/Commands/CreateUserCommand.rs");
+    let generated_file = sandbox.join("src/TestService/src/Commands/CreateUserCommand.rs");
     assert!(
         generated_file.exists(),
         "Generated file not found at {:?}",
@@ -99,7 +102,7 @@ fn generate_command_creates_files_from_template() {
 }
 
 #[test]
-fn generate_handles_password_input_via_param_json() {
+fn artifact_handles_password_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-password");
 
     setup_template(
@@ -118,7 +121,7 @@ fn generate_handles_password_input_via_param_json() {
 }
 
 #[test]
-fn generate_handles_confirm_input_via_param_json() {
+fn artifact_handles_confirm_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-confirm");
 
     setup_template(
@@ -137,7 +140,7 @@ fn generate_handles_confirm_input_via_param_json() {
 }
 
 #[test]
-fn generate_handles_select_input_via_param_json() {
+fn artifact_handles_select_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-select");
 
     setup_template(
@@ -156,7 +159,7 @@ fn generate_handles_select_input_via_param_json() {
 }
 
 #[test]
-fn generate_handles_multiselect_input_via_param_json() {
+fn artifact_handles_multiselect_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-multiselect");
 
     setup_template(
@@ -179,7 +182,7 @@ fn generate_handles_multiselect_input_via_param_json() {
 }
 
 #[test]
-fn generate_handles_object_input_via_param_json() {
+fn artifact_handles_object_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-object");
 
     setup_template(
@@ -202,7 +205,7 @@ fn generate_handles_object_input_via_param_json() {
 }
 
 #[test]
-fn generate_handles_list_input_via_param_json() {
+fn artifact_handles_list_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-list");
 
     setup_template(
@@ -221,7 +224,7 @@ fn generate_handles_list_input_via_param_json() {
 }
 
 #[test]
-fn generate_fails_on_missing_required_param_in_no_input_mode() {
+fn artifact_fails_on_missing_required_param_in_no_input_mode() {
     let sandbox = support::create_sandbox_directory("gen-missing-param");
 
     setup_template(
