@@ -17,7 +17,6 @@ use n_framework_nfw_core_application::features::template_management::services::t
 use n_framework_nfw_core_application::features::template_management::services::templates_service::TemplatesService;
 use n_framework_nfw_core_domain::features::template_management::template_source::TemplateSource;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::local_templates_catalog_source::LocalTemplatesCatalogSource;
-use n_framework_nfw_infrastructure_filesystem::features::template_management::services::placeholder_detector::PlaceholderDetector;
 use n_framework_nfw_infrastructure_git::features::template_management::services::cli_git_repository::CliGitRepository;
 use n_framework_nfw_infrastructure_git::features::template_management::services::git_template_catalog_source::GitTemplateCatalogSource;
 use n_framework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
@@ -226,7 +225,7 @@ fn uses_cached_templates_when_all_sources_unreachable() {
 
     let git_repository = CliGitRepository::new();
     let real_synchronizer = GitTemplateCatalogSource::new(git_repository, path_resolver);
-    let catalog_source = LocalTemplatesCatalogSource::new(PlaceholderDetector::new());
+    let catalog_source = LocalTemplatesCatalogSource::new();
     let catalog_parser = TemplateCatalogParser::new(
         SerdeYamlParser::new(),
         TestValidator,
@@ -332,7 +331,7 @@ tags:
     assert!(is_valid.is_ok(), "should be able to check if repo is valid");
     assert!(is_valid.unwrap(), "cached repo should be valid");
 
-    let catalog_source = LocalTemplatesCatalogSource::new(PlaceholderDetector::new());
+    let catalog_source = LocalTemplatesCatalogSource::new();
     let catalog_parser = TemplateCatalogParser::new(
         SerdeYamlParser::new(),
         TestValidator,

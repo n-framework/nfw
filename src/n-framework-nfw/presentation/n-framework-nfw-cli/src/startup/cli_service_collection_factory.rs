@@ -22,7 +22,6 @@ use n_framework_nfw_infrastructure_filesystem::features::service_management::ser
 use n_framework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_config_store::FileSystemWorkspaceArtifactWriter;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::local_templates_catalog_source::LocalTemplatesCatalogSource;
-use n_framework_nfw_infrastructure_filesystem::features::template_management::services::placeholder_detector::PlaceholderDetector;
 use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
 use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::standard_working_directory_provider::StandardWorkingDirectoryProvider;
 use n_framework_nfw_infrastructure_git::features::template_management::services::cli_git_repository::CliGitRepository as InfrastructureCliGitRepository;
@@ -120,7 +119,7 @@ impl TemplateFeatureFactory {
         let path_resolver = DirsPathResolver::new();
         let git_repository = InfrastructureCliGitRepository::new();
         let source_synchronizer = GitTemplateCatalogSource::new(git_repository, path_resolver);
-        let catalog_source = LocalTemplatesCatalogSource::new(PlaceholderDetector::new());
+        let catalog_source = LocalTemplatesCatalogSource::new();
         let catalog_parser = TemplateCatalogParser::new(
             SerdeYamlParser::new(),
             CliValidator,

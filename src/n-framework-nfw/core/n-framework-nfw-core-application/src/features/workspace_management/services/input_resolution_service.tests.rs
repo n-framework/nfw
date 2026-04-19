@@ -78,6 +78,9 @@ impl Logger for StubPromptService {
     fn log_info(&self, _message: &str) -> Result<(), LoggingError> {
         Ok(())
     }
+    fn log_step(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
     fn log_success(&self, _message: &str) -> Result<(), LoggingError> {
         Ok(())
     }

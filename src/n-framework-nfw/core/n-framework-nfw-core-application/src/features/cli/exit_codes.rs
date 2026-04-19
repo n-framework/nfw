@@ -23,7 +23,8 @@ impl ExitCodes {
             | WorkspaceNewError::MissingWorkspaceName
             | WorkspaceNewError::MissingRequiredInput(_)
             | WorkspaceNewError::InvalidOptionCombination(_) => Self::ValidationError,
-            WorkspaceNewError::TemplateNotFound(_) => Self::NotFound,
+            WorkspaceNewError::TemplateNotFound(_)
+            | WorkspaceNewError::NoWorkspaceTemplatesDiscovered => Self::NotFound,
             WorkspaceNewError::AmbiguousTemplate(_)
             | WorkspaceNewError::TargetDirectoryNotEmpty(_) => Self::Conflict,
             WorkspaceNewError::PromptFailed(_) | WorkspaceNewError::WriteFailed(_) => {

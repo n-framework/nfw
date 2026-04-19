@@ -190,7 +190,7 @@ fn returns_source_scan_error_when_discovery_fails() {
 }
 
 #[test]
-fn returns_invalid_metadata_error_when_template_yaml_is_invalid() {
+fn skips_invalid_templates_without_failing_the_catalog() {
     let source_root = PathBuf::from("/tmp/nfw/catalog");
     let template_path = source_root.join("broken-template");
 
@@ -211,19 +211,11 @@ language: rust
     let metadata_parser =
         TemplateCatalogParser::new(TestYamlParser, TestValidator, TestVersionComparator);
     let resolver = TemplateCatalogSourceResolver::new(source, metadata_parser);
-    let error = resolver
+    let catalog = resolver
         .resolve("official", &source_root)
-        .expect_err("resolver should fail");
+        .expect("resolver should succeed and skip the invalid template");
 
-    match error {
-        TemplateCatalogSourceResolverError::InvalidTemplateMetadata {
-            template_path: error_path,
-            ..
-        } => {
-            assert_eq!(error_path, template_path.join("template.yaml"));
-        }
-        _ => panic!("unexpected error variant"),
-    }
+    assert_eq!(catalog.len(), 0);
 }
 
 fn valid_template_yaml(id: &str, name: &str) -> String {

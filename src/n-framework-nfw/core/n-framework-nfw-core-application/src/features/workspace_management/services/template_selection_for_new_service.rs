@@ -35,10 +35,28 @@ where
         requested_template: Option<&str>,
         allow_interactive: bool,
     ) -> Result<TemplateSelectionResult, WorkspaceNewError> {
-        let (catalogs, warnings) = self
-            .template_catalog_discovery_service
-            .discover_catalogs()
-            .map_err(|error| WorkspaceNewError::Internal(error.to_string()))?;
+        let spinner = if allow_interactive && self.prompt_service.is_interactive() {
+            Some(
+                self.prompt_service
+                    .spinner("Discovering templates...")
+                    .map_err(|error| WorkspaceNewError::Internal(error.to_string()))?,
+            )
+        } else {
+            None
+        };
+
+        let discovery_result = self.template_catalog_discovery_service.discover_catalogs();
+
+        if let Some(spinner) = &spinner {
+            if discovery_result.is_ok() {
+                spinner.stop("Templates discovered");
+            } else {
+                spinner.error("Failed to discover templates");
+            }
+        }
+
+        let (catalogs, warnings) =
+            discovery_result.map_err(|error| WorkspaceNewError::Internal(error.to_string()))?;
 
         let mut templates = Vec::<(String, TemplateDescriptor)>::new();
         for catalog in catalogs {
@@ -50,9 +68,11 @@ where
         }
 
         if templates.is_empty() {
-            return Err(WorkspaceNewError::TemplateNotFound(
-                requested_template.unwrap_or("<default>").to_owned(),
-            ));
+            if let Some(req) = requested_template {
+                return Err(WorkspaceNewError::TemplateNotFound(req.to_owned()));
+            } else {
+                return Err(WorkspaceNewError::NoWorkspaceTemplatesDiscovered);
+            }
         }
 
         if let Some(requested_template) = requested_template {

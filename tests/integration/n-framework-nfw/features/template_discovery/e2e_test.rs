@@ -14,7 +14,6 @@ use n_framework_nfw_core_domain::features::versioning::version_info::VersionInfo
 use n_framework_nfw_infrastructure_filesystem::features::cli::configuration::nfw_configuration_loader::NfwFileSystemConfigurationLoader;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_config_store::FileSystemWorkspaceArtifactWriter;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::local_templates_catalog_source::LocalTemplatesCatalogSource;
-use n_framework_nfw_infrastructure_filesystem::features::template_management::services::placeholder_detector::PlaceholderDetector;
 use n_framework_nfw_infrastructure_git::features::template_management::services::cli_git_repository::CliGitRepository;
 use n_framework_nfw_infrastructure_git::features::template_management::services::git_template_catalog_source::GitTemplateCatalogSource;
 use n_framework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
@@ -131,7 +130,7 @@ fn create_templates_service(
     let git_repository = CliGitRepository::new();
     let source_synchronizer = GitTemplateCatalogSource::new(git_repository, path_resolver.clone());
 
-    let catalog_source = LocalTemplatesCatalogSource::new(PlaceholderDetector::new());
+    let catalog_source = LocalTemplatesCatalogSource::new();
     let catalog_parser = TemplateCatalogParser::new(
         SerdeYamlParser::new(),
         TestValidator,

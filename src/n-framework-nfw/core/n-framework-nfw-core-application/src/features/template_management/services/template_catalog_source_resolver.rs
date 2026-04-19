@@ -54,26 +54,18 @@ where
         let mut templates = Vec::with_capacity(template_directories.len());
 
         for template_directory in template_directories {
-            let metadata_file = template_directory.join("template.yaml");
-            let metadata_content = self
-                .source
-                .read_template_metadata(&template_directory)
-                .map_err(
-                    |reason| TemplateCatalogSourceResolverError::MetadataReadFailed {
-                        template_path: metadata_file.clone(),
-                        reason,
-                    },
-                )?;
+            let metadata_content = match self.source.read_template_metadata(&template_directory) {
+                Ok(content) => content,
+                Err(_) => continue,
+            };
 
-            let metadata = self
+            let metadata = match self
                 .metadata_parser
                 .parse_template_metadata(&metadata_content)
-                .map_err(
-                    |reason| TemplateCatalogSourceResolverError::InvalidTemplateMetadata {
-                        template_path: metadata_file,
-                        reason: reason.to_string(),
-                    },
-                )?;
+            {
+                Ok(metadata) => metadata,
+                Err(_) => continue,
+            };
 
             templates.push(TemplateDescriptor::new(metadata, template_directory));
         }

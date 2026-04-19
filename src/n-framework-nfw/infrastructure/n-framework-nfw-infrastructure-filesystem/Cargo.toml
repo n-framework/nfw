@@ -7,7 +7,6 @@ edition = "2024"
 n-framework-nfw-core-application = { path = "../../core/n-framework-nfw-core-application" }
 n-framework-nfw-core-domain = { path = "../../core/n-framework-nfw-core-domain" }
 n-framework-nfw-infrastructure-workspace-metadata = { path = "../n-framework-nfw-infrastructure-workspace-metadata" }
-glob = "0.3"
 regex = "1"
 dirs = "6"
 serde = { version = "1", features = ["derive"] }

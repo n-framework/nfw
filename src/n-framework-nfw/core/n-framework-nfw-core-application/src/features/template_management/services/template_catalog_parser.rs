@@ -198,7 +198,7 @@ fn normalize_optional(value: Option<String>) -> Option<String> {
 fn parse_language(value: String) -> Result<Language, TemplateCatalogError> {
     match value.as_str() {
         "neutral" => Ok(Language::Neutral),
-        "dotnet" => Ok(Language::Dotnet),
+        "dotnet" | "csharp" | "c#" => Ok(Language::Dotnet),
         "go" => Ok(Language::Go),
         "rust" => Ok(Language::Rust),
         _ => Err(TemplateCatalogError::UnsupportedLanguage { value }),

@@ -5,6 +5,7 @@ pub enum WorkspaceNewError {
     InvalidWorkspaceName(String),
     MissingWorkspaceName,
     MissingRequiredInput(String),
+    NoWorkspaceTemplatesDiscovered,
     TemplateNotFound(String),
     AmbiguousTemplate(String),
     InvalidOptionCombination(String),
@@ -29,6 +30,9 @@ impl Display for WorkspaceNewError {
                     f,
                     "required input '{field}' is missing in non-interactive mode"
                 )
+            }
+            Self::NoWorkspaceTemplatesDiscovered => {
+                write!(f, "no workspace templates were discovered")
             }
             Self::TemplateNotFound(template) => {
                 write!(

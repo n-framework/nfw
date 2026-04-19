@@ -9,18 +9,24 @@ use n_framework_nfw_core_application::features::workspace_management::services::
 
 /// Thin CLI presentation layer for workspace creation.
 /// Delegates all business logic to the application layer command handler.
-#[derive(Debug, Clone)]
-pub struct NewWorkspaceCliCommand<H> {
+pub struct NewWorkspaceCliCommand<H, P>
+where
+    P: Logger,
+{
     handler: H,
+    logger: P,
 }
 
-impl<H> NewWorkspaceCliCommand<H> {
-    pub fn new(handler: H) -> Self {
-        Self { handler }
+impl<H, P> NewWorkspaceCliCommand<H, P>
+where
+    P: Logger,
+{
+    pub fn new(handler: H, logger: P) -> Self {
+        Self { handler, logger }
     }
 }
 
-impl<P, V, T, W, D, PS> NewWorkspaceCliCommand<NewWorkspaceCommandHandler<P, V, T, W, D, PS>>
+impl<P, V, T, W, D, PS, L> NewWorkspaceCliCommand<NewWorkspaceCommandHandler<P, V, T, W, D, PS>, L>
 where
     P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
@@ -28,6 +34,7 @@ where
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
     PS: InteractivePrompt + Logger + Clone,
+    L: Logger,
 {
     pub fn execute(
         &self,
@@ -45,13 +52,15 @@ where
 
         let result = self.handler.handle(&command)?;
 
-        println!(
-            "Created workspace '{}' at '{}'.",
+        let success_message = format!(
+            "Created workspace '{}' at '{}'.\nTemplate: {}\nNamespace: {}",
             result.workspace_name,
-            result.output_path.display()
+            result.output_path.display(),
+            result.template_id,
+            result.namespace_base
         );
-        println!("Template: {}", result.template_id);
-        println!("Namespace: {}", result.namespace_base);
+
+        let _ = self.logger.outro(&success_message);
 
         Ok(())
     }

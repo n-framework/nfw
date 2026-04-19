@@ -87,6 +87,9 @@ impl Logger for StubPromptService {
     fn log_info(&self, _message: &str) -> Result<(), LoggingError> {
         Ok(())
     }
+    fn log_step(&self, _message: &str) -> Result<(), LoggingError> {
+        Ok(())
+    }
     fn log_success(&self, _message: &str) -> Result<(), LoggingError> {
         Ok(())
     }
@@ -162,10 +165,7 @@ fn returns_template_not_found_when_only_service_templates_exist() {
         .resolve_template_id(None)
         .expect_err("workspace template selection should fail");
 
-    assert_eq!(
-        error,
-        WorkspaceNewError::TemplateNotFound("<default>".to_owned())
-    );
+    assert_eq!(error, WorkspaceNewError::NoWorkspaceTemplatesDiscovered);
 }
 
 #[test]

@@ -195,17 +195,20 @@ fn handle_workspace_new(
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
 
-    NewWorkspaceCliCommand::new(context.new_workspace_command_handler.clone())
-        .execute(
-            command.option("workspace-name"),
-            command.option("template"),
-            no_input,
-            is_interactive_terminal,
-        )
-        .map_err(|error| {
-            let exit_code = ExitCodes::from_workspace_new_error(&error) as i32;
-            format!("[exit:{exit_code}] {error}")
-        })
+    NewWorkspaceCliCommand::new(
+        context.new_workspace_command_handler.clone(),
+        n_framework_core_cli_cliclack::CliclackPromptService::new(),
+    )
+    .execute(
+        command.option("workspace-name"),
+        command.option("template"),
+        no_input,
+        is_interactive_terminal,
+    )
+    .map_err(|error| {
+        let exit_code = ExitCodes::from_workspace_new_error(&error) as i32;
+        format!("[exit:{exit_code}] {error}")
+    })
 }
 
 fn handle_add_service(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
