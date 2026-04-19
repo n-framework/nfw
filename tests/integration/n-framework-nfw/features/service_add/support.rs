@@ -252,8 +252,7 @@ pub fn create_service_template(root: &Path, template_name: &str, _template_type:
         .expect("application template directory should be created");
     fs::create_dir_all(content_root.join("Infrastructure"))
         .expect("infrastructure template directory should be created");
-    fs::create_dir_all(content_root.join("Api"))
-        .expect("api template directory should be created");
+    fs::create_dir_all(content_root.join("Api")).expect("api template directory should be created");
 
     // Root template.yaml — identity metadata only, no steps
     fs::write(

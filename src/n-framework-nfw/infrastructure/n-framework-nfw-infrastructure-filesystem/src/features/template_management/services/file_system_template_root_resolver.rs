@@ -19,30 +19,29 @@ impl TemplateRootResolver for FileSystemTemplateRootResolver {
         workspace_root: &Path,
     ) -> Result<PathBuf, String> {
         // 1. Check local candidates configured in nfw.yaml
-        if let Some(sources) = nfw_yaml.get("template_sources") {
-            if let Some(local) = sources.get("local") {
-                if let Some(local_path) = local.as_str() {
-                    let local_root = workspace_root.join(local_path);
+        if let Some(sources) = nfw_yaml.get("template_sources")
+            && let Some(local) = sources.get("local")
+            && let Some(local_path) = local.as_str()
+        {
+            let local_root = workspace_root.join(local_path);
 
-                    // Try exact match
-                    let candidate = local_root.join(template_id);
-                    if candidate.is_dir() {
-                        return Ok(candidate);
-                    }
+            // Try exact match
+            let candidate = local_root.join(template_id);
+            if candidate.is_dir() {
+                return Ok(candidate);
+            }
 
-                    // Try stripping source namespace (e.g. official/dotnet-service -> dotnet-service)
-                    // and also checking src/ subfolder (common in official repo structure)
-                    if let Some((_ns, rest)) = template_id.split_once('/') {
-                        let candidate = local_root.join(rest);
-                        if candidate.is_dir() {
-                            return Ok(candidate);
-                        }
+            // Try stripping source namespace (e.g. official/dotnet-service -> dotnet-service)
+            // and also checking src/ subfolder (common in official repo structure)
+            if let Some((_ns, rest)) = template_id.split_once('/') {
+                let candidate = local_root.join(rest);
+                if candidate.is_dir() {
+                    return Ok(candidate);
+                }
 
-                        let candidate = local_root.join("src").join(rest);
-                        if candidate.is_dir() {
-                            return Ok(candidate);
-                        }
-                    }
+                let candidate = local_root.join("src").join(rest);
+                if candidate.is_dir() {
+                    return Ok(candidate);
                 }
             }
         }

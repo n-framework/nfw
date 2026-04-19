@@ -33,7 +33,10 @@ impl Default for FileSystemServiceTemplateRenderer {
 
 impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
     fn render_service(&self, plan: &ServiceGenerationPlan) -> Result<(), AddServiceError> {
-        let service_config_path = plan.template_cache_path.join("service").join("template.yaml");
+        let service_config_path = plan
+            .template_cache_path
+            .join("service")
+            .join("template.yaml");
         let service_root = plan.template_cache_path.join("service");
 
         if !service_config_path.exists() {

@@ -97,30 +97,28 @@ where
         workspace: &WorkspaceContext,
     ) -> Result<Vec<ServiceInfo>, AddArtifactError> {
         let mut result = Vec::new();
-        if let Some(services) = workspace.nfw_yaml.get("services") {
-            if let Some(map) = services.as_mapping() {
-                for (name_val, details_val) in map {
-                    if let (Some(name), Some(details)) =
-                        (name_val.as_str(), details_val.as_mapping())
-                    {
-                        let path = details
-                            .get("path")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("")
-                            .to_string();
-                        let template_id = details
-                            .get("template")
-                            .and_then(|t| t.as_mapping())
-                            .and_then(|t| t.get("id"))
-                            .and_then(|id| id.as_str())
-                            .unwrap_or("")
-                            .to_string();
-                        result.push(ServiceInfo {
-                            name: name.to_string(),
-                            path,
-                            template_id,
-                        });
-                    }
+        if let Some(services) = workspace.nfw_yaml.get("services")
+            && let Some(map) = services.as_mapping()
+        {
+            for (name_val, details_val) in map {
+                if let (Some(name), Some(details)) = (name_val.as_str(), details_val.as_mapping()) {
+                    let path = details
+                        .get("path")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let template_id = details
+                        .get("template")
+                        .and_then(|t| t.as_mapping())
+                        .and_then(|t| t.get("id"))
+                        .and_then(|id| id.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    result.push(ServiceInfo {
+                        name: name.to_string(),
+                        path,
+                        template_id,
+                    });
                 }
             }
         }
@@ -148,12 +146,11 @@ where
         let mut features = Vec::new();
         if let Ok(entries) = fs::read_dir(features_root) {
             for entry in entries.flatten() {
-                if let Ok(file_type) = entry.file_type() {
-                    if file_type.is_dir() {
-                        if let Some(name) = entry.file_name().to_str() {
-                            features.push(name.to_string());
-                        }
-                    }
+                if let Ok(file_type) = entry.file_type()
+                    && file_type.is_dir()
+                    && let Some(name) = entry.file_name().to_str()
+                {
+                    features.push(name.to_string());
                 }
             }
         }
