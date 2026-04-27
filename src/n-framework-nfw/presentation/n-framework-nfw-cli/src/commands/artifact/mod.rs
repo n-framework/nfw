@@ -3,5 +3,5 @@
 //! This module provides the `nfw add <artifact>` commands, which allow developers to
 //! scaffold code components from templates using a configuration-driven approach.
 
-pub mod add_artifact;
-pub use add_artifact::{AddArtifactCliCommand, AddArtifactError, AddArtifactRequest};
+pub mod gen_mediator_command;
+pub mod gen_mediator_query;

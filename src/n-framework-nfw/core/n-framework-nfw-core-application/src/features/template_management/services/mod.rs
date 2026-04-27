@@ -1,4 +1,5 @@
 pub mod abstractions;
+pub mod artifact_generation_service;
 pub mod generate_service;
 pub mod template_catalog_parser;
 pub mod template_catalog_source_resolver;

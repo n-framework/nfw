@@ -5,19 +5,12 @@ use std::path::{Path, PathBuf};
 use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 
-use super::add_artifact_command::AddArtifactCommand;
 use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use crate::features::template_management::services::template_engine::TemplateEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 
 #[derive(Debug, Clone)]
-pub struct AddArtifactCommandHandler<W, R, E> {
-    working_dir_provider: W,
-    root_resolver: R,
-    engine: E,
-}
-
 pub struct WorkspaceContext {
     pub workspace_root: PathBuf,
     pub nfw_yaml: YamlValue,
@@ -38,7 +31,14 @@ pub struct AddArtifactContext {
     pub service_path: PathBuf,
 }
 
-impl<W, R, E> AddArtifactCommandHandler<W, R, E>
+#[derive(Debug, Clone)]
+pub struct ArtifactGenerationService<W, R, E> {
+    working_dir_provider: W,
+    root_resolver: R,
+    engine: E,
+}
+
+impl<W, R, E> ArtifactGenerationService<W, R, E>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
@@ -52,14 +52,21 @@ where
         }
     }
 
-    pub fn handle(
+    pub fn execute_generation(
         &self,
-        command: &AddArtifactCommand,
-        context: AddArtifactContext,
+        command_name: &str,
+        command_feature: Option<&str>,
+        command_params: &Option<serde_json::Value>,
+        context: &AddArtifactContext,
     ) -> Result<(), AddArtifactError> {
-        self.validate_identifiers(command)?;
+        self.validate_identifiers(command_name, command_feature)?;
 
-        let parameters = self.build_parameters(&context.nfw_yaml, command)?;
+        let parameters = self.build_parameters(
+            &context.nfw_yaml,
+            command_name,
+            command_feature,
+            command_params,
+        )?;
         let output_root = context.workspace_root.join(&context.service_path);
 
         self.engine
@@ -159,7 +166,7 @@ where
         Ok(features)
     }
 
-    fn extract_namespace(&self, nfw_yaml: &YamlValue) -> Result<String, AddArtifactError> {
+    pub fn extract_namespace(&self, nfw_yaml: &YamlValue) -> Result<String, AddArtifactError> {
         nfw_yaml
             .get("workspace")
             .and_then(|w| w.get("namespace"))
@@ -179,7 +186,6 @@ where
         service: &ServiceInfo,
         generator_type: &str,
     ) -> Result<AddArtifactContext, AddArtifactError> {
-        // Construct the nested template ID, e.g. "official/dotnet-service/command"
         let template_id = format!("{}/{}", service.template_id, generator_type);
 
         let template_root = self
@@ -202,31 +208,36 @@ where
             service_path: PathBuf::from(&service.path),
         })
     }
-    fn validate_identifiers(&self, command: &AddArtifactCommand) -> Result<(), AddArtifactError> {
-        if command.name.is_empty() {
+
+    pub fn validate_identifiers(
+        &self,
+        name: &str,
+        feature: Option<&str>,
+    ) -> Result<(), AddArtifactError> {
+        if name.is_empty() {
             return Err(AddArtifactError::InvalidIdentifier(
                 "name cannot be empty".to_string(),
             ));
         }
 
         let re = get_identifier_regex();
-        if !re.is_match(&command.name) {
+        if !re.is_match(name) {
             return Err(AddArtifactError::InvalidIdentifier(format!(
                 "invalid name '{}'. Only alphanumeric characters, hyphens, and underscores are allowed.",
-                command.name
+                name
             )));
         }
 
-        if let Some(ref feature) = command.feature {
-            if feature.is_empty() {
+        if let Some(feat) = feature {
+            if feat.is_empty() {
                 return Err(AddArtifactError::InvalidIdentifier(
                     "feature cannot be empty if provided".to_string(),
                 ));
             }
-            if !re.is_match(feature) {
+            if !re.is_match(feat) {
                 return Err(AddArtifactError::InvalidIdentifier(format!(
                     "invalid feature '{}'. Only alphanumeric characters, hyphens, and underscores are allowed.",
-                    feature
+                    feat
                 )));
             }
         }
@@ -265,24 +276,26 @@ where
     fn build_parameters(
         &self,
         nfw_yaml: &YamlValue,
-        command: &AddArtifactCommand,
+        name: &str,
+        feature: Option<&str>,
+        params: &Option<serde_json::Value>,
     ) -> Result<TemplateParameters, AddArtifactError> {
         let namespace = self.extract_namespace(nfw_yaml)?;
 
         let parameters = TemplateParameters::new()
-            .with_name(&command.name)
+            .with_name(name)
             .map_err(AddArtifactError::InvalidParameter)?
             .with_namespace(namespace)
             .map_err(AddArtifactError::InvalidParameter)?;
 
         let mut parameters = parameters;
-        if let Some(ref feature) = command.feature {
+        if let Some(feat) = feature {
             parameters = parameters
-                .with_feature(feature)
+                .with_feature(feat)
                 .map_err(AddArtifactError::InvalidParameter)?;
         }
 
-        if let Some(ref val) = command.params {
+        if let Some(val) = params {
             if let serde_json::Value::Object(map) = val {
                 for (key, value) in map {
                     parameters

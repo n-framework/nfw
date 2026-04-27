@@ -127,7 +127,11 @@ impl TemplateConfig {
         steps: Vec<TemplateStep>,
         inputs: Vec<TemplateInput>,
     ) -> Result<Self, TemplateConfigError> {
-        let config = Self { id, steps, inputs };
+        let config = Self {
+            id,
+            steps,
+            inputs,
+        };
         config.validate()?;
         Ok(config)
     }

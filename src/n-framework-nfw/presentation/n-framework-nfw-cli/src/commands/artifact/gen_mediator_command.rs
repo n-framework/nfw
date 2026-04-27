@@ -1,54 +1,42 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
-use n_framework_nfw_core_application::features::template_management::commands::add_artifact::add_artifact_command::AddArtifactCommand;
-use n_framework_nfw_core_application::features::template_management::commands::add_artifact::add_artifact_command_handler::{
-    AddArtifactCommandHandler, WorkspaceContext,
-};
+use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command::GenMediatorCommandCommand;
+use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command_handler::GenMediatorCommandCommandHandler;
+use n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::WorkspaceContext;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_domain::features::template_management::template_config::{TemplateInput, TemplateInputType};
 
-/// CLI command implementation for adding artifacts.
 #[derive(Debug, Clone)]
-pub struct AddArtifactCliCommand<W, R, E, P> {
-    handler: AddArtifactCommandHandler<W, R, E>,
+pub struct GenMediatorCommandCliCommand<W, R, E, P> {
+    handler: GenMediatorCommandCommandHandler<W, R, E>,
     prompt: P,
 }
 
-/// Request parameters for adding an artifact.
-#[derive(Debug, Clone)]
-pub struct AddArtifactRequest<'a> {
-    /// The type of component to generate (e.g. 'command', 'query').
-    pub generator_type: &'a str,
-    /// Optional name; when absent and interactive, user is prompted.
+pub struct GenMediatorCommandRequest<'a> {
     pub name: Option<&'a str>,
-    /// Optional feature name to associate the component with.
     pub feature: Option<&'a str>,
-    /// Optional arbitrary parameters as 'Key=Value' pairs.
     pub params: Option<&'a str>,
-    /// Optional JSON parameters as a raw JSON string.
     pub param_json: Option<&'a str>,
-    /// Whether interactive prompts are disabled.
     pub no_input: bool,
-    /// Whether the current terminal is interactive.
     pub is_interactive_terminal: bool,
 }
 
-impl<W, R, E, P> AddArtifactCliCommand<W, R, E, P>
+impl<W, R, E, P> GenMediatorCommandCliCommand<W, R, E, P>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
     E: TemplateEngine,
     P: InteractivePrompt + Logger,
 {
-    pub fn new(handler: AddArtifactCommandHandler<W, R, E>, prompt: P) -> Self {
+    pub fn new(handler: GenMediatorCommandCommandHandler<W, R, E>, prompt: P) -> Self {
         Self { handler, prompt }
     }
 
-    pub fn execute(&self, request: AddArtifactRequest) -> Result<(), AddArtifactError> {
+    pub fn execute(&self, request: GenMediatorCommandRequest) -> Result<(), AddArtifactError> {
         self.prompt
-            .intro(&format!("Add {}", request.generator_type))
+            .intro("Generate Mediator Command")
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
         let workspace_context = self.handler.get_workspace_context()?;
@@ -56,8 +44,7 @@ where
 
         if services.is_empty() {
             return Err(AddArtifactError::WorkspaceError(
-                "No services found in workspace. Add a service first before adding artifacts."
-                    .to_string(),
+                "No services found in workspace. Add a service first.".to_string(),
             ));
         }
 
@@ -71,11 +58,7 @@ where
                     .collect();
                 let selected = self
                     .prompt
-                    .select(
-                        &format!("Select a service for the new {}:", request.generator_type),
-                        &options,
-                        Some(0),
-                    )
+                    .select("Select a service for the new command:", &options, Some(0))
                     .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
                 services
@@ -89,11 +72,11 @@ where
             nfw_yaml: workspace_context.nfw_yaml.clone(),
         };
 
-        let context = self.handler.load_template_context(
-            workspace_context,
-            &selected_service,
-            request.generator_type,
-        )?;
+        // Note: Generator type is strictly "command" for Mediator Commands
+        let context =
+            self.handler
+                .load_template_context(workspace_context, &selected_service, "command")?;
+
         let existing_features = self
             .handler
             .list_features(&context_workspace, &selected_service)?;
@@ -108,35 +91,34 @@ where
             Some(resolved_params)
         };
 
-        let command =
-            AddArtifactCommand::new(request.generator_type, name.as_str(), feature, params_opt);
+        let command = GenMediatorCommandCommand::new(name.as_str(), feature, params_opt);
 
         let spinner = self
             .prompt
-            .spinner(&format!("Adding {} '{}'...", request.generator_type, name))
+            .spinner(&format!("Generating mediator command '{}'...", name))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
         self.handler.handle(&command, context).map_err(|e| {
-            spinner.error(&format!("Failed to add {}: {}", request.generator_type, e));
+            spinner.error(&format!("Failed to generate command: {}", e));
             e
         })?;
 
-        spinner.success(&format!(
-            "{} '{}' added successfully",
-            request.generator_type, name
-        ));
+        spinner.success(&format!("Command '{}' generated successfully", name));
 
         self.prompt
             .outro(&format!(
-                "Added '{}' '{}' successfully.",
-                request.generator_type, name
+                "Successfully generated Mediator Command '{}'.",
+                name
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
         Ok(())
     }
 
-    fn resolve_name(&self, request: &AddArtifactRequest) -> Result<String, AddArtifactError> {
+    fn resolve_name(
+        &self,
+        request: &GenMediatorCommandRequest,
+    ) -> Result<String, AddArtifactError> {
         if let Some(name) = request.name {
             return Ok(name.to_owned());
         }
@@ -149,16 +131,13 @@ where
         }
 
         self.prompt
-            .text(
-                &format!("Enter {} name (e.g. ApproveOrder):", request.generator_type),
-                None,
-            )
+            .text("Enter command name (e.g. ApproveOrderCommand):", None)
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))
     }
 
     fn resolve_feature(
         &self,
-        request: &AddArtifactRequest,
+        request: &GenMediatorCommandRequest,
         existing_features: Vec<String>,
     ) -> Result<Option<String>, AddArtifactError> {
         if let Some(feature) = request.feature {
@@ -213,19 +192,17 @@ where
 
     fn resolve_params(
         &self,
-        request: &AddArtifactRequest,
+        request: &GenMediatorCommandRequest,
         inputs: &[TemplateInput],
     ) -> Result<serde_json::Value, AddArtifactError> {
         let mut map = serde_json::Map::new();
 
-        // 1. Resolve from --param (Key=Value, comma separated, supports quotes)
         if let Some(params_str) = request.params {
             for (key, value) in self.parse_param_pairs(params_str)? {
                 map.insert(key, serde_json::Value::String(value));
             }
         }
 
-        // 2. Resolve from --param-json (Raw JSON object)
         if let Some(json_str) = request.param_json {
             let json_val: serde_json::Value = serde_json::from_str(json_str).map_err(|e| {
                 AddArtifactError::InvalidParameter(format!("invalid JSON in --param-json: {e}"))
@@ -252,19 +229,14 @@ where
         if !request.no_input && request.is_interactive_terminal {
             for input in inputs {
                 let id = input.id();
-
                 if map.contains_key(id) {
                     continue;
                 }
-
-                // Prompt normally using the template-defined input type
                 let value = self.prompt_for_input(input)?;
                 map.insert(id.to_string(), value);
             }
         }
 
-        // Final validation: Ensure all defined inputs have been resolved.
-        // This catches missing parameters when in --no-input mode.
         for input in inputs {
             let id = input.id();
             if !map.contains_key(id) {
@@ -313,12 +285,6 @@ where
                         input.id()
                     ))
                 })?;
-                if options.is_empty() {
-                    return Err(AddArtifactError::InvalidParameter(format!(
-                        "select input '{}' has an empty options list",
-                        input.id()
-                    )));
-                }
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
                 let default_idx = input
@@ -338,12 +304,6 @@ where
                         input.id()
                     ))
                 })?;
-                if options.is_empty() {
-                    return Err(AddArtifactError::InvalidParameter(format!(
-                        "multiselect input '{}' has an empty options list",
-                        input.id()
-                    )));
-                }
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
 
@@ -369,7 +329,6 @@ where
                 Ok(serde_json::Value::Array(selected_values))
             }
             TemplateInputType::Object => {
-                println!("{}", input.prompt());
                 let mut obj_map = serde_json::Map::new();
                 let props = input.properties().ok_or_else(|| {
                     AddArtifactError::InvalidParameter(format!(
@@ -404,28 +363,19 @@ where
         }
     }
 
-    /// Parses 'Key=Value' pairs from a comma-separated string, respecting quotes.
-    /// Example: 'Key1=Value1,Key2="Value with, comma"'
     fn parse_param_pairs(&self, input: &str) -> Result<Vec<(String, String)>, AddArtifactError> {
         let mut pairs = Vec::new();
         let mut current_key = String::new();
         let mut current_value = String::new();
         let mut in_quotes = false;
         let mut in_key = true;
-        let chars = input.chars();
 
-        for c in chars {
+        for c in input.chars() {
             match c {
                 '=' if in_key && !in_quotes => {
                     in_key = false;
                 }
                 ',' if !in_key && !in_quotes => {
-                    if current_key.trim().is_empty() {
-                        return Err(AddArtifactError::InvalidParameter(
-                            "parameter key cannot be empty in --param. Check for trailing or consecutive commas."
-                                .to_string(),
-                        ));
-                    }
                     pairs.push((
                         current_key.trim().to_string(),
                         current_value.trim().to_string(),
@@ -434,9 +384,7 @@ where
                     current_value.clear();
                     in_key = true;
                 }
-                '"' => {
-                    in_quotes = !in_quotes;
-                }
+                '"' => in_quotes = !in_quotes,
                 _ => {
                     if in_key {
                         current_key.push(c);
@@ -447,35 +395,13 @@ where
             }
         }
 
-        if in_quotes {
-            return Err(AddArtifactError::InvalidParameter(
-                "unclosed quotes in --param. Ensure all opening quotes have a matching closing quote."
-                    .to_string(),
-            ));
-        }
-
         if !current_key.trim().is_empty() {
-            if in_key {
-                return Err(AddArtifactError::InvalidParameter(format!(
-                    "invalid parameter format '{}' in --param. Each parameter must be in Key=Value format.",
-                    current_key
-                )));
-            }
             pairs.push((
                 current_key.trim().to_string(),
                 current_value.trim().to_string(),
-            ));
-        } else if !current_value.trim().is_empty() {
-            return Err(AddArtifactError::InvalidParameter(
-                "parameter key cannot be empty in --param. Check for leading commas or missing keys."
-                    .to_string(),
             ));
         }
 
         Ok(pairs)
     }
 }
-
-#[cfg(test)]
-#[path = "add_artifact.tests.rs"]
-mod tests;

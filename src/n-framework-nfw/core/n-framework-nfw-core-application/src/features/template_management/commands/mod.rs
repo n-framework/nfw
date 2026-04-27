@@ -1,5 +1,6 @@
-pub mod add_artifact;
 pub mod add_template_source;
 pub mod ensure_default_source;
+pub mod gen_mediator_command;
+pub mod gen_mediator_query;
 pub mod refresh_templates;
 pub mod remove_template_source;

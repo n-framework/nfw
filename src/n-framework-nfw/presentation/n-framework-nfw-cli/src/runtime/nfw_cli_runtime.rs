@@ -8,7 +8,12 @@ use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
-use crate::commands::artifact::{AddArtifactCliCommand, AddArtifactRequest};
+use crate::commands::artifact::gen_mediator_command::{
+    GenMediatorCommandCliCommand, GenMediatorCommandRequest,
+};
+use crate::commands::artifact::gen_mediator_query::{
+    GenMediatorQueryCliCommand, GenMediatorQueryRequest,
+};
 use crate::commands::check::run_check::{RunCheckCliCommand, RunCheckError};
 use crate::commands::service::add_service::AddServiceCliCommand;
 use crate::commands::templates::add_source::AddSourceCliCommand;
@@ -105,6 +110,11 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                                     .flag(),
                             ),
                     )
+            )
+            .with_command(
+                CliCommandSpec::new("gen")
+                    .with_about("Generate workspace artifacts from templates")
+                    .require_subcommand()
                     .with_subcommand(
                         CliCommandSpec::new("command")
                             .with_about("Generate a mediator command")
@@ -166,8 +176,8 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("new", handle_workspace_new)
         .register_handler("check", handle_check)
         .register_handler("add/service", handle_add_service)
-        .register_handler("add/command", handle_add_artifact_command)
-        .register_handler("add/query", handle_add_artifact_query)
+        .register_handler("gen/command", handle_add_artifact_command)
+        .register_handler("gen/query", handle_add_artifact_query)
         .register_handler("templates/list", handle_templates_list)
         .register_handler("templates/add", handle_templates_add)
         .register_handler("templates/remove", handle_templates_remove)
@@ -277,29 +287,13 @@ pub fn handle_add_artifact_command(
     command: &dyn Command,
     context: &CliServiceCollection,
 ) -> Result<(), String> {
-    handle_add_artifact(command, context, "command")
-}
-
-pub fn handle_add_artifact_query(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
-    handle_add_artifact(command, context, "query")
-}
-
-fn handle_add_artifact(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-    generator_type: &str,
-) -> Result<(), String> {
     let no_input = command.option("no-input").is_some();
     let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-    AddArtifactCliCommand::new(
-        context.add_artifact_command_handler.clone(),
+    GenMediatorCommandCliCommand::new(
+        context.gen_mediator_command_command_handler.clone(),
         n_framework_core_cli_cliclack::CliclackPromptService::new(),
     )
-    .execute(AddArtifactRequest {
-        generator_type,
+    .execute(GenMediatorCommandRequest {
         name: command.option("name"),
         feature: command.option("feature"),
         params: command.option("param"),
@@ -312,6 +306,32 @@ fn handle_add_artifact(
         format!("[exit:{exit_code}] {}", e)
     })
 }
+
+pub fn handle_add_artifact_query(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
+    let no_input = command.option("no-input").is_some();
+    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+    GenMediatorQueryCliCommand::new(
+        context.gen_mediator_query_command_handler.clone(),
+        n_framework_core_cli_cliclack::CliclackPromptService::new(),
+    )
+    .execute(GenMediatorQueryRequest {
+        name: command.option("name"),
+        feature: command.option("feature"),
+        params: command.option("param"),
+        param_json: command.option("param-json"),
+        no_input,
+        is_interactive_terminal,
+    })
+    .map_err(|e| {
+        let exit_code = ExitCodes::from_add_artifact_error(&e) as i32;
+        format!("[exit:{exit_code}] {}", e)
+    })
+}
+
+// Removed unused generic add_artifact handler
 
 /// Extension trait to parse exit code from error string protocol.
 /// This improves reliability of the exit code extraction with better validation.

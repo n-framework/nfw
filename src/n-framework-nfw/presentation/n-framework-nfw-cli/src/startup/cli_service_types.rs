@@ -22,6 +22,7 @@ use n_framework_nfw_infrastructure_yaml::features::template_management::services
 use crate::startup::cli_validator::CliValidator;
 
 use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
+use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
 
 pub type CliPathResolver = DirsPathResolver;
 pub type CliGitRepository = InfrastructureCliGitRepository;
@@ -63,10 +64,16 @@ pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     FileSystemServiceTemplateRenderer,
     n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter,
 >;
-use n_framework_nfw_core_application::features::template_management::commands::add_artifact::add_artifact_command_handler::AddArtifactCommandHandler;
-use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
 
-pub type CliAddArtifactCommandHandler = AddArtifactCommandHandler<
+use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command_handler::GenMediatorCommandCommandHandler;
+pub type CliGenMediatorCommandCommandHandler = GenMediatorCommandCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+>;
+
+use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_query::gen_mediator_query_command_handler::GenMediatorQueryCommandHandler;
+pub type CliGenMediatorQueryCommandHandler = GenMediatorQueryCommandHandler<
     CliWorkingDirectoryProvider,
     FileSystemTemplateRootResolver,
     FileSystemTemplateEngine,
@@ -84,6 +91,7 @@ pub struct CliServiceCollection {
     pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,
     pub refresh_templates_command_handler: CliRefreshTemplatesCommandHandler,
     pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
-    pub add_artifact_command_handler: CliAddArtifactCommandHandler,
+    pub gen_mediator_command_command_handler: CliGenMediatorCommandCommandHandler,
+    pub gen_mediator_query_command_handler: CliGenMediatorQueryCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
 }

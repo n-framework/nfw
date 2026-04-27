@@ -39,7 +39,11 @@ fn template_config_validate_succeeds_with_valid_steps() {
 
 #[test]
 fn template_config_validate_fails_on_invalid_id() {
-    let config = TemplateConfig::new(Some("invalid id with spaces".to_string()), vec![], vec![]);
+    let config = TemplateConfig::new(
+        Some("invalid id with spaces".to_string()),
+        vec![],
+        vec![],
+    );
     assert!(config.is_err());
     assert!(matches!(
         config.unwrap_err(),
@@ -49,6 +53,10 @@ fn template_config_validate_fails_on_invalid_id() {
 
 #[test]
 fn template_config_validate_succeeds_with_namespaced_id() {
-    let config = TemplateConfig::new(Some("official/dotnet-service".to_string()), vec![], vec![]);
+    let config = TemplateConfig::new(
+        Some("official/dotnet-service".to_string()),
+        vec![],
+        vec![],
+    );
     assert!(config.is_ok());
 }
