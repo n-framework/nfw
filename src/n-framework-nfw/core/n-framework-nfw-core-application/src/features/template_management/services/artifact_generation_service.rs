@@ -52,6 +52,10 @@ where
         }
     }
 
+    pub fn engine(&self) -> &E {
+        &self.engine
+    }
+
     pub fn execute_generation(
         &self,
         command_name: &str,
@@ -60,6 +64,7 @@ where
         context: &AddArtifactContext,
     ) -> Result<(), AddArtifactError> {
         self.validate_identifiers(command_name, command_feature)?;
+        self.validate_required_modules(&context.config, &context.nfw_yaml, &context.service_path)?;
 
         let parameters = self.build_parameters(
             &context.nfw_yaml,
@@ -79,6 +84,57 @@ where
             .map_err(AddArtifactError::ExecutionFailed)?;
 
         Ok(())
+    }
+
+    pub fn validate_required_modules(
+        &self,
+        config: &TemplateConfig,
+        nfw_yaml: &YamlValue,
+        service_path: &Path,
+    ) -> Result<(), AddArtifactError> {
+        let required = config.required_modules();
+        if required.is_empty() {
+            return Ok(());
+        }
+
+        let installed = self.get_service_modules(nfw_yaml, service_path);
+
+        for module in required {
+            if !installed.iter().any(|m| m == module) {
+                return Err(AddArtifactError::MissingRequiredModule(format!(
+                    "module '{}' is required but not installed. Run: nfw add {}",
+                    module, module
+                )));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn get_service_modules(&self, nfw_yaml: &YamlValue, service_path: &Path) -> Vec<String> {
+        let service_path_str = service_path.to_string_lossy();
+        let services = match nfw_yaml.get("services").and_then(|s| s.as_mapping()) {
+            Some(s) => s,
+            None => return Vec::new(),
+        };
+
+        for (_name, details) in services {
+            let path = details.get("path").and_then(|v| v.as_str()).unwrap_or("");
+            if path == service_path_str {
+                return details
+                    .get("modules")
+                    .and_then(|m| m.as_sequence())
+                    .map(|seq| {
+                        seq.iter()
+                            .filter_map(|v| v.as_str())
+                            .map(|s| s.to_string())
+                            .collect()
+                    })
+                    .unwrap_or_default();
+            }
+        }
+
+        Vec::new()
     }
 
     pub fn get_workspace_context(&self) -> Result<WorkspaceContext, AddArtifactError> {

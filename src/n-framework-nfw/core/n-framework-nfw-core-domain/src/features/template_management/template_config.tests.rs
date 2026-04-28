@@ -39,11 +39,7 @@ fn template_config_validate_succeeds_with_valid_steps() {
 
 #[test]
 fn template_config_validate_fails_on_invalid_id() {
-    let config = TemplateConfig::new(
-        Some("invalid id with spaces".to_string()),
-        vec![],
-        vec![],
-    );
+    let config = TemplateConfig::new(Some("invalid id with spaces".to_string()), vec![], vec![]);
     assert!(config.is_err());
     assert!(matches!(
         config.unwrap_err(),
@@ -53,9 +49,35 @@ fn template_config_validate_fails_on_invalid_id() {
 
 #[test]
 fn template_config_validate_succeeds_with_namespaced_id() {
+    let config = TemplateConfig::new(Some("official/dotnet-service".to_string()), vec![], vec![]);
+    assert!(config.is_ok());
+}
+
+#[test]
+fn template_config_validate_fails_on_empty_run_command() {
     let config = TemplateConfig::new(
-        Some("official/dotnet-service".to_string()),
+        None,
+        vec![TemplateStep::RunCommand {
+            command: "  ".to_string(),
+            working_directory: None,
+        }],
         vec![],
+    );
+    assert!(config.is_err());
+    assert!(matches!(
+        config.unwrap_err(),
+        TemplateConfigError::InvalidStep { .. }
+    ));
+}
+
+#[test]
+fn template_config_validate_succeeds_with_valid_run_command() {
+    let config = TemplateConfig::new(
+        None,
+        vec![TemplateStep::RunCommand {
+            command: "dotnet add package Mediator".to_string(),
+            working_directory: Some("src/core".to_string()),
+        }],
         vec![],
     );
     assert!(config.is_ok());

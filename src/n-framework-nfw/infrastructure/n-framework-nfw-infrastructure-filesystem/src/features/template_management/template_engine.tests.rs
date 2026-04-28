@@ -155,7 +155,7 @@ fn inject_region_works() {
     let target_file = output_root.join("app.txt");
     fs::write(
         &target_file,
-        "head\n// region: deps\n// endregion: deps\nfoot",
+        "head\n// <nfw:deps:start>\n// <nfw:deps:end>\nfoot",
     )
     .unwrap();
 
@@ -185,7 +185,7 @@ fn inject_region_works() {
 
     assert_eq!(
         fs::read_to_string(target_file).unwrap(),
-        "head\n// region: deps\nnew_dep\n// endregion: deps\nfoot"
+        "head\n// <nfw:deps:start>\nnew_dep\n// <nfw:deps:end>\nfoot"
     );
 }
 
@@ -198,7 +198,7 @@ fn inject_region_fails_when_start_marker_is_missing() {
     fs::create_dir_all(&output_root).unwrap();
 
     let target_file = output_root.join("app.txt");
-    fs::write(&target_file, "head\n// endregion: deps\nfoot").unwrap();
+    fs::write(&target_file, "head\n// <nfw:deps:end>\nfoot").unwrap();
 
     let source_file = template_root.join("inject.txt");
     fs::write(&source_file, "new_dep\n").unwrap();
@@ -237,7 +237,7 @@ fn inject_region_fails_when_end_marker_is_missing() {
     fs::create_dir_all(&output_root).unwrap();
 
     let target_file = output_root.join("app.txt");
-    fs::write(&target_file, "head\n// region: deps\nfoot").unwrap();
+    fs::write(&target_file, "head\n// <nfw:deps:start>\nfoot").unwrap();
 
     let source_file = template_root.join("inject.txt");
     fs::write(&source_file, "new_dep\n").unwrap();
@@ -265,6 +265,51 @@ fn inject_region_fails_when_end_marker_is_missing() {
     let err = result.unwrap_err().to_string();
     assert!(err.contains("region end marker"));
     assert!(err.contains("not found"));
+}
+
+#[test]
+fn inject_region_auto_indents_content() {
+    let sandbox = create_sandbox();
+    let template_root = sandbox.path().join("templates");
+    let output_root = sandbox.path().join("output");
+    fs::create_dir_all(&template_root).unwrap();
+    fs::create_dir_all(&output_root).unwrap();
+
+    let target_file = output_root.join("app.cs");
+    fs::write(
+        &target_file,
+        "class Foo\n{\n    void Bar()\n    {\n        // <nfw:deps:start>\n        // <nfw:deps:end>\n    }\n}\n",
+    )
+    .unwrap();
+
+    let source_file = template_root.join("inject.txt");
+    fs::write(&source_file, "services.AddMediator();\n").unwrap();
+
+    let config = TemplateConfig::new(
+        None,
+        vec![TemplateStep::Inject {
+            source: "inject.txt".to_string(),
+            destination: "app.cs".to_string(),
+            injection_target: InjectionTarget::Region("deps".to_string()),
+        }],
+        vec![],
+    )
+    .unwrap();
+
+    let engine = FileSystemTemplateEngine::new();
+    engine
+        .execute(
+            &config,
+            &template_root,
+            &output_root,
+            &TemplateParameters::new(),
+        )
+        .unwrap();
+
+    assert_eq!(
+        fs::read_to_string(target_file).unwrap(),
+        "class Foo\n{\n    void Bar()\n    {\n        // <nfw:deps:start>\n        services.AddMediator();\n        // <nfw:deps:end>\n    }\n}\n"
+    );
 }
 
 #[test]
@@ -459,5 +504,107 @@ fn execute_fails_on_template_syntax_error() {
         err.contains("template rendering error") || err.contains("syntax error"),
         "Unexpected error: {}",
         err
+    );
+}
+
+#[test]
+fn run_command_step_executes_successfully() {
+    let sandbox = create_sandbox();
+    let template_root = sandbox.path().join("templates");
+    let output_root = sandbox.path().join("output");
+    fs::create_dir_all(&template_root).unwrap();
+    fs::create_dir_all(&output_root).unwrap();
+
+    let config = TemplateConfig::new(
+        None,
+        vec![TemplateStep::RunCommand {
+            command: "echo hello > result.txt".to_string(),
+            working_directory: None,
+        }],
+        vec![],
+    )
+    .unwrap();
+
+    let engine = FileSystemTemplateEngine::new();
+    engine
+        .execute(
+            &config,
+            &template_root,
+            &output_root,
+            &TemplateParameters::new(),
+        )
+        .unwrap();
+
+    let result_file = output_root.join("result.txt");
+    assert!(result_file.exists());
+    assert_eq!(fs::read_to_string(result_file).unwrap().trim(), "hello");
+}
+
+#[test]
+fn run_command_step_fails_on_nonzero_exit() {
+    let sandbox = create_sandbox();
+    let template_root = sandbox.path().join("templates");
+    let output_root = sandbox.path().join("output");
+    fs::create_dir_all(&template_root).unwrap();
+    fs::create_dir_all(&output_root).unwrap();
+
+    let config = TemplateConfig::new(
+        None,
+        vec![TemplateStep::RunCommand {
+            command: "exit 1".to_string(),
+            working_directory: None,
+        }],
+        vec![],
+    )
+    .unwrap();
+
+    let engine = FileSystemTemplateEngine::new();
+    let result = engine.execute(
+        &config,
+        &template_root,
+        &output_root,
+        &TemplateParameters::new(),
+    );
+
+    assert!(result.is_err());
+    let err = format!("{}", result.unwrap_err());
+    assert!(
+        err.contains("command execution error"),
+        "Unexpected error: {}",
+        err
+    );
+}
+
+#[test]
+fn run_command_step_renders_tera_placeholders() {
+    let sandbox = create_sandbox();
+    let template_root = sandbox.path().join("templates");
+    let output_root = sandbox.path().join("output");
+    fs::create_dir_all(&template_root).unwrap();
+    fs::create_dir_all(&output_root).unwrap();
+
+    let config = TemplateConfig::new(
+        None,
+        vec![TemplateStep::RunCommand {
+            command: "echo {{ Name }} > greeting.txt".to_string(),
+            working_directory: None,
+        }],
+        vec![],
+    )
+    .unwrap();
+
+    let mut parameters = TemplateParameters::new();
+    let _ = parameters.insert("Name", "NFramework");
+
+    let engine = FileSystemTemplateEngine::new();
+    engine
+        .execute(&config, &template_root, &output_root, &parameters)
+        .unwrap();
+
+    let result_file = output_root.join("greeting.txt");
+    assert!(result_file.exists());
+    assert_eq!(
+        fs::read_to_string(result_file).unwrap().trim(),
+        "NFramework"
     );
 }

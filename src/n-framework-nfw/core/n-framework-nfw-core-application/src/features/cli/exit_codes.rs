@@ -58,7 +58,8 @@ impl ExitCodes {
         match error {
             AddArtifactError::ConfigError(_)
             | AddArtifactError::InvalidIdentifier(_)
-            | AddArtifactError::InvalidParameter(_) => Self::ValidationError,
+            | AddArtifactError::InvalidParameter(_)
+            | AddArtifactError::MissingRequiredModule(_) => Self::ValidationError,
             AddArtifactError::TemplateNotFound(_) => Self::NotFound,
             AddArtifactError::ExecutionFailed(_) => Self::ExternalDependencyFailure,
             AddArtifactError::WorkspaceError(_) => Self::InternalError,

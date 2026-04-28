@@ -55,6 +55,21 @@ pub enum TemplateError {
         /// The path where the I/O error occurred.
         path: Option<PathBuf>,
     },
+
+    /// Error during shell command execution within a template step.
+    #[error("command execution error at step {step_index} in {}: {message}", .template_id.as_deref().unwrap_or("unknown"))]
+    CommandExecutionError {
+        /// The error message (includes stderr output).
+        message: String,
+        /// The command that was executed.
+        command: String,
+        /// The exit code returned by the process, if available.
+        exit_code: Option<i32>,
+        /// The index of the step that failed.
+        step_index: usize,
+        /// The identifier of the template.
+        template_id: Option<String>,
+    },
 }
 
 impl TemplateError {
@@ -65,6 +80,7 @@ impl TemplateError {
             TemplateError::TemplateRenderError { .. } => "TEMPLATE_RENDER_ERROR",
             TemplateError::TemplateInjectionError { .. } => "TEMPLATE_INJECTION_ERROR",
             TemplateError::IoError { .. } => "TEMPLATE_IO_ERROR",
+            TemplateError::CommandExecutionError { .. } => "COMMAND_EXECUTION_ERROR",
         }
     }
 

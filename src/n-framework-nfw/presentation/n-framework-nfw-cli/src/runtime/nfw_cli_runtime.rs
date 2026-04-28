@@ -8,6 +8,7 @@ use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
+use crate::commands::artifact::add_mediator::{AddMediatorCliCommand, AddMediatorRequest};
 use crate::commands::artifact::gen_mediator_command::{
     GenMediatorCommandCliCommand, GenMediatorCommandRequest,
 };
@@ -110,6 +111,19 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
                                     .flag(),
                             ),
                     )
+                    .with_subcommand(
+                        CliCommandSpec::new("mediator")
+                            .with_about("Add mediator module to a service")
+                            .with_option(
+                                CliOptionSpec::new("service", "service")
+                                    .with_help("Service name to add mediator to"),
+                            )
+                            .with_option(
+                                CliOptionSpec::new("no-input", "no-input")
+                                    .with_help("Disable all interactive prompts")
+                                    .flag(),
+                            ),
+                    )
             )
             .with_command(
                 CliCommandSpec::new("gen")
@@ -176,6 +190,7 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("new", handle_workspace_new)
         .register_handler("check", handle_check)
         .register_handler("add/service", handle_add_service)
+        .register_handler("add/mediator", handle_add_mediator)
         .register_handler("gen/command", handle_add_artifact_command)
         .register_handler("gen/query", handle_add_artifact_query)
         .register_handler("templates/list", handle_templates_list)
@@ -253,6 +268,27 @@ fn handle_check(_: &dyn Command, context: &CliServiceCollection) -> Result<(), S
         };
 
         format!("[exit:{exit_code}] {error}")
+    })
+}
+
+fn handle_add_mediator(
+    command: &dyn Command,
+    context: &CliServiceCollection,
+) -> Result<(), String> {
+    let no_input = command.option("no-input").is_some();
+    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+    AddMediatorCliCommand::new(
+        context.add_mediator_command_handler.clone(),
+        n_framework_core_cli_cliclack::CliclackPromptService::new(),
+    )
+    .execute(AddMediatorRequest {
+        no_input,
+        is_interactive_terminal,
+        service_name: command.option("service"),
+    })
+    .map_err(|e| {
+        let exit_code = ExitCodes::from_add_artifact_error(&e) as i32;
+        format!("[exit:{exit_code}] {}", e)
     })
 }
 

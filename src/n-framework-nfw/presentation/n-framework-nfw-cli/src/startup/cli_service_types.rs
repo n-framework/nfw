@@ -65,6 +65,13 @@ pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter,
 >;
 
+use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
+pub type CliAddMediatorCommandHandler = AddMediatorCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+>;
+
 use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command_handler::GenMediatorCommandCommandHandler;
 pub type CliGenMediatorCommandCommandHandler = GenMediatorCommandCommandHandler<
     CliWorkingDirectoryProvider,
@@ -91,6 +98,7 @@ pub struct CliServiceCollection {
     pub remove_template_source_command_handler: CliRemoveTemplateSourceCommandHandler,
     pub refresh_templates_command_handler: CliRefreshTemplatesCommandHandler,
     pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
+    pub add_mediator_command_handler: CliAddMediatorCommandHandler,
     pub gen_mediator_command_command_handler: CliGenMediatorCommandCommandHandler,
     pub gen_mediator_query_command_handler: CliGenMediatorQueryCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
