@@ -25,16 +25,12 @@ where
         }
     }
 
-    pub fn handle(
-        &self,
-        command: &GenMediatorCommandCommand,
-        context: AddArtifactContext,
-    ) -> Result<(), AddArtifactError> {
+    pub fn handle(&self, command: &GenMediatorCommandCommand) -> Result<(), AddArtifactError> {
         self.service.execute_generation(
             &command.name,
             command.feature.as_deref(),
             &command.params,
-            &context,
+            &command.context,
         )
     }
 

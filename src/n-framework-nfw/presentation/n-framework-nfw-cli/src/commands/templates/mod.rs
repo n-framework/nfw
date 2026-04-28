@@ -1,4 +1,5 @@
-pub mod add_source;
-pub mod list_templates;
+pub mod add;
+pub mod list;
 pub mod refresh;
-pub mod remove_source;
+pub mod registration;
+pub mod remove;

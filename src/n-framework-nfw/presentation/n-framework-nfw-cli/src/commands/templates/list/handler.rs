@@ -5,10 +5,7 @@ use n_framework_nfw_core_application::features::template_management::services::a
 /// Thin CLI presentation layer for listing templates.
 /// Delegates all business logic to the application layer query handler.
 #[derive(Debug, Clone)]
-pub struct TemplatesCliCommand<H>
-where
-    H: TemplateListingQueryHandler,
-{
+pub struct TemplatesCliCommand<H> {
     query_handler: H,
 }
 
@@ -44,6 +41,15 @@ where
         }
 
         Ok(())
+    }
+}
+
+impl TemplatesCliCommand<()> {
+    pub fn handle(
+        _command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+    ) -> Result<(), String> {
+        TemplatesCliCommand::new(context.list_templates_query_handler.clone()).execute()
     }
 }
 

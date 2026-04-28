@@ -32,3 +32,19 @@ where
         Ok(())
     }
 }
+
+impl AddSourceCliCommand<()> {
+    pub fn handle(
+        command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+    ) -> Result<(), String> {
+        AddSourceCliCommand::new(context.add_template_source_command_handler.clone()).execute(
+            command
+                .option("name")
+                .ok_or_else(|| "[exit:1] Option 'name' is required".to_string())?,
+            command
+                .option("url")
+                .ok_or_else(|| "[exit:1] Option 'url' is required".to_string())?,
+        )
+    }
+}

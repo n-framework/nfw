@@ -8,3 +8,6 @@ n-framework-nfw-core-application = { path = "../../core/n-framework-nfw-core-app
 n-framework-nfw-infrastructure-workspace-metadata = { path = "../n-framework-nfw-infrastructure-workspace-metadata" }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
+
+[dev-dependencies]
+n-framework-nfw-core-domain = { path = "../../core/n-framework-nfw-core-domain" }

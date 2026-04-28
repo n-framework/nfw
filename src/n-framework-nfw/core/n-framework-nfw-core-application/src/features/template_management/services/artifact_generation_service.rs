@@ -4,6 +4,9 @@ use std::path::{Path, PathBuf};
 
 use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
+use n_framework_nfw_infrastructure_workspace_metadata::{
+    PreservedComments, extract_preserved_comments, format_nfw_yaml_document,
+};
 
 use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
@@ -14,6 +17,7 @@ use crate::features::workspace_management::services::abstractions::working_direc
 pub struct WorkspaceContext {
     pub workspace_root: PathBuf,
     pub nfw_yaml: YamlValue,
+    pub preserved_comments: PreservedComments,
 }
 
 #[derive(Debug, Clone)]
@@ -23,11 +27,14 @@ pub struct ServiceInfo {
     pub template_id: String,
 }
 
+#[derive(Debug, Clone)]
 pub struct AddArtifactContext {
     pub workspace_root: PathBuf,
     pub nfw_yaml: YamlValue,
+    pub preserved_comments: PreservedComments,
     pub template_root: PathBuf,
     pub config: TemplateConfig,
+    pub service_name: String,
     pub service_path: PathBuf,
 }
 
@@ -69,6 +76,7 @@ where
         let parameters = self.build_parameters(
             &context.nfw_yaml,
             command_name,
+            &context.service_name,
             command_feature,
             command_params,
         )?;
@@ -148,10 +156,11 @@ where
             )
         })?;
 
-        let nfw_yaml = self.read_nfw_yaml(&workspace_root)?;
+        let (nfw_yaml, preserved_comments) = self.read_nfw_yaml(&workspace_root)?;
         Ok(WorkspaceContext {
             workspace_root,
             nfw_yaml,
+            preserved_comments,
         })
     }
 
@@ -259,8 +268,10 @@ where
         Ok(AddArtifactContext {
             workspace_root: workspace.workspace_root,
             nfw_yaml: workspace.nfw_yaml,
+            preserved_comments: workspace.preserved_comments,
             template_root,
             config,
+            service_name: service.name.clone(),
             service_path: PathBuf::from(&service.path),
         })
     }
@@ -300,7 +311,10 @@ where
         Ok(())
     }
 
-    fn read_nfw_yaml(&self, workspace_root: &Path) -> Result<serde_yaml::Value, AddArtifactError> {
+    fn read_nfw_yaml(
+        &self,
+        workspace_root: &Path,
+    ) -> Result<(serde_yaml::Value, PreservedComments), AddArtifactError> {
         let nfw_yaml_path = workspace_root.join("nfw.yaml");
         let content = fs::read_to_string(&nfw_yaml_path).map_err(|e| {
             AddArtifactError::NfwYamlReadError(format!(
@@ -308,26 +322,31 @@ where
                 nfw_yaml_path.display()
             ))
         })?;
-        serde_yaml::from_str(&content).map_err(|e| {
+        let preserved_comments = extract_preserved_comments(&content);
+        let value = serde_yaml::from_str(&content).map_err(|e| {
             AddArtifactError::NfwYamlParseError(format!(
                 "failed to parse workspace config at {}: {e}",
                 nfw_yaml_path.display()
             ))
-        })
+        })?;
+        Ok((value, preserved_comments))
     }
 
     fn write_nfw_yaml(
         &self,
         workspace_root: &Path,
         yaml: &serde_yaml::Value,
+        preserved_comments: &PreservedComments,
     ) -> Result<(), AddArtifactError> {
         let nfw_yaml_path = workspace_root.join("nfw.yaml");
-        let output = serde_yaml::to_string(yaml).map_err(|e| {
+        let serialized = serde_yaml::to_string(yaml).map_err(|e| {
             AddArtifactError::NfwYamlWriteError(format!(
                 "failed to serialize workspace config for {}: {e}",
                 nfw_yaml_path.display()
             ))
         })?;
+
+        let output = format_nfw_yaml_document(&serialized, preserved_comments);
 
         fs::write(&nfw_yaml_path, output).map_err(|e| {
             AddArtifactError::NfwYamlWriteError(format!(
@@ -369,6 +388,7 @@ where
         &self,
         nfw_yaml: &YamlValue,
         name: &str,
+        service_name: &str,
         feature: Option<&str>,
         params: &Option<serde_json::Value>,
     ) -> Result<TemplateParameters, AddArtifactError> {
@@ -378,6 +398,8 @@ where
             .with_name(name)
             .map_err(AddArtifactError::InvalidParameter)?
             .with_namespace(namespace)
+            .map_err(AddArtifactError::InvalidParameter)?
+            .with_service(service_name)
             .map_err(AddArtifactError::InvalidParameter)?;
 
         let mut parameters = parameters;
@@ -420,7 +442,7 @@ where
         service_name: &str,
         module_name: &str,
     ) -> Result<(), AddArtifactError> {
-        let mut yaml = self.read_nfw_yaml(workspace_root)?;
+        let (mut yaml, preserved_comments) = self.read_nfw_yaml(workspace_root)?;
 
         let services = yaml
             .get_mut("services")
@@ -452,7 +474,7 @@ where
             seq.push(module_value);
         }
 
-        self.write_nfw_yaml(workspace_root, &yaml)?;
+        self.write_nfw_yaml(workspace_root, &yaml, &preserved_comments)?;
 
         Ok(())
     }

@@ -58,7 +58,7 @@
 - [X] T020 [P] [US1] Implement direct package usage validator in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/package_usage_validator.rs
 - [X] T021 [US1] Implement finding deduplication and summary aggregation in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/finding_aggregation_service.rs
 - [X] T022 [US1] Complete check command handler orchestration across validators in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/commands/check/check_command_handler.rs
-- [X] T023 [US1] Add architecture validation service unit tests in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/validation_services_tests.rs
+- [X] T023 [US1] Add architecture validation service unit tests in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/validation_services.tests.rs
 
 **Checkpoint**: User Story 1 delivers full detection behavior with valid/invalid fixtures.
 
@@ -72,11 +72,11 @@
 
 ### Tests for User Story 2
 
-- [X] T024 [P] [US2] Add runtime routing and execution test for check command in src/nfw/tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_routing_tests.rs
-- [X] T025 [P] [US2] Add exit code mapping tests for check command results in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes_tests.rs
+- [X] T024 [P] [US2] Add runtime routing and execution test for check command in src/nfw/tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_routing.tests.rs
+- [X] T025 [P] [US2] Add exit code mapping tests for check command results in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes.tests.rs
 - [X] T026 [P] [US2] Add unreadable artifact failure integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/unreadable_artifact_test.rs
 - [X] T027 [P] [US2] Add deterministic repeat-run integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/deterministic_repeatability_test.rs
-- [X] T028 [P] [US2] Add stdout vs stderr contract test for check command in src/nfw/tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_stdio_tests.rs
+- [X] T028 [P] [US2] Add stdout vs stderr contract test for check command in src/nfw/tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_stdio.tests.rs
 
 ### Implementation for User Story 2
 
@@ -101,7 +101,7 @@
 
 - [X] T035 [P] [US3] Add integration test for actionable finding output format in src/nfw/tests/integration/nframework-nfw/features/architecture_check/actionable_output_test.rs
 - [X] T036 [P] [US3] Add integration test for multi-finding aggregate output in src/nfw/tests/integration/nframework-nfw/features/architecture_check/multi_violation_reporting_test.rs
-- [X] T037 [P] [US3] Add unit tests for remediation hint resolution in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/remediation_hint_tests.rs
+- [X] T037 [P] [US3] Add unit tests for remediation hint resolution in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/remediation_hint.tests.rs
 
 ### Implementation for User Story 3
 

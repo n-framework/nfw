@@ -1,27 +1,17 @@
-use std::io::{self, IsTerminal};
-
-use n_framework_core_cli_abstractions::{
-    CliAppConfig, CliCommandSpec, CliOptionSpec, CliRuntime, CliSpec, Command,
-};
+use n_framework_core_cli_abstractions::{CliAppConfig, CliRuntime, CliSpec};
 use n_framework_core_cli_clap::ClapCliRuntimeBuilder;
-use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 
 use crate::cli_error::CliError;
-use crate::commands::artifact::add_mediator::{AddMediatorCliCommand, AddMediatorRequest};
-use crate::commands::artifact::gen_mediator_command::{
-    GenMediatorCommandCliCommand, GenMediatorCommandRequest,
-};
-use crate::commands::artifact::gen_mediator_query::{
-    GenMediatorQueryCliCommand, GenMediatorQueryRequest,
-};
-use crate::commands::check::run_check::{RunCheckCliCommand, RunCheckError};
-use crate::commands::service::add_service::AddServiceCliCommand;
-use crate::commands::templates::add_source::AddSourceCliCommand;
-use crate::commands::templates::list_templates::TemplatesCliCommand;
+use crate::commands::add::mediator::AddMediatorCliCommand;
+use crate::commands::add::service::AddServiceCliCommand;
+use crate::commands::check::RunCheckCliCommand;
+use crate::commands::r#gen::command::GenMediatorCommandCliCommand;
+use crate::commands::r#gen::query::GenMediatorQueryCliCommand;
+use crate::commands::new::NewWorkspaceCliCommand;
+use crate::commands::templates::add::AddSourceCliCommand;
+use crate::commands::templates::list::TemplatesCliCommand;
 use crate::commands::templates::refresh::RefreshTemplatesCliCommand;
-use crate::commands::templates::remove_source::RemoveSourceCliCommand;
-use crate::commands::workspace::new_workspace::NewWorkspaceCliCommand;
+use crate::commands::templates::remove::RemoveSourceCliCommand;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 const NFRAMEWORK_ASCII_BANNER: &str = r#"
@@ -35,339 +25,31 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
         CliSpec::new("nfw")
             .with_about("NFramework CLI")
             .require_command()
-            .with_command(
-                CliCommandSpec::new("new")
-                    .with_about("Create a new workspace")
-                    .with_option(
-                        CliOptionSpec::positional("workspace-name", 1)
-                            .with_help("Workspace name (required in non-interactive mode)"),
-                    )
-                    .with_option(
-                        CliOptionSpec::new("template", "template")
-                            .with_help("Template identifier (qualified or unqualified)"),
-                    )
-                    .with_option(
-                        CliOptionSpec::new("no-input", "no-input")
-                            .with_help("Disable all interactive prompts")
-                            .flag(),
-                    ),
-            )
-            .with_command(
-                CliCommandSpec::new("templates")
-                    .with_about("Manage template sources and discovery")
-                    .require_subcommand()
-                    .with_subcommand(
-                        CliCommandSpec::new("list").with_about("List discovered templates"),
-                    )
-                    .with_subcommand(
-                        CliCommandSpec::new("add")
-                            .with_about("Register a template source")
-                            .with_option(
-                                CliOptionSpec::new("name", "name")
-                                    .with_help("Template source name")
-                                    .required(),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("url", "url")
-                                    .with_help("Template source git URL")
-                                    .required(),
-                            ),
-                    )
-                    .with_subcommand(
-                        CliCommandSpec::new("remove")
-                            .with_about("Unregister a template source")
-                            .with_option(
-                                CliOptionSpec::new("name", "name")
-                                    .with_help("Template source name")
-                                    .required(),
-                            ),
-                    )
-                    .with_subcommand(
-                        CliCommandSpec::new("refresh")
-                            .with_about("Refresh template catalogs from sources"),
-                    ),
-            )
-            .with_command(
-                CliCommandSpec::new("check")
-                    .with_about("Validate workspace architecture boundaries"),
-            )
-            .with_command(
-                CliCommandSpec::new("add")
-                    .with_about("Create workspace artifacts")
-                    .require_subcommand()
-                    .with_subcommand(
-                        CliCommandSpec::new("service")
-                            .with_about("Generate a service from a service template")
-                            .with_option(
-                                CliOptionSpec::positional("name", 1).with_help("Service name"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("template", "template")
-                                    .with_help("Service template identifier"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("no-input", "no-input")
-                                    .with_help("Disable all interactive prompts")
-                                    .flag(),
-                            ),
-                    )
-                    .with_subcommand(
-                        CliCommandSpec::new("mediator")
-                            .with_about("Add mediator module to a service")
-                            .with_option(
-                                CliOptionSpec::new("service", "service")
-                                    .with_help("Service name to add mediator to"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("no-input", "no-input")
-                                    .with_help("Disable all interactive prompts")
-                                    .flag(),
-                            ),
-                    )
-            )
-            .with_command(
-                CliCommandSpec::new("gen")
-                    .with_about("Generate workspace artifacts from templates")
-                    .require_subcommand()
-                    .with_subcommand(
-                        CliCommandSpec::new("command")
-                            .with_about("Generate a mediator command")
-                            .with_option(
-                                CliOptionSpec::positional("name", 1)
-                                    .with_help("Command name (e.g. CreateProduct)"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("feature", "feature")
-                                    .with_help("The target feature or module"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("param", "param")
-                                    .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("param-json", "param-json")
-                                    .with_help("JSON string of parameters for the template (e.g. '{\"Key\": \"Value\"}')"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("no-input", "no-input")
-                                    .with_help("Disable all interactive prompts")
-                                    .flag(),
-                            ),
-                    )
-                    .with_subcommand(
-                        CliCommandSpec::new("query")
-                            .with_about("Generate a mediator query")
-                            .with_option(
-                                CliOptionSpec::positional("name", 1)
-                                    .with_help("Query name (e.g. GetProductById)"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("feature", "feature")
-                                    .with_help("Feature/module name (defaults to query name)"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("param", "param")
-                                    .with_help("Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("param-json", "param-json")
-                                    .with_help("JSON string of parameters for the template (e.g. '{\"Key\": \"Value\"}')"),
-                            )
-                            .with_option(
-                                CliOptionSpec::new("no-input", "no-input")
-                                    .with_help("Disable all interactive prompts")
-                                    .flag(),
-                            ),
-                    )
-            )
+            .with_command(crate::commands::new::registration::register())
+            .with_command(crate::commands::templates::registration::register())
+            .with_command(crate::commands::check::registration::register())
+            .with_command(crate::commands::add::registration::register())
+            .with_command(crate::commands::r#gen::registration::register()),
     )
 }
+
 pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliServiceCollection> {
     println!("{NFRAMEWORK_ASCII_BANNER}");
     println!();
 
     ClapCliRuntimeBuilder::new(build_nfw_cli_app_config(), services)
-        .register_handler("new", handle_workspace_new)
-        .register_handler("check", handle_check)
-        .register_handler("add/service", handle_add_service)
-        .register_handler("add/mediator", handle_add_mediator)
-        .register_handler("gen/command", handle_add_artifact_command)
-        .register_handler("gen/query", handle_add_artifact_query)
-        .register_handler("templates/list", handle_templates_list)
-        .register_handler("templates/add", handle_templates_add)
-        .register_handler("templates/remove", handle_templates_remove)
-        .register_handler("templates/refresh", handle_templates_refresh)
+        .register_handler("new", NewWorkspaceCliCommand::handle)
+        .register_handler("check", RunCheckCliCommand::handle)
+        .register_handler("add/service", AddServiceCliCommand::handle)
+        .register_handler("add/mediator", AddMediatorCliCommand::handle)
+        .register_handler("gen/command", GenMediatorCommandCliCommand::handle)
+        .register_handler("gen/query", GenMediatorQueryCliCommand::handle)
+        .register_handler("templates/list", TemplatesCliCommand::handle)
+        .register_handler("templates/add", AddSourceCliCommand::handle)
+        .register_handler("templates/remove", RemoveSourceCliCommand::handle)
+        .register_handler("templates/refresh", RefreshTemplatesCliCommand::handle)
         .build()
 }
-
-fn required_option(command: &dyn Command, option_name: &str) -> Result<String, String> {
-    command
-        .option(option_name)
-        .map(ToOwned::to_owned)
-        .ok_or_else(|| format!("missing required option '--{option_name}'"))
-}
-
-fn handle_workspace_new(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
-    let no_input = command.option("no-input").is_some();
-    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-
-    NewWorkspaceCliCommand::new(
-        context.new_workspace_command_handler.clone(),
-        n_framework_core_cli_cliclack::CliclackPromptService::new(),
-    )
-    .execute(
-        command.option("workspace-name"),
-        command.option("template"),
-        no_input,
-        is_interactive_terminal,
-    )
-    .map_err(|error| {
-        let exit_code = ExitCodes::from_workspace_new_error(&error) as i32;
-        format!("[exit:{exit_code}] {error}")
-    })
-}
-
-fn handle_add_service(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    let no_input = command.option("no-input").is_some();
-    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-
-    AddServiceCliCommand::new(
-        context.add_service_command_handler.clone(),
-        n_framework_core_cli_cliclack::CliclackPromptService::new(),
-    )
-    .execute(
-        command.option("name"),
-        command.option("template"),
-        no_input,
-        is_interactive_terminal,
-    )
-    .map_err(|error| {
-        let exit_code = match error {
-            AddServiceError::Interrupted => 130,
-            _ => ExitCodes::from_add_service_error(&error) as i32,
-        };
-        format!("[exit:{exit_code}] {error}")
-    })
-}
-
-fn handle_check(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    RunCheckCliCommand::new(
-        &context.check_command_handler,
-        n_framework_core_cli_cliclack::CliclackPromptService::new(),
-    )
-    .execute()
-    .map_err(|error| {
-        let exit_code = match error {
-            RunCheckError::ValidationFailed => ExitCodes::ValidationError as i32,
-            RunCheckError::Interrupted => ExitCodes::Interrupted as i32,
-            RunCheckError::CurrentDirectoryUnavailable(_) => ExitCodes::InternalError as i32,
-            RunCheckError::CommandError(_) => ExitCodes::InternalError as i32,
-        };
-
-        format!("[exit:{exit_code}] {error}")
-    })
-}
-
-pub fn handle_add_mediator(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
-    let no_input = command.option("no-input").is_some();
-    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-    AddMediatorCliCommand::new(
-        context.add_mediator_command_handler.clone(),
-        n_framework_core_cli_cliclack::CliclackPromptService::new(),
-    )
-    .execute(AddMediatorRequest {
-        no_input,
-        is_interactive_terminal,
-        service_name: command.option("service"),
-    })
-    .map_err(|e| {
-        let exit_code = ExitCodes::from_add_artifact_error(&e) as i32;
-        format!("[exit:{exit_code}] {}", e)
-    })
-}
-
-fn handle_templates_list(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    TemplatesCliCommand::new(context.list_templates_query_handler.clone()).execute()
-}
-
-fn handle_templates_add(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
-    let name = required_option(command, "name")?;
-    let url = required_option(command, "url")?;
-    AddSourceCliCommand::new(context.add_template_source_command_handler.clone())
-        .execute(&name, &url)
-}
-
-fn handle_templates_remove(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
-    let name = required_option(command, "name")?;
-    RemoveSourceCliCommand::new(context.remove_template_source_command_handler.clone())
-        .execute(&name)
-}
-
-fn handle_templates_refresh(_: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
-    RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
-}
-
-pub fn handle_add_artifact_command(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
-    let no_input = command.option("no-input").is_some();
-    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-    GenMediatorCommandCliCommand::new(
-        context.gen_mediator_command_command_handler.clone(),
-        n_framework_core_cli_cliclack::CliclackPromptService::new(),
-    )
-    .execute(GenMediatorCommandRequest {
-        name: command.option("name"),
-        feature: command.option("feature"),
-        params: command.option("param"),
-        param_json: command.option("param-json"),
-        no_input,
-        is_interactive_terminal,
-    })
-    .map_err(|e| {
-        let exit_code = ExitCodes::from_add_artifact_error(&e) as i32;
-        format!("[exit:{exit_code}] {}", e)
-    })
-}
-
-pub fn handle_add_artifact_query(
-    command: &dyn Command,
-    context: &CliServiceCollection,
-) -> Result<(), String> {
-    let no_input = command.option("no-input").is_some();
-    let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-    GenMediatorQueryCliCommand::new(
-        context.gen_mediator_query_command_handler.clone(),
-        n_framework_core_cli_cliclack::CliclackPromptService::new(),
-    )
-    .execute(GenMediatorQueryRequest {
-        name: command.option("name"),
-        feature: command.option("feature"),
-        params: command.option("param"),
-        param_json: command.option("param-json"),
-        no_input,
-        is_interactive_terminal,
-    })
-    .map_err(|e| {
-        let exit_code = ExitCodes::from_add_artifact_error(&e) as i32;
-        format!("[exit:{exit_code}] {}", e)
-    })
-}
-
-// Removed unused generic add_artifact handler
 
 /// Extension trait to parse exit code from error string protocol.
 /// This improves reliability of the exit code extraction with better validation.
@@ -384,6 +66,12 @@ impl ParseExitCode for String {
         let Some((exit_code_text, message)) = rest.split_once(']') else {
             return CliError::internal(self.clone());
         };
+
+        if let Some((code, "silent")) = exit_code_text.split_once(':')
+            && let Ok(exit_code) = code.parse::<i32>()
+        {
+            return CliError::silent(exit_code, message.trim_start().to_owned());
+        }
 
         let Ok(exit_code) = exit_code_text.parse::<i32>() else {
             return CliError::internal(self.clone());
@@ -404,6 +92,12 @@ impl ParseExitCode for &str {
             return CliError::internal(self.to_owned());
         };
 
+        if let Some((code, "silent")) = exit_code_text.split_once(':')
+            && let Ok(exit_code) = code.parse::<i32>()
+        {
+            return CliError::silent(exit_code, message.trim_start().to_owned());
+        }
+
         let Ok(exit_code) = exit_code_text.parse::<i32>() else {
             return CliError::internal(self.to_owned());
         };
@@ -411,3 +105,7 @@ impl ParseExitCode for &str {
         CliError::new(exit_code, message.trim_start().to_owned())
     }
 }
+
+#[cfg(test)]
+#[path = "nfw_cli_runtime.tests.rs"]
+mod tests;

@@ -25,6 +25,8 @@ impl TemplateParameters {
     pub const KEY_FEATURE: &'static str = "Feature";
     /// Reserved key for the workspace namespace.
     pub const KEY_NAMESPACE: &'static str = "Namespace";
+    /// Reserved key for the service name.
+    pub const KEY_SERVICE: &'static str = "Service";
 
     /// Creates a new, empty set of template parameters.
     pub fn new() -> Self {
@@ -63,6 +65,17 @@ impl TemplateParameters {
             Self::KEY_NAMESPACE.to_string(),
             Value::String(namespace_val),
         );
+        Ok(self)
+    }
+
+    /// Sets the 'Service' parameter.
+    pub fn with_service(mut self, service: impl Into<String>) -> Result<Self, String> {
+        let service_val = service.into();
+        if service_val.trim().is_empty() {
+            return Err("service parameter cannot be empty".to_string());
+        }
+        self.inner
+            .insert(Self::KEY_SERVICE.to_string(), Value::String(service_val));
         Ok(self)
     }
 
@@ -121,6 +134,11 @@ impl TemplateParameters {
     /// Returns the namespace parameter if set.
     pub fn namespace(&self) -> Option<&str> {
         self.get(Self::KEY_NAMESPACE)
+    }
+
+    /// Returns the service parameter if set.
+    pub fn service(&self) -> Option<&str> {
+        self.get(Self::KEY_SERVICE)
     }
 
     /// Returns a reference to the underlying map.

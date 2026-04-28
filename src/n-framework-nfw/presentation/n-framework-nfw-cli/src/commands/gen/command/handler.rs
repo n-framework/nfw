@@ -1,7 +1,8 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
-use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_query::gen_mediator_query_command::GenMediatorQueryCommand;
-use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_query::gen_mediator_query_command_handler::GenMediatorQueryCommandHandler;
-use n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::WorkspaceContext;
+use crate::cli_error::CliError;
+use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
+use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command::GenMediatorCommandCommand;
+use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command_handler::GenMediatorCommandCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
@@ -9,12 +10,12 @@ use n_framework_nfw_core_application::features::template_management::services::t
 use n_framework_nfw_core_domain::features::template_management::template_config::{TemplateInput, TemplateInputType};
 
 #[derive(Debug, Clone)]
-pub struct GenMediatorQueryCliCommand<W, R, E, P> {
-    handler: GenMediatorQueryCommandHandler<W, R, E>,
+pub struct GenMediatorCommandCliCommand<W, R, E, P> {
+    handler: GenMediatorCommandCommandHandler<W, R, E>,
     prompt: P,
 }
 
-pub struct GenMediatorQueryRequest<'a> {
+pub struct GenMediatorCommandRequest<'a> {
     pub name: Option<&'a str>,
     pub feature: Option<&'a str>,
     pub params: Option<&'a str>,
@@ -23,21 +24,21 @@ pub struct GenMediatorQueryRequest<'a> {
     pub is_interactive_terminal: bool,
 }
 
-impl<W, R, E, P> GenMediatorQueryCliCommand<W, R, E, P>
+impl<W, R, E, P> GenMediatorCommandCliCommand<W, R, E, P>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
     E: TemplateEngine,
     P: InteractivePrompt + Logger,
 {
-    pub fn new(handler: GenMediatorQueryCommandHandler<W, R, E>, prompt: P) -> Self {
+    pub fn new(handler: GenMediatorCommandCommandHandler<W, R, E>, prompt: P) -> Self {
         Self { handler, prompt }
     }
 
-    pub fn execute(&self, request: GenMediatorQueryRequest) -> Result<(), AddArtifactError> {
+    pub fn execute(&self, request: GenMediatorCommandRequest) -> Result<(), CliError> {
         self.prompt
-            .intro("Generate Mediator Query")
-            .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
+            .intro("Generate Mediator Command")
+            .map_err(|e| CliError::internal(e.to_string()))?;
 
         let workspace_context = self.handler.get_workspace_context()?;
         let services = self.handler.extract_services(&workspace_context)?;
@@ -45,7 +46,8 @@ where
         if services.is_empty() {
             return Err(AddArtifactError::WorkspaceError(
                 "No services found in workspace. Add a service first.".to_string(),
-            ));
+            )
+            .into());
         }
 
         let selected_service =
@@ -58,7 +60,7 @@ where
                     .collect();
                 let selected = self
                     .prompt
-                    .select("Select a service for the new query:", &options, Some(0))
+                    .select("Select a service for the new command:", &options, Some(0))
                     .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
                 services
@@ -67,18 +69,15 @@ where
                     .unwrap()
             };
 
-        let context_workspace = WorkspaceContext {
-            workspace_root: workspace_context.workspace_root.clone(),
-            nfw_yaml: workspace_context.nfw_yaml.clone(),
-        };
+        let context = self.handler.load_template_context(
+            workspace_context.clone(),
+            &selected_service,
+            "command",
+        )?;
 
-        // Note: Generator type is strictly "query" for Mediator Queries
-        let context =
-            self.handler
-                .load_template_context(workspace_context, &selected_service, "query")?;
         let existing_features = self
             .handler
-            .list_features(&context_workspace, &selected_service)?;
+            .list_features(&workspace_context, &selected_service)?;
         let feature = self.resolve_feature(&request, existing_features)?;
         let name = self.resolve_name(&request)?;
 
@@ -90,23 +89,30 @@ where
             Some(resolved_params)
         };
 
-        let command = GenMediatorQueryCommand::new(name.as_str(), feature, params_opt);
+        let command = GenMediatorCommandCommand::new(name.as_str(), feature, params_opt, context);
 
         let spinner = self
             .prompt
-            .spinner(&format!("Generating mediator query '{}'...", name))
+            .spinner(&format!("Generating mediator command '{}'...", name))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        self.handler.handle(&command, context).map_err(|e| {
-            spinner.error(&format!("Failed to generate query: {}", e));
+        let res = self.handler.handle(&command).map_err(|e| {
+            spinner.error(&format!("Failed to generate command: {}", e));
             e
-        })?;
+        });
 
-        spinner.success(&format!("Query '{}' generated successfully", name));
+        if let Err(e) = res {
+            return Err(CliError::silent(
+                ExitCodes::from_add_artifact_error(&e) as i32,
+                e.to_string(),
+            ));
+        }
+
+        spinner.success(&format!("Command '{}' generated successfully", name));
 
         self.prompt
             .outro(&format!(
-                "Successfully generated Mediator Query '{}'.",
+                "Successfully generated Mediator Command '{}'.",
                 name
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
@@ -114,7 +120,10 @@ where
         Ok(())
     }
 
-    fn resolve_name(&self, request: &GenMediatorQueryRequest) -> Result<String, AddArtifactError> {
+    fn resolve_name(
+        &self,
+        request: &GenMediatorCommandRequest,
+    ) -> Result<String, AddArtifactError> {
         if let Some(name) = request.name {
             return Ok(name.to_owned());
         }
@@ -127,13 +136,13 @@ where
         }
 
         self.prompt
-            .text("Enter query name (e.g. GetProductByIdQuery):", None)
+            .text("Enter command name (e.g. ApproveOrderCommand):", None)
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))
     }
 
     fn resolve_feature(
         &self,
-        request: &GenMediatorQueryRequest,
+        request: &GenMediatorCommandRequest,
         existing_features: Vec<String>,
     ) -> Result<Option<String>, AddArtifactError> {
         if let Some(feature) = request.feature {
@@ -188,7 +197,7 @@ where
 
     fn resolve_params(
         &self,
-        request: &GenMediatorQueryRequest,
+        request: &GenMediatorCommandRequest,
         inputs: &[TemplateInput],
     ) -> Result<serde_json::Value, AddArtifactError> {
         let mut map = serde_json::Map::new();
@@ -275,7 +284,12 @@ where
                 Ok(serde_json::Value::Bool(result))
             }
             TemplateInputType::Select => {
-                let options = input.options().unwrap();
+                let options = input.options().ok_or_else(|| {
+                    AddArtifactError::InvalidParameter(format!(
+                        "select input '{}' has no options defined",
+                        input.id()
+                    ))
+                })?;
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
                 let default_idx = input
@@ -289,7 +303,12 @@ where
                 Ok(serde_json::Value::String(selected.value().to_string()))
             }
             TemplateInputType::Multiselect => {
-                let options = input.options().unwrap();
+                let options = input.options().ok_or_else(|| {
+                    AddArtifactError::InvalidParameter(format!(
+                        "multiselect input '{}' has no options defined",
+                        input.id()
+                    ))
+                })?;
                 let select_options: Vec<SelectOption> =
                     options.iter().map(|s| SelectOption::new(s, s)).collect();
 
@@ -316,7 +335,12 @@ where
             }
             TemplateInputType::Object => {
                 let mut obj_map = serde_json::Map::new();
-                let props = input.properties().unwrap();
+                let props = input.properties().ok_or_else(|| {
+                    AddArtifactError::InvalidParameter(format!(
+                        "object input '{}' has no properties defined",
+                        input.id()
+                    ))
+                })?;
                 for prop in props {
                     let id = prop.id();
                     let value = self.prompt_for_input(prop)?;
@@ -384,5 +408,31 @@ where
         }
 
         Ok(pairs)
+    }
+}
+
+impl
+    GenMediatorCommandCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService>
+{
+    pub fn handle(
+        command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+    ) -> Result<(), String> {
+        use std::io::{self, IsTerminal};
+        let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+
+        GenMediatorCommandCliCommand::new(
+            context.gen_mediator_command_command_handler.clone(),
+            n_framework_core_cli_cliclack::CliclackPromptService::new(),
+        )
+        .execute(GenMediatorCommandRequest {
+            name: command.option("name"),
+            feature: command.option("feature"),
+            params: command.option("param"),
+            param_json: command.option("param-json"),
+            no_input: command.option("no-input").is_some(),
+            is_interactive_terminal,
+        })
+        .map_err(|error| error.to_string())
     }
 }

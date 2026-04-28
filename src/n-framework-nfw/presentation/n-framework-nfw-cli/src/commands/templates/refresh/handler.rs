@@ -38,3 +38,12 @@ where
         Ok(())
     }
 }
+
+impl RefreshTemplatesCliCommand<()> {
+    pub fn handle(
+        _command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+    ) -> Result<(), String> {
+        RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
+    }
+}

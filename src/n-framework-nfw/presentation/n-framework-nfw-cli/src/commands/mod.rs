@@ -1,5 +1,5 @@
-pub mod artifact;
+pub mod add;
 pub mod check;
-pub mod service;
+pub mod r#gen;
+pub mod new;
 pub mod templates;
-pub mod workspace;

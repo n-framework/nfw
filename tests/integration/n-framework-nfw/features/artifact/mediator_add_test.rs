@@ -7,7 +7,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use n_framework_core_cli_abstractions::Command;
-use n_framework_nfw_cli::runtime::nfw_cli_runtime::handle_add_mediator;
+use n_framework_nfw_cli::commands::add::mediator::AddMediatorCliCommand;
 use n_framework_nfw_cli::startup::cli_service_collection_factory::CliServiceCollectionFactory;
 
 // Tests in this file must run sequentially because they temporarily mutate
@@ -83,7 +83,7 @@ fn add_mediator_updates_nfw_yaml_and_renders_template() {
     opts.insert("service".to_string(), "TestService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let result = handle_add_mediator(&TestCommand { opts }, &services);
+    let result = AddMediatorCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
     assert!(result.is_ok(), "add mediator failed: {:?}", result.err());
@@ -142,7 +142,7 @@ steps:
     opts.insert("service".to_string(), "TestService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let result = handle_add_mediator(&TestCommand { opts }, &services);
+    let result = AddMediatorCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
     assert!(
@@ -185,11 +185,84 @@ fn add_mediator_fails_if_service_not_found() {
     opts.insert("service".to_string(), "UnknownService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let result = handle_add_mediator(&TestCommand { opts }, &services);
+    let result = AddMediatorCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("not found in workspace"));
+
+    support::cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn add_mediator_preserves_comments_in_nfw_yaml() {
+    let sandbox = support::create_sandbox_directory("add-mediator-comments");
+    fs::write(
+        sandbox.join("nfw.yaml"),
+        r#"# Top level comment
+workspace:
+  name: Test
+  namespace: TestApp # Inline comment
+
+# Section comment
+services:
+  # Service block comment
+  TestService:
+    path: src/TestService
+    template:
+      id: dotnet-service
+template_sources:
+  local: "templates"
+"#,
+    )
+    .expect("failed to write nfw.yaml");
+
+    // Setup template
+    let tpl_dir = sandbox
+        .join("templates")
+        .join("dotnet-service")
+        .join("mediator");
+    fs::create_dir_all(&tpl_dir).unwrap();
+    fs::write(
+        tpl_dir.join("template.yaml"),
+        "id: dotnet-service/mediator\nsteps: []",
+    )
+    .unwrap();
+    fs::create_dir_all(sandbox.join("src/TestService")).unwrap();
+
+    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let services = CliServiceCollectionFactory::create();
+    let original_dir = std::env::current_dir().unwrap();
+    std::env::set_current_dir(&sandbox).unwrap();
+
+    let mut opts = HashMap::new();
+    opts.insert("service".to_string(), "TestService".to_string());
+    opts.insert("no-input".to_string(), "true".to_string());
+
+    let result = AddMediatorCliCommand::handle(&TestCommand { opts }, &services);
+    std::env::set_current_dir(&original_dir).unwrap();
+
+    assert!(result.is_ok(), "add mediator failed: {:?}", result.err());
+
+    let content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
+
+    // Check additions
+    assert!(content.contains("- mediator"), "mediator module not added");
+
+    // Check preservation
+    assert!(
+        content.contains("# Top level comment"),
+        "Top level comment lost"
+    );
+    assert!(content.contains("# Inline comment"), "Inline comment lost");
+    assert!(
+        content.contains("# Section comment"),
+        "Section comment lost"
+    );
+    assert!(
+        content.contains("# Service block comment"),
+        "Service block comment lost"
+    );
 
     support::cleanup_sandbox_directory(&sandbox);
 }

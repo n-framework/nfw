@@ -27,3 +27,7 @@ impl YamlParser for SerdeYamlParser {
         serde_yaml::to_string(value).map_err(|error| error.to_string())
     }
 }
+
+#[cfg(test)]
+#[path = "serde_yaml_parser.tests.rs"]
+mod tests;

@@ -95,8 +95,8 @@ fn does_not_hoist_inline_yaml_comments_into_header_block() {
         .split_once("$schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n")
         .expect("schema directive should exist");
     assert!(
-        !yaml_body.contains("# inline-keep-position"),
-        "inline comments should not be hoisted into header comments"
+        yaml_body.contains("# inline-keep-position"),
+        "inline comments should be preserved in their original position"
     );
 
     support::cleanup_sandbox_directory(&workspace_root);

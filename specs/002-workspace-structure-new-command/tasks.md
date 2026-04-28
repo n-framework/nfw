@@ -49,7 +49,7 @@
 
 ### Tests for User Story 1
 
-- [X] T011 [P] [US1] Add domain model tests for blueprint and namespace rules in `tests/unit/nframework-nfw/core/nframework-nfw-domain/features/workspace_management/workspace_blueprint_tests.rs`
+- [X] T011 [P] [US1] Add domain model tests for blueprint and namespace rules in `tests/unit/nframework-nfw/core/nframework-nfw-domain/features/workspace_management/workspace_blueprint.tests.rs`
 - [X] T012 [P] [US1] Add integration test for generated workspace structure and YAML config outputs in `tests/integration/nframework-nfw/features/workspace_new/workspace_layout_test.rs`
 
 ### Implementation for User Story 1
@@ -73,7 +73,7 @@
 
 ### Tests for User Story 2
 
-- [X] T019 [P] [US2] Add unit tests for input resolution/prompt gating in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/input_resolution_service_tests.rs`
+- [X] T019 [P] [US2] Add unit tests for input resolution/prompt gating in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/input_resolution_service.tests.rs`
 - [X] T020 [P] [US2] Add integration tests for `--no-input` and missing required values in `tests/integration/nframework-nfw/features/workspace_new/no_input_validation_test.rs`
 
 ### Implementation for User Story 2
@@ -95,7 +95,7 @@
 
 ### Tests for User Story 3
 
-- [X] T025 [P] [US3] Add runtime routing tests for `nfw new` command path in `tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing_tests.rs`
+- [X] T025 [P] [US3] Add runtime routing tests for `nfw new` command path in `tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing.tests.rs`
 - [X] T026 [P] [US3] Add integration tests for invalid flags, unknown options, and unknown subcommands in `tests/integration/nframework-nfw/features/workspace_new/cli_routing_errors_test.rs`
 
 ### Implementation for User Story 3
@@ -158,7 +158,7 @@
 
 ```bash
 # Parallelizable US1 tasks
-Task: "T011 [US1] Add domain model tests in tests/unit/nframework-nfw/core/nframework-nfw-domain/features/workspace_management/workspace_blueprint_tests.rs"
+Task: "T011 [US1] Add domain model tests in tests/unit/nframework-nfw/core/nframework-nfw-domain/features/workspace_management/workspace_blueprint.tests.rs"
 Task: "T013 [US1] Implement workspace blueprint builder in src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/workspace_blueprint_builder.rs"
 Task: "T014 [US1] Implement namespace resolver in src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/namespace_resolver.rs"
 ```
@@ -167,7 +167,7 @@ Task: "T014 [US1] Implement namespace resolver in src/nframework-nfw/core/nframe
 
 ```bash
 # Parallelizable US2 tasks
-Task: "T019 [US2] Add input resolution tests in tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/input_resolution_service_tests.rs"
+Task: "T019 [US2] Add input resolution tests in tests/unit/nframework-nfw/core/nframework-nfw-application/features/workspace_management/services/input_resolution_service.tests.rs"
 Task: "T021 [US2] Implement interactive prompt runtime adapter in src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/interactive_prompt_service.rs"
 ```
 
@@ -175,7 +175,7 @@ Task: "T021 [US2] Implement interactive prompt runtime adapter in src/nframework
 
 ```bash
 # Parallelizable US3 tasks
-Task: "T025 [US3] Add routing tests in tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing_tests.rs"
+Task: "T025 [US3] Add routing tests in tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/new_command_routing.tests.rs"
 Task: "T027 [US3] Extend CLI command spec in src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs"
 ```
 

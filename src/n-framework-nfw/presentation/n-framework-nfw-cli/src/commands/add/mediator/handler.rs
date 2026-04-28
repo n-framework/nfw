@@ -1,4 +1,6 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
+use crate::cli_error::CliError;
+use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command::AddMediatorCommand;
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
@@ -29,10 +31,10 @@ where
         Self { handler, prompt }
     }
 
-    pub fn execute(&self, request: AddMediatorRequest) -> Result<(), AddArtifactError> {
+    pub fn execute(&self, request: AddMediatorRequest) -> Result<(), CliError> {
         self.prompt
             .intro("Add Mediator Module")
-            .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
+            .map_err(|e| CliError::internal(e.to_string()))?;
 
         let workspace_context = self.handler.get_workspace_context()?;
         let services = self.handler.extract_services(&workspace_context)?;
@@ -40,7 +42,8 @@ where
         if services.is_empty() {
             return Err(AddArtifactError::WorkspaceError(
                 "No services found in workspace. Add a service first.".to_string(),
-            ));
+            )
+            .into());
         }
 
         let selected_service = if let Some(name) = request.service_name {
@@ -86,29 +89,53 @@ where
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let service_display_name = selected_service.name.clone();
+        let command = AddMediatorCommand::new(selected_service.clone(), workspace_context);
 
-        let command = AddMediatorCommand::new(&service_display_name);
+        let res = self.handler.handle(&command).map_err(|e| {
+            spinner.error(&format!("Failed to add mediator: {}", e));
+            e
+        });
 
-        self.handler
-            .handle(&command, workspace_context, &selected_service)
-            .map_err(|e| {
-                spinner.error(&format!("Failed to add mediator: {}", e));
-                e
-            })?;
+        if let Err(e) = res {
+            return Err(CliError::silent(
+                ExitCodes::from_add_artifact_error(&e) as i32,
+                e.to_string(),
+            ));
+        }
 
         spinner.success(&format!(
             "Mediator module added to '{}'",
-            service_display_name
+            selected_service.name
         ));
 
         self.prompt
             .outro(&format!(
                 "Successfully added Mediator module to '{}'.",
-                service_display_name
+                selected_service.name
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
         Ok(())
+    }
+}
+
+impl AddMediatorCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
+    pub fn handle(
+        command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+    ) -> Result<(), String> {
+        use std::io::{self, IsTerminal};
+        let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+
+        AddMediatorCliCommand::new(
+            context.add_mediator_command_handler.clone(),
+            n_framework_core_cli_cliclack::CliclackPromptService::new(),
+        )
+        .execute(AddMediatorRequest {
+            no_input: command.option("no-input").is_some(),
+            is_interactive_terminal,
+            service_name: command.option("service"),
+        })
+        .map_err(|error| error.to_string())
     }
 }

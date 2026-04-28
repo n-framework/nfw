@@ -7,7 +7,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use n_framework_core_cli_abstractions::Command;
-use n_framework_nfw_cli::runtime::nfw_cli_runtime::handle_add_artifact_command;
+use n_framework_nfw_cli::commands::r#gen::command::GenMediatorCommandCliCommand;
 use n_framework_nfw_cli::startup::cli_service_collection_factory::CliServiceCollectionFactory;
 
 // Tests in this file must run sequentially because they temporarily mutate
@@ -63,7 +63,7 @@ fn run(sandbox: &Path, opts: HashMap<String, String>) -> Result<(), String> {
     let services = CliServiceCollectionFactory::create();
     let original_dir = std::env::current_dir().expect("should have current dir");
     std::env::set_current_dir(sandbox).expect("should set current dir");
-    let result = handle_add_artifact_command(&TestCommand { opts }, &services);
+    let result = GenMediatorCommandCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).expect("should restore current dir");
     result
 }

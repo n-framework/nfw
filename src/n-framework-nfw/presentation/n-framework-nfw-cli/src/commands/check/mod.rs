@@ -1,2 +1,5 @@
 pub mod check_output_formatter;
-pub mod run_check;
+pub mod handler;
+pub mod registration;
+
+pub use handler::RunCheckCliCommand;

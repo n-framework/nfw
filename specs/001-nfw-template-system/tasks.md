@@ -178,11 +178,11 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Domain Tests
 
-- [x] T031 [P] [US1] Write domain tests for TemplateMetadata validation in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-domain/features/template_management/template_metadata_tests.rs` (valid, missing fields, invalid values, optional fields)
+- [x] T031 [P] [US1] Write domain tests for TemplateMetadata validation in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-domain/features/template_management/template_metadata.tests.rs` (valid, missing fields, invalid values, optional fields)
 
 ### Phase 3: Application Tests
 
-- [x] T032 [P] [US1] Write application tests for TemplateCatalogParser in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_parser_tests.rs` (parse valid YAML, invalid YAML, missing required fields)
+- [x] T032 [P] [US1] Write application tests for TemplateCatalogParser in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_parser.tests.rs` (parse valid YAML, invalid YAML, missing required fields)
 
 ---
 
@@ -205,7 +205,7 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Phase 4: Application Tests
 
-- [x] T037 [P] [US2] Write tests for TemplateCatalogSourceResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_source_resolver_tests.rs`
+- [x] T037 [P] [US2] Write tests for TemplateCatalogSourceResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/template_catalog_source_resolver.tests.rs`
 
 ---
 
@@ -238,7 +238,7 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Phase 5: Tests
 
-- [x] T047 [P] [US3] Write application tests for TemplatesService in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/templates_service_tests.rs` (mock git, single/multiple sources, empty source, unreachable source)
+- [x] T047 [P] [US3] Write application tests for TemplatesService in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/templates_service.tests.rs` (mock git, single/multiple sources, empty source, unreachable source)
 - [x] T048 [P] [US3] Write integration tests in `src/nfw/tests/integration/nframework-nfw/features/template_discovery/discovery_test.rs` (real git clone, cache refresh, multi-template catalog)
 
 ---
@@ -257,7 +257,7 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Phase 6: Tests
 
-- [x] T052 [P] [US4] Write tests for VersionResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/versioning/version_resolver_tests.rs` (latest stable, pre-release excluded, explicit version, minCliVersion warning)
+- [x] T052 [P] [US4] Write tests for VersionResolver in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/versioning/version_resolver.tests.rs` (latest stable, pre-release excluded, explicit version, minCliVersion warning)
 
 ---
 
@@ -283,8 +283,8 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 ### Phase 7: Tests
 
-- [x] T058 [P] [US5] Write tests for source management in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/source_management_tests.rs` (add, remove, duplicate, default init)
-- [x] T059 [P] [US5] Write tests for NfwConfigurationLoader in `src/nfw/tests/unit/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/features/cli/configuration/nfw_configuration_loader_tests.rs`
+- [x] T058 [P] [US5] Write tests for source management in `src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/template_management/services/source_management.tests.rs` (add, remove, duplicate, default init)
+- [x] T059 [P] [US5] Write tests for NfwConfigurationLoader in `src/nfw/tests/unit/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/features/cli/configuration/nfw_configuration_loader.tests.rs`
 
 ---
 

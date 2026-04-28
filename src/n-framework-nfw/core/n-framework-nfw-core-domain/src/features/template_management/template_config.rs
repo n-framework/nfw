@@ -444,9 +444,8 @@ pub enum TemplateStep {
     },
 }
 
-/// Defines where content should be injected into a target file.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum InjectionTarget {
     /// Append the content to the very end of the file.
     AtEnd,

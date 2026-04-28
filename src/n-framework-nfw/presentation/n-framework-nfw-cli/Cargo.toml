@@ -31,20 +31,20 @@ tempfile = "3.10"
 
 [[test]]
 name = "new_command_routing_tests"
-path = "../../../../tests/integration/presentation/routing/new_command_routing_tests.rs"
+path = "../../../../tests/integration/presentation/routing/new_command_routing.tests.rs"
 
 
 [[test]]
 name = "add_service_command_routing_tests"
-path = "../../../../tests/integration/presentation/routing/add_service_command_routing_tests.rs"
+path = "../../../../tests/integration/presentation/routing/add_service_command_routing.tests.rs"
 
 [[test]]
 name = "check_command_routing_tests"
-path = "../../../../tests/integration/presentation/routing/check_command_routing_tests.rs"
+path = "../../../../tests/integration/presentation/routing/check_command_routing.tests.rs"
 
 [[test]]
 name = "check_command_stdio_tests"
-path = "../../../../tests/integration/presentation/routing/check_command_stdio_tests.rs"
+path = "../../../../tests/integration/presentation/routing/check_command_stdio.tests.rs"
 
 [[test]]
 name = "no_input_validation_test"
@@ -81,6 +81,10 @@ path = "../../../../tests/integration/n-framework-nfw/features/service_add/servi
 [[test]]
 name = "service_template_provenance_persistence_test"
 path = "../../../../tests/integration/n-framework-nfw/features/service_add/service_template_provenance_persistence_test.rs"
+
+[[test]]
+name = "service_comment_preservation_test"
+path = "../../../../tests/integration/n-framework-nfw/features/service_add/service_comment_preservation_test.rs"
 
 [[test]]
 name = "architecture_check_valid_workspace_test"
@@ -132,7 +136,7 @@ path = "../../../../tests/integration/n-framework-nfw/features/architecture_chec
 
 [[test]]
 name = "architecture_check_polyglot_go_test"
-path = "../../../../tests/integration/n-framework-nfw/features/architecture_check/polyglot_go_check_tests.rs"
+path = "../../../../tests/integration/n-framework-nfw/features/architecture_check/polyglot_go_check.tests.rs"
 
 [[test]]
 name = "artifact_smoke_test"

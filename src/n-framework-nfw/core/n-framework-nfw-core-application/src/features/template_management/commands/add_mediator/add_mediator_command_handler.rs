@@ -25,26 +25,26 @@ where
         }
     }
 
-    pub fn handle(
-        &self,
-        command: &AddMediatorCommand,
-        workspace: WorkspaceContext,
-        selected_service: &ServiceInfo,
-    ) -> Result<(), AddArtifactError> {
-        let context =
-            self.service
-                .load_template_context(workspace.clone(), selected_service, "mediator")?;
+    pub fn handle(&self, command: &AddMediatorCommand) -> Result<(), AddArtifactError> {
+        let workspace = &command.workspace_context;
+        let context = self.service.load_template_context(
+            workspace.clone(),
+            &command.service_info,
+            "mediator",
+        )?;
 
         let namespace = self.service.extract_namespace(&workspace.nfw_yaml)?;
 
         let parameters =
             n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters::new()
-                .with_name(&command.service_name)
+                .with_name(&command.service_info.name)
                 .map_err(AddArtifactError::InvalidParameter)?
                 .with_namespace(namespace)
+                .map_err(AddArtifactError::InvalidParameter)?
+                .with_service(&command.service_info.name)
                 .map_err(AddArtifactError::InvalidParameter)?;
 
-        let output_root = workspace.workspace_root.join(&selected_service.path);
+        let output_root = workspace.workspace_root.join(&command.service_info.path);
 
         self.service
             .engine()
@@ -58,7 +58,7 @@ where
 
         self.service.add_service_module(
             &workspace.workspace_root,
-            &selected_service.name,
+            &command.service_info.name,
             "mediator",
         )?;
 

@@ -1,3 +1,4 @@
+use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommand;
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
@@ -7,6 +8,7 @@ use n_framework_nfw_core_application::features::service_management::services::ab
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
+use crate::cli_error::CliError;
 
 #[derive(Debug, Clone)]
 pub struct AddServiceCliCommand<H, P> {
@@ -36,10 +38,10 @@ where
         template_id: Option<&str>,
         no_input: bool,
         is_interactive_terminal: bool,
-    ) -> Result<(), AddServiceError> {
+    ) -> Result<(), CliError> {
         self.prompt
             .intro("Add Service")
-            .map_err(|e| AddServiceError::Internal(e.to_string()))?;
+            .map_err(|e| CliError::internal(e.to_string()))?;
 
         tracing::info!(
             "Executing add-service command (name: {:?}, template: {:?}, no_input: {})",
@@ -66,7 +68,15 @@ where
             spinner.error(&format!("Failed to add service: {e}"));
             tracing::error!("Failed to add service: {}", e);
             e
-        })?;
+        });
+
+        if let Err(e) = result {
+            return Err(CliError::silent(
+                ExitCodes::from_add_service_error(&e) as i32,
+                e.to_string(),
+            ));
+        }
+        let result = result.unwrap();
 
         spinner.success(&format!(
             "Service '{}' added successfully",
@@ -90,5 +100,28 @@ where
         );
 
         Ok(())
+    }
+}
+
+impl AddServiceCliCommand<(), n_framework_core_cli_cliclack::CliclackPromptService> {
+    pub fn handle(
+        command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+    ) -> Result<(), String> {
+        use std::io::{self, IsTerminal};
+        let no_input = command.option("no-input").is_some();
+        let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
+
+        AddServiceCliCommand::new(
+            context.add_service_command_handler.clone(),
+            n_framework_core_cli_cliclack::CliclackPromptService::new(),
+        )
+        .execute(
+            command.option("name"),
+            command.option("template"),
+            no_input,
+            is_interactive_terminal,
+        )
+        .map_err(|error| error.to_string())
     }
 }

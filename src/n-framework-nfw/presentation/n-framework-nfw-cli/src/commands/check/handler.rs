@@ -2,6 +2,7 @@ use n_framework_nfw_core_application::features::check::commands::check::check_co
 use n_framework_nfw_core_application::features::check::models::ExitOutcome;
 use n_framework_nfw_core_application::features::check::models::check_command_request::CheckCommandRequest;
 
+use crate::cli_error::CliError;
 use crate::commands::check::check_output_formatter::CheckOutputFormatter;
 
 #[derive(Debug)]
@@ -31,6 +32,17 @@ pub struct RunCheckCliCommand<'a, L> {
     logger: L,
 }
 
+impl From<RunCheckError> for CliError {
+    fn from(error: RunCheckError) -> Self {
+        match error {
+            RunCheckError::ValidationFailed => CliError::silent(1, "Validation failed".to_string()),
+            RunCheckError::CommandError(e) => CliError::new(1, e),
+            RunCheckError::Interrupted => CliError::silent(130, "Interrupted".to_string()),
+            RunCheckError::CurrentDirectoryUnavailable(e) => CliError::new(1, e),
+        }
+    }
+}
+
 impl<'a, L> RunCheckCliCommand<'a, L>
 where
     L: n_framework_core_cli_abstractions::Logger,
@@ -43,7 +55,7 @@ where
         }
     }
 
-    pub fn execute(&self) -> Result<(), RunCheckError> {
+    pub fn execute(&self) -> Result<(), CliError> {
         self.logger
             .intro("Architecture Check")
             .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
@@ -87,7 +99,7 @@ where
                     .outro(&self.formatter.failure_message(&result))
                     .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
                 tracing::warn!("Architecture check found violations");
-                Err(RunCheckError::ValidationFailed)
+                Err(RunCheckError::ValidationFailed.into())
             }
             ExitOutcome::ExecutionInterrupted => {
                 spinner.cancel("Architecture check interrupted");
@@ -95,8 +107,22 @@ where
                     .outro(&self.formatter.failure_message(&result))
                     .map_err(|e| RunCheckError::CommandError(e.to_string()))?;
                 tracing::warn!("Architecture check was interrupted");
-                Err(RunCheckError::Interrupted)
+                Err(RunCheckError::Interrupted.into())
             }
         }
+    }
+}
+
+impl RunCheckCliCommand<'_, n_framework_core_cli_cliclack::CliclackPromptService> {
+    pub fn handle(
+        _command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+    ) -> Result<(), String> {
+        RunCheckCliCommand::new(
+            &context.check_command_handler,
+            n_framework_core_cli_cliclack::CliclackPromptService::new(),
+        )
+        .execute()
+        .map_err(|error| error.to_string())
     }
 }

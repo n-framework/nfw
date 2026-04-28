@@ -50,7 +50,7 @@
 
 ### Tests for User Story 1
 
-- [X] T012 [P] [US1] Add request validation tests for service name and non-interactive template requirement in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/add_service_request_validation_tests.rs`
+- [X] T012 [P] [US1] Add request validation tests for service name and non-interactive template requirement in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/add_service_request_validation.tests.rs`
 - [X] T013 [P] [US1] Add integration test for generated service output path and structure in `tests/integration/nframework-nfw/features/service_add/service_generation_layout_test.rs`
 - [X] T040 [P] [US1] Add integration test for workspace-context failure outside `nfw.yaml` workspace in `tests/integration/nframework-nfw/features/service_add/service_workspace_context_validation_test.rs`
 - [X] T041 [P] [US1] Add integration smoke test for first-build success of generated service in `tests/integration/nframework-nfw/features/service_add/service_first_build_smoke_test.rs`
@@ -79,7 +79,7 @@
 
 ### Tests for User Story 4
 
-- [X] T020 [P] [US4] Add unit tests for template eligibility and version resolution behavior in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_template_selection_tests.rs`
+- [X] T020 [P] [US4] Add unit tests for template eligibility and version resolution behavior in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_template_selection.tests.rs`
 - [X] T021 [P] [US4] Add integration test for invalid template ID and wrong template type failures in `tests/integration/nframework-nfw/features/service_add/service_template_validation_test.rs`
 
 ### Implementation for User Story 4
@@ -139,7 +139,7 @@
 
 ```bash
 # Parallelizable US1 tasks
-Task: "T012 [US1] Add request validation tests in tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/add_service_request_validation_tests.rs"
+Task: "T012 [US1] Add request validation tests in tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/add_service_request_validation.tests.rs"
 Task: "T014 [US1] Implement request validator in src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_request_validator.rs"
 Task: "T015 [US1] Implement generation-plan builder in src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generation_plan_builder.rs"
 ```
@@ -148,7 +148,7 @@ Task: "T015 [US1] Implement generation-plan builder in src/nframework-nfw/core/n
 
 ```bash
 # Parallelizable US4 tasks
-Task: "T020 [US4] Add template selection tests in tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_template_selection_tests.rs"
+Task: "T020 [US4] Add template selection tests in tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_template_selection.tests.rs"
 Task: "T022 [US4] Implement service-template selection adapter in src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_template_selection_service.rs"
 ```
 

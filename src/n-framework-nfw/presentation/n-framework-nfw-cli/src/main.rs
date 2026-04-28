@@ -10,7 +10,9 @@ fn main() {
         .init();
 
     if let Err(error) = run() {
-        eprintln!("error: {error}");
+        if !error.is_silent {
+            eprintln!("error: {error}");
+        }
         std::process::exit(error.exit_code);
     }
 }
