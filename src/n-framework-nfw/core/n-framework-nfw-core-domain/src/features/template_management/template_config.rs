@@ -13,6 +13,9 @@ pub struct TemplateConfig {
     /// The input parameters accepted by this template.
     #[serde(default)]
     inputs: Vec<TemplateInput>,
+    /// Modules that must be present in the target service before this template can execute.
+    #[serde(default)]
+    required_modules: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -22,6 +25,8 @@ struct TemplateConfigShadow {
     steps: Vec<TemplateStep>,
     #[serde(default)]
     inputs: Vec<TemplateInput>,
+    #[serde(default)]
+    required_modules: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -79,6 +84,7 @@ impl TryFrom<TemplateConfigShadow> for TemplateConfig {
             id: shadow.id,
             steps: shadow.steps,
             inputs: shadow.inputs,
+            required_modules: shadow.required_modules,
         };
         config.validate()?;
         Ok(config)
@@ -127,7 +133,12 @@ impl TemplateConfig {
         steps: Vec<TemplateStep>,
         inputs: Vec<TemplateInput>,
     ) -> Result<Self, TemplateConfigError> {
-        let config = Self { id, steps, inputs };
+        let config = Self {
+            id,
+            steps,
+            inputs,
+            required_modules: Vec::new(),
+        };
         config.validate()?;
         Ok(config)
     }
@@ -198,6 +209,14 @@ impl TemplateConfig {
                         return Err(TemplateConfigError::InvalidStep {
                             index: i,
                             message: "inject destination cannot be empty".to_string(),
+                        });
+                    }
+                }
+                TemplateStep::RunCommand { command, .. } => {
+                    if command.trim().is_empty() {
+                        return Err(TemplateConfigError::InvalidStep {
+                            index: i,
+                            message: "run_command command cannot be empty".to_string(),
                         });
                     }
                 }
@@ -362,6 +381,11 @@ impl TemplateConfig {
     pub fn inputs(&self) -> &[TemplateInput] {
         &self.inputs
     }
+
+    /// Returns the list of required modules for this template.
+    pub fn required_modules(&self) -> &[String] {
+        &self.required_modules
+    }
 }
 
 fn validate_id_format(id: &str) -> Result<(), TemplateConfigError> {
@@ -409,6 +433,14 @@ pub enum TemplateStep {
         destination: String,
         /// Where in the target file the content should be injected.
         injection_target: InjectionTarget,
+    },
+    /// Executes a shell command.
+    RunCommand {
+        /// The command string to execute (supports Tera placeholders).
+        command: String,
+        /// Optional working directory relative to output root.
+        #[serde(default)]
+        working_directory: Option<String>,
     },
 }
 

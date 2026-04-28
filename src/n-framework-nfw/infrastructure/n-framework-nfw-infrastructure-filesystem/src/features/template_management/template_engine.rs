@@ -1,7 +1,10 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
-use n_framework_nfw_core_application::features::template_management::models::template_error::TemplateError;
+use n_framework_nfw_core_application::features::template_management::models::template_error::{
+    CommandExecutionContext, TemplateError,
+};
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_domain::features::template_management::template_config::{
     InjectionTarget, TemplateConfig, TemplateStep,
@@ -56,6 +59,33 @@ impl FileSystemTemplateEngine {
             file_path,
             source: Some(Box::new(error)),
         }
+    }
+
+    pub(crate) fn validate_rendered_command(
+        command: &str,
+        step_index: usize,
+        template_id: Option<String>,
+    ) -> Result<(), TemplateError> {
+        let dangerous_patterns = [";", "&&", "||", "|", "`", "$(", "$( "];
+        for pattern in dangerous_patterns {
+            if command.contains(pattern) {
+                return Err(TemplateError::CommandExecutionError(Box::new(
+                    CommandExecutionContext {
+                        message: format!(
+                            "security validation failed: command contains dangerous pattern '{}'",
+                            pattern
+                        ),
+                        command: command.to_string(),
+                        stdout: None,
+                        working_directory: None,
+                        exit_code: None,
+                        step_index,
+                        template_id,
+                    },
+                )));
+            }
+        }
+        Ok(())
     }
 
     fn ensure_safe_path(
@@ -248,57 +278,136 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         )
                     })?;
 
-                    match injection_target {
+                    let (start_marker, end_marker, region_name) = match injection_target {
                         InjectionTarget::AtEnd => {
                             if !file_content.ends_with('\n') && !file_content.is_empty() {
                                 file_content.push('\n');
                             }
                             file_content.push_str(&rendered_inject_content);
+                            fs::write(&dest_path, file_content).map_err(|e| {
+                                TemplateError::io(
+                                    format!("failed to write injected file: {e}"),
+                                    dest_path,
+                                )
+                            })?;
+                            continue;
                         }
-                        InjectionTarget::Region(name) => {
-                            let start_marker = format!("// region: {}", name);
-                            let end_marker = format!("// endregion: {}", name);
+                        InjectionTarget::Region(value) => {
+                            let start_marker = format!("<nfw:{}:start>", value);
+                            let end_marker = format!("<nfw:{}:end>", value);
+                            (start_marker, end_marker, Some(value.clone()))
+                        }
+                    };
 
-                            if let Some(start_pos) = file_content.find(&start_marker) {
-                                if let Some(end_pos) = file_content[start_pos..].find(&end_marker) {
-                                    // Insertion happens BEFORE the end marker, keeping region intact.
-                                    let absolute_end_pos = start_pos + end_pos;
-                                    file_content
-                                        .insert_str(absolute_end_pos, &rendered_inject_content);
-                                } else {
-                                    let snippet = get_snippet(&file_content, start_pos);
-                                    return Err(TemplateError::TemplateInjectionError {
-                                        message: format!(
-                                            "region end marker '{}' not found in '{}' after start marker. Regions must follow the format: // region: {} ... // endregion: {}.\nContext around start marker:\n{}",
-                                            end_marker,
-                                            dest_path.display(),
-                                            name,
-                                            name,
-                                            snippet
-                                        ),
-                                        file_path: Some(dest_path.display().to_string()),
-                                        region: Some(name.clone()),
-                                        template_id: template_id.clone(),
-                                    });
-                                }
-                            } else {
-                                return Err(TemplateError::TemplateInjectionError {
-                                    message: format!(
-                                        "region start marker '{}' not found in '{}'. Ensure the target file has the required injection marker.",
-                                        start_marker,
-                                        dest_path.display()
-                                    ),
-                                    file_path: Some(dest_path.display().to_string()),
-                                    region: Some(name.clone()),
-                                    template_id: template_id.clone(),
-                                });
-                            }
+                    if let Some(start_pos) = file_content.find(&start_marker) {
+                        if let Some(relative_end_pos) = file_content[start_pos..].find(&end_marker)
+                        {
+                            let absolute_end_pos = start_pos + relative_end_pos;
+                            let insert_pos = file_content[..absolute_end_pos]
+                                .rfind('\n')
+                                .map(|pos| pos + 1)
+                                .unwrap_or(absolute_end_pos);
+
+                            let marker_line_start = file_content[..start_pos]
+                                .rfind('\n')
+                                .map(|pos| pos + 1)
+                                .unwrap_or(0);
+                            let indent: String = file_content[marker_line_start..]
+                                .chars()
+                                .take_while(|c| c.is_whitespace() && *c != '\n')
+                                .collect();
+
+                            let indented_content = indent_lines(&rendered_inject_content, &indent);
+                            file_content.insert_str(insert_pos, &indented_content);
+                        } else {
+                            let snippet = get_snippet(&file_content, start_pos);
+                            return Err(TemplateError::TemplateInjectionError {
+                                message: format!(
+                                    "region end marker '{}' not found in '{}' after start marker.\nContext around start marker:\n{}",
+                                    end_marker,
+                                    dest_path.display(),
+                                    snippet
+                                ),
+                                file_path: Some(dest_path.display().to_string()),
+                                region: region_name,
+                                template_id: template_id.clone(),
+                            });
                         }
+                    } else {
+                        return Err(TemplateError::TemplateInjectionError {
+                            message: format!(
+                                "region start marker '{}' not found in '{}'. Ensure the target file has the required injection marker.",
+                                start_marker,
+                                dest_path.display()
+                            ),
+                            file_path: Some(dest_path.display().to_string()),
+                            region: region_name,
+                            template_id: template_id.clone(),
+                        });
                     }
 
                     fs::write(&dest_path, file_content).map_err(|e| {
                         TemplateError::io(format!("failed to write injected file: {e}"), dest_path)
                     })?;
+                }
+                TemplateStep::RunCommand {
+                    command,
+                    working_directory,
+                } => {
+                    let rendered_command = self
+                        .renderer
+                        .render_content(command, ctx.core_context)
+                        .map_err(|e| Self::map_error(e, i, template_id.clone(), None))?;
+
+                    Self::validate_rendered_command(&rendered_command, i, template_id.clone())?;
+
+                    let work_dir = if let Some(wd) = working_directory {
+                        let rendered_wd = self
+                            .renderer
+                            .render_content(wd, ctx.core_context)
+                            .map_err(|e| Self::map_error(e, i, template_id.clone(), None))?;
+                        ctx.output_root.join(rendered_wd)
+                    } else {
+                        ctx.output_root.to_path_buf()
+                    };
+
+                    let output = Command::new("sh")
+                        .arg("-c")
+                        .arg(&rendered_command)
+                        .current_dir(&work_dir)
+                        .output()
+                        .map_err(|e| {
+                            TemplateError::CommandExecutionError(Box::new(
+                                CommandExecutionContext {
+                                    message: format!("failed to spawn command: {e}"),
+                                    command: rendered_command.clone(),
+                                    stdout: None,
+                                    working_directory: Some(work_dir.clone()),
+                                    exit_code: None,
+                                    step_index: i,
+                                    template_id: template_id.clone(),
+                                },
+                            ))
+                        })?;
+
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        return Err(TemplateError::CommandExecutionError(Box::new(
+                            CommandExecutionContext {
+                                message: format!(
+                                    "command failed with exit code {}: {stderr}",
+                                    output.status.code().unwrap_or(-1)
+                                ),
+                                command: rendered_command,
+                                stdout: Some(stdout.to_string()),
+                                working_directory: Some(work_dir),
+                                exit_code: output.status.code(),
+                                step_index: i,
+                                template_id: template_id.clone(),
+                            },
+                        )));
+                    }
                 }
             }
         }
@@ -318,6 +427,24 @@ fn get_snippet(content: &str, pos: usize) -> String {
         snippet.push_str("...");
     }
     snippet
+}
+
+fn indent_lines(content: &str, indent: &str) -> String {
+    if indent.is_empty() {
+        return content.to_string();
+    }
+    content
+        .lines()
+        .map(|line| {
+            if line.trim().is_empty() {
+                line.to_string()
+            } else {
+                format!("{indent}{line}")
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + if content.ends_with('\n') { "\n" } else { "" }
 }
 
 #[cfg(test)]
