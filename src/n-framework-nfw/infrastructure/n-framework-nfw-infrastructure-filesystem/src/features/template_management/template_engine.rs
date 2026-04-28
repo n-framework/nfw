@@ -61,18 +61,18 @@ impl FileSystemTemplateEngine {
         }
     }
 
-    fn validate_rendered_command(
+    pub(crate) fn validate_rendered_command(
         command: &str,
         step_index: usize,
         template_id: Option<String>,
     ) -> Result<(), TemplateError> {
-        let dangerous_patterns = [";", "&&", "||", "`", "$(", "$( "];
+        let dangerous_patterns = [";", "&&", "||", "|", "`", "$(", "$( "];
         for pattern in dangerous_patterns {
             if command.contains(pattern) {
                 return Err(TemplateError::CommandExecutionError(Box::new(
                     CommandExecutionContext {
                         message: format!(
-                            "Security validation failed: command contains dangerous pattern '{}'",
+                            "security validation failed: command contains dangerous pattern '{}'",
                             pattern
                         ),
                         command: command.to_string(),

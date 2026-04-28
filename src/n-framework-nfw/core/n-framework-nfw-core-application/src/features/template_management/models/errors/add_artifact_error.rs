@@ -36,9 +36,9 @@ impl fmt::Display for AddArtifactError {
             Self::InvalidParameter(msg) => write!(f, "invalid parameter: {}", msg),
             Self::ExecutionFailed(err) => write!(f, "execution failed:\n{}", err),
             Self::MissingRequiredModule(msg) => write!(f, "missing required module: {}", msg),
-            Self::NfwYamlReadError(msg) => write!(f, "nfw.yaml read error: {}", msg),
-            Self::NfwYamlParseError(msg) => write!(f, "nfw.yaml parse error: {}", msg),
-            Self::NfwYamlWriteError(msg) => write!(f, "nfw.yaml write error: {}", msg),
+            Self::NfwYamlReadError(msg) => write!(f, "{}", msg),
+            Self::NfwYamlParseError(msg) => write!(f, "{}", msg),
+            Self::NfwYamlWriteError(msg) => write!(f, "{}", msg),
         }
     }
 }

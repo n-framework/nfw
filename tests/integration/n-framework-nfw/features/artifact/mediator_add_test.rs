@@ -88,11 +88,20 @@ fn add_mediator_updates_nfw_yaml_and_renders_template() {
 
     assert!(result.is_ok(), "add mediator failed: {:?}", result.err());
 
-    // Check nfw.yaml updated
-    let nfw_yaml = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
+    // Check nfw.yaml updated using YAML parsing
+    let nfw_yaml_content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
+    let yaml: serde_yaml::Value = serde_yaml::from_str(&nfw_yaml_content).unwrap();
+
+    let modules = yaml
+        .get("services")
+        .and_then(|s| s.get("TestService"))
+        .and_then(|details| details.get("modules"))
+        .and_then(|m| m.as_sequence())
+        .expect("nfw.yaml should have modules sequence for TestService");
+
     assert!(
-        nfw_yaml.contains("- mediator"),
-        "nfw.yaml should contain mediator module"
+        modules.iter().any(|m| m.as_str() == Some("mediator")),
+        "nfw.yaml modules should contain 'mediator'"
     );
 
     // Check file rendered
@@ -100,6 +109,63 @@ fn add_mediator_updates_nfw_yaml_and_renders_template() {
         sandbox
             .join("src/TestService/TestService.Mediator.cs")
             .exists()
+    );
+
+    support::cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn add_mediator_rolls_back_yaml_if_template_execution_fails() {
+    let sandbox = support::create_sandbox_directory("add-mediator-rollback");
+    setup_mediator_workspace(&sandbox);
+
+    // Corrupt the template to force a failure (e.g., non-existent source)
+    let tpl_yaml_path = sandbox.join("templates/dotnet-service/mediator/template.yaml");
+    fs::write(
+        tpl_yaml_path,
+        r#"
+id: dotnet-service/mediator
+steps:
+  - action: render
+    source: missing.tera
+    destination: "Failed.cs"
+"#,
+    )
+    .unwrap();
+
+    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let services = CliServiceCollectionFactory::create();
+    let original_dir = std::env::current_dir().unwrap();
+    std::env::set_current_dir(&sandbox).unwrap();
+
+    let mut opts = HashMap::new();
+    opts.insert("service".to_string(), "TestService".to_string());
+    opts.insert("no-input".to_string(), "true".to_string());
+
+    let result = handle_add_mediator(&TestCommand { opts }, &services);
+    std::env::set_current_dir(&original_dir).unwrap();
+
+    assert!(
+        result.is_err(),
+        "Expected error due to missing template source"
+    );
+
+    // Verify nfw.yaml was NOT updated
+    let nfw_yaml_content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
+    let yaml: serde_yaml::Value = serde_yaml::from_str(&nfw_yaml_content).unwrap();
+
+    let modules = yaml
+        .get("services")
+        .and_then(|s| s.get("TestService"))
+        .and_then(|details| details.get("modules"));
+
+    assert!(
+        modules.is_none()
+            || (modules
+                .unwrap()
+                .as_sequence()
+                .map_or(true, |s| s.is_empty())),
+        "nfw.yaml should NOT have been updated with mediator module on failure"
     );
 
     support::cleanup_sandbox_directory(&sandbox);

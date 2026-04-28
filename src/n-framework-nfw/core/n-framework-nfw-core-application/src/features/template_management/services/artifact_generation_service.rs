@@ -304,13 +304,13 @@ where
         let nfw_yaml_path = workspace_root.join("nfw.yaml");
         let content = fs::read_to_string(&nfw_yaml_path).map_err(|e| {
             AddArtifactError::NfwYamlReadError(format!(
-                "failed to read nfw.yaml at {}: {e}",
+                "failed to read workspace config at {}: {e}",
                 nfw_yaml_path.display()
             ))
         })?;
         serde_yaml::from_str(&content).map_err(|e| {
             AddArtifactError::NfwYamlParseError(format!(
-                "failed to parse nfw.yaml at {}: {e}",
+                "failed to parse workspace config at {}: {e}",
                 nfw_yaml_path.display()
             ))
         })
@@ -324,13 +324,14 @@ where
         let nfw_yaml_path = workspace_root.join("nfw.yaml");
         let output = serde_yaml::to_string(yaml).map_err(|e| {
             AddArtifactError::NfwYamlWriteError(format!(
-                "failed to serialize updated nfw.yaml: {e}"
+                "failed to serialize workspace config for {}: {e}",
+                nfw_yaml_path.display()
             ))
         })?;
 
         fs::write(&nfw_yaml_path, output).map_err(|e| {
             AddArtifactError::NfwYamlWriteError(format!(
-                "failed to write nfw.yaml at {}: {e}",
+                "failed to write workspace config at {}: {e}",
                 nfw_yaml_path.display()
             ))
         })?;
@@ -345,15 +346,21 @@ where
         let path = template_root.join("template.yaml");
         let content = fs::read_to_string(&path).map_err(|e| {
             AddArtifactError::ConfigError(format!(
-                "failed to read template.yaml at {}: {e}",
+                "failed to read template config at {}: {e}",
                 path.display()
             ))
         })?;
         let config: TemplateConfig = serde_yaml::from_str(&content).map_err(|e| {
-            AddArtifactError::ConfigError(format!("failed to parse template.yaml: {e}"))
+            AddArtifactError::ConfigError(format!(
+                "failed to parse template config at {}: {e}",
+                path.display()
+            ))
         })?;
         config.validate().map_err(|e| {
-            AddArtifactError::ConfigError(format!("template validation failed: {e}"))
+            AddArtifactError::ConfigError(format!(
+                "template validation failed for {}: {e}",
+                path.display()
+            ))
         })?;
         Ok(config)
     }
@@ -456,3 +463,7 @@ fn get_identifier_regex() -> &'static regex::Regex {
     static RE: OnceLock<regex::Regex> = OnceLock::new();
     RE.get_or_init(|| regex::Regex::new("^[a-zA-Z0-9_-]+$").expect("invalid identifier regex"))
 }
+
+#[cfg(test)]
+#[path = "artifact_generation_service.tests.rs"]
+mod tests;

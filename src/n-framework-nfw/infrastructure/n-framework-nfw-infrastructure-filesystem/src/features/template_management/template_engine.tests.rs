@@ -635,8 +635,20 @@ fn run_command_step_blocks_dangerous_patterns() {
 
     assert!(result.is_err());
     let err = result.unwrap_err().to_string();
-    assert!(err.contains("Security validation failed"));
+    assert!(err.contains("security validation failed"));
     assert!(err.contains("dangerous pattern ';'"));
+}
+
+#[test]
+fn validate_rendered_command_rejects_pipe() {
+    let result =
+        FileSystemTemplateEngine::validate_rendered_command("cat /etc/passwd | grep root", 0, None);
+    assert!(result.is_err());
+    if let Err(TemplateError::CommandExecutionError(ctx)) = result {
+        assert!(ctx.message.contains("contains dangerous pattern '|'"));
+    } else {
+        panic!("Expected CommandExecutionError");
+    }
 }
 
 #[test]
