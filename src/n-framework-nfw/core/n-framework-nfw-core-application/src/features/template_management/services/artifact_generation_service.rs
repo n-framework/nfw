@@ -81,7 +81,7 @@ where
                 &output_root,
                 &parameters,
             )
-            .map_err(AddArtifactError::ExecutionFailed)?;
+            .map_err(|e| AddArtifactError::ExecutionFailed(Box::new(e)))?;
 
         Ok(())
     }
@@ -148,7 +148,7 @@ where
             )
         })?;
 
-        let nfw_yaml = self.load_nfw_yaml(&workspace_root)?;
+        let nfw_yaml = self.read_nfw_yaml(&workspace_root)?;
         Ok(WorkspaceContext {
             workspace_root,
             nfw_yaml,
@@ -300,13 +300,42 @@ where
         Ok(())
     }
 
-    fn load_nfw_yaml(&self, workspace_root: &Path) -> Result<YamlValue, AddArtifactError> {
+    fn read_nfw_yaml(&self, workspace_root: &Path) -> Result<serde_yaml::Value, AddArtifactError> {
         let nfw_yaml_path = workspace_root.join("nfw.yaml");
         let content = fs::read_to_string(&nfw_yaml_path).map_err(|e| {
-            AddArtifactError::WorkspaceError(format!("failed to read nfw.yaml: {e}"))
+            AddArtifactError::NfwYamlReadError(format!(
+                "failed to read nfw.yaml at {}: {e}",
+                nfw_yaml_path.display()
+            ))
         })?;
-        serde_yaml::from_str(&content)
-            .map_err(|e| AddArtifactError::WorkspaceError(format!("invalid nfw.yaml: {e}")))
+        serde_yaml::from_str(&content).map_err(|e| {
+            AddArtifactError::NfwYamlParseError(format!(
+                "failed to parse nfw.yaml at {}: {e}",
+                nfw_yaml_path.display()
+            ))
+        })
+    }
+
+    fn write_nfw_yaml(
+        &self,
+        workspace_root: &Path,
+        yaml: &serde_yaml::Value,
+    ) -> Result<(), AddArtifactError> {
+        let nfw_yaml_path = workspace_root.join("nfw.yaml");
+        let output = serde_yaml::to_string(yaml).map_err(|e| {
+            AddArtifactError::NfwYamlWriteError(format!(
+                "failed to serialize updated nfw.yaml: {e}"
+            ))
+        })?;
+
+        fs::write(&nfw_yaml_path, output).map_err(|e| {
+            AddArtifactError::NfwYamlWriteError(format!(
+                "failed to write nfw.yaml at {}: {e}",
+                nfw_yaml_path.display()
+            ))
+        })?;
+
+        Ok(())
     }
 
     fn load_and_validate_template_config(
@@ -376,6 +405,49 @@ where
             let parent = candidate.parent()?;
             candidate = parent.to_path_buf();
         }
+    }
+
+    pub fn add_service_module(
+        &self,
+        workspace_root: &Path,
+        service_name: &str,
+        module_name: &str,
+    ) -> Result<(), AddArtifactError> {
+        let mut yaml = self.read_nfw_yaml(workspace_root)?;
+
+        let services = yaml
+            .get_mut("services")
+            .and_then(|s| s.as_mapping_mut())
+            .ok_or_else(|| {
+                AddArtifactError::WorkspaceError(
+                    "nfw.yaml is missing 'services' mapping".to_string(),
+                )
+            })?;
+
+        let service_key = YamlValue::String(service_name.to_string());
+        let details = services
+            .get_mut(&service_key)
+            .and_then(|d| d.as_mapping_mut())
+            .ok_or_else(|| {
+                AddArtifactError::WorkspaceError(format!(
+                    "service '{service_name}' not found in nfw.yaml"
+                ))
+            })?;
+
+        let modules = details
+            .entry(YamlValue::String("modules".to_string()))
+            .or_insert_with(|| YamlValue::Sequence(Vec::new()));
+
+        let module_value = YamlValue::String(module_name.to_string());
+        if let Some(seq) = modules.as_sequence_mut()
+            && !seq.contains(&module_value)
+        {
+            seq.push(module_value);
+        }
+
+        self.write_nfw_yaml(workspace_root, &yaml)?;
+
+        Ok(())
     }
 }
 

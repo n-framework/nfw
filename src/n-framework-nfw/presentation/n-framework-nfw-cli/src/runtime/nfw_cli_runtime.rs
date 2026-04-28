@@ -271,7 +271,7 @@ fn handle_check(_: &dyn Command, context: &CliServiceCollection) -> Result<(), S
     })
 }
 
-fn handle_add_mediator(
+pub fn handle_add_mediator(
     command: &dyn Command,
     context: &CliServiceCollection,
 ) -> Result<(), String> {

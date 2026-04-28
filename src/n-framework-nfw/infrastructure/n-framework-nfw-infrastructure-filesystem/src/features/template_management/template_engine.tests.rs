@@ -608,3 +608,69 @@ fn run_command_step_renders_tera_placeholders() {
         "NFramework"
     );
 }
+
+#[test]
+fn run_command_step_blocks_dangerous_patterns() {
+    let sandbox = create_sandbox();
+    let template_root = sandbox.path().join("templates");
+    let output_root = sandbox.path().join("output");
+    fs::create_dir_all(&template_root).unwrap();
+    fs::create_dir_all(&output_root).unwrap();
+
+    let config = TemplateConfig::new(
+        None,
+        vec![TemplateStep::RunCommand {
+            command: "echo {{ name }}".to_string(),
+            working_directory: None,
+        }],
+        vec![],
+    )
+    .unwrap();
+
+    let mut parameters = TemplateParameters::new();
+    let _ = parameters.insert("name", "hello; rm -rf /");
+
+    let engine = FileSystemTemplateEngine::new();
+    let result = engine.execute(&config, &template_root, &output_root, &parameters);
+
+    assert!(result.is_err());
+    let err = result.unwrap_err().to_string();
+    assert!(err.contains("Security validation failed"));
+    assert!(err.contains("dangerous pattern ';'"));
+}
+
+#[test]
+fn run_command_error_includes_context() {
+    let sandbox = create_sandbox();
+    let template_root = sandbox.path().join("templates");
+    let output_root = sandbox.path().join("output");
+    fs::create_dir_all(&template_root).unwrap();
+    fs::create_dir_all(&output_root).unwrap();
+
+    let config = TemplateConfig::new(
+        None,
+        vec![TemplateStep::RunCommand {
+            command: "ls /non_existent_path_xyz_123_q42".to_string(),
+            working_directory: None,
+        }],
+        vec![],
+    )
+    .unwrap();
+
+    let engine = FileSystemTemplateEngine::new();
+    let result = engine.execute(
+        &config,
+        &template_root,
+        &output_root,
+        &TemplateParameters::new(),
+    );
+
+    assert!(result.is_err());
+    if let TemplateError::CommandExecutionError(ctx) = result.unwrap_err() {
+        assert!(ctx.message.contains("No such file or directory"));
+        assert!(ctx.working_directory.is_some());
+        assert_eq!(ctx.working_directory.unwrap(), output_root);
+    } else {
+        panic!("Expected CommandExecutionError");
+    }
+}

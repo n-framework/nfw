@@ -59,9 +59,12 @@ impl ExitCodes {
             AddArtifactError::ConfigError(_)
             | AddArtifactError::InvalidIdentifier(_)
             | AddArtifactError::InvalidParameter(_)
-            | AddArtifactError::MissingRequiredModule(_) => Self::ValidationError,
+            | AddArtifactError::MissingRequiredModule(_)
+            | AddArtifactError::NfwYamlParseError(_) => Self::ValidationError,
             AddArtifactError::TemplateNotFound(_) => Self::NotFound,
-            AddArtifactError::ExecutionFailed(_) => Self::ExternalDependencyFailure,
+            AddArtifactError::ExecutionFailed(_)
+            | AddArtifactError::NfwYamlReadError(_)
+            | AddArtifactError::NfwYamlWriteError(_) => Self::ExternalDependencyFailure,
             AddArtifactError::WorkspaceError(_) => Self::InternalError,
         }
     }

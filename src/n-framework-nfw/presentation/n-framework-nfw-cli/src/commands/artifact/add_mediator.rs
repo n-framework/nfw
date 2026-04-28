@@ -43,34 +43,40 @@ where
             ));
         }
 
-        let selected_service =
-            if (request.no_input || !request.is_interactive_terminal) && services.len() == 1 {
-                services.into_iter().next().unwrap()
-            } else if let Some(name) = request.service_name {
-                services
-                    .into_iter()
-                    .find(|s| s.name == name)
-                    .ok_or_else(|| {
-                        AddArtifactError::WorkspaceError(format!(
-                            "Service '{}' not found in workspace.",
-                            name
-                        ))
-                    })?
-            } else {
-                let options: Vec<SelectOption> = services
-                    .iter()
-                    .map(|s| SelectOption::new(&s.name, &s.name))
-                    .collect();
-                let selected = self
-                    .prompt
-                    .select("Select a service to add mediator to:", &options, Some(0))
-                    .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
+        let selected_service = if let Some(name) = request.service_name {
+            services
+                .into_iter()
+                .find(|s| s.name == name)
+                .ok_or_else(|| {
+                    AddArtifactError::WorkspaceError(format!(
+                        "Service '{}' not found in workspace.",
+                        name
+                    ))
+                })?
+        } else if (request.no_input || !request.is_interactive_terminal) && services.len() == 1 {
+            services.into_iter().next().ok_or_else(|| {
+                AddArtifactError::WorkspaceError("No service found in workspace.".to_string())
+            })?
+        } else {
+            let options: Vec<SelectOption> = services
+                .iter()
+                .map(|s| SelectOption::new(&s.name, &s.name))
+                .collect();
+            let selected = self
+                .prompt
+                .select("Select a service to add mediator to:", &options, Some(0))
+                .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-                services
-                    .into_iter()
-                    .find(|s| s.name == selected.value())
-                    .unwrap()
-            };
+            services
+                .into_iter()
+                .find(|s| s.name == selected.value())
+                .ok_or_else(|| {
+                    AddArtifactError::WorkspaceError(format!(
+                        "Selected service '{}' not found in workspace.",
+                        selected.value()
+                    ))
+                })?
+        };
 
         let spinner = self
             .prompt

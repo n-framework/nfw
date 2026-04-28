@@ -137,3 +137,7 @@ path = "../../../../tests/integration/n-framework-nfw/features/architecture_chec
 [[test]]
 name = "artifact_smoke_test"
 path = "../../../../tests/integration/n-framework-nfw/features/artifact/artifact_smoke_test.rs"
+
+[[test]]
+name = "mediator_add_test"
+path = "../../../../tests/integration/n-framework-nfw/features/artifact/mediator_add_test.rs"

@@ -1,5 +1,3 @@
-use std::fs;
-
 use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use crate::features::template_management::services::artifact_generation_service::{
@@ -56,9 +54,13 @@ where
                 &output_root,
                 &parameters,
             )
-            .map_err(AddArtifactError::ExecutionFailed)?;
+            .map_err(|e| AddArtifactError::ExecutionFailed(Box::new(e)))?;
 
-        self.update_nfw_yaml_modules(&workspace, &selected_service.name, "mediator")?;
+        self.service.add_service_module(
+            &workspace.workspace_root,
+            &selected_service.name,
+            "mediator",
+        )?;
 
         Ok(())
     }
@@ -72,51 +74,5 @@ where
         workspace: &WorkspaceContext,
     ) -> Result<Vec<ServiceInfo>, AddArtifactError> {
         self.service.extract_services(workspace)
-    }
-
-    fn update_nfw_yaml_modules(
-        &self,
-        workspace: &WorkspaceContext,
-        service_name: &str,
-        module_name: &str,
-    ) -> Result<(), AddArtifactError> {
-        let nfw_yaml_path = workspace.workspace_root.join("nfw.yaml");
-        let content = fs::read_to_string(&nfw_yaml_path).map_err(|e| {
-            AddArtifactError::WorkspaceError(format!("failed to read nfw.yaml: {e}"))
-        })?;
-
-        let mut yaml: serde_yaml::Value = serde_yaml::from_str(&content)
-            .map_err(|e| AddArtifactError::WorkspaceError(format!("invalid nfw.yaml: {e}")))?;
-
-        let service_key = serde_yaml::Value::String(service_name.to_string());
-        let modules_key = serde_yaml::Value::String("modules".to_string());
-        let module_value = serde_yaml::Value::String(module_name.to_string());
-
-        if let Some(details) = yaml
-            .get_mut("services")
-            .and_then(|s| s.as_mapping_mut())
-            .and_then(|services| services.get_mut(&service_key))
-            .and_then(|d| d.as_mapping_mut())
-        {
-            let modules = details
-                .entry(modules_key)
-                .or_insert_with(|| serde_yaml::Value::Sequence(Vec::new()));
-
-            if let Some(seq) = modules.as_sequence_mut()
-                && !seq.contains(&module_value)
-            {
-                seq.push(module_value);
-            }
-        }
-
-        let output = serde_yaml::to_string(&yaml).map_err(|e| {
-            AddArtifactError::WorkspaceError(format!("failed to serialize nfw.yaml: {e}"))
-        })?;
-
-        fs::write(&nfw_yaml_path, output).map_err(|e| {
-            AddArtifactError::WorkspaceError(format!("failed to write nfw.yaml: {e}"))
-        })?;
-
-        Ok(())
     }
 }

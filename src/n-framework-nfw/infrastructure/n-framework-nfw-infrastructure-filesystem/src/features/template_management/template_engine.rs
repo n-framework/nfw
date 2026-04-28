@@ -2,7 +2,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use n_framework_nfw_core_application::features::template_management::models::template_error::TemplateError;
+use n_framework_nfw_core_application::features::template_management::models::template_error::{
+    CommandExecutionContext, TemplateError,
+};
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_domain::features::template_management::template_config::{
     InjectionTarget, TemplateConfig, TemplateStep,
@@ -57,6 +59,33 @@ impl FileSystemTemplateEngine {
             file_path,
             source: Some(Box::new(error)),
         }
+    }
+
+    fn validate_rendered_command(
+        command: &str,
+        step_index: usize,
+        template_id: Option<String>,
+    ) -> Result<(), TemplateError> {
+        let dangerous_patterns = [";", "&&", "||", "`", "$(", "$( "];
+        for pattern in dangerous_patterns {
+            if command.contains(pattern) {
+                return Err(TemplateError::CommandExecutionError(Box::new(
+                    CommandExecutionContext {
+                        message: format!(
+                            "Security validation failed: command contains dangerous pattern '{}'",
+                            pattern
+                        ),
+                        command: command.to_string(),
+                        stdout: None,
+                        working_directory: None,
+                        exit_code: None,
+                        step_index,
+                        template_id,
+                    },
+                )));
+            }
+        }
+        Ok(())
     }
 
     fn ensure_safe_path(
@@ -330,6 +359,8 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         .render_content(command, ctx.core_context)
                         .map_err(|e| Self::map_error(e, i, template_id.clone(), None))?;
 
+                    Self::validate_rendered_command(&rendered_command, i, template_id.clone())?;
+
                     let work_dir = if let Some(wd) = working_directory {
                         let rendered_wd = self
                             .renderer
@@ -345,23 +376,37 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         .arg(&rendered_command)
                         .current_dir(&work_dir)
                         .output()
-                        .map_err(|e| TemplateError::CommandExecutionError {
-                            message: format!("failed to spawn command: {e}"),
-                            command: rendered_command.clone(),
-                            exit_code: None,
-                            step_index: i,
-                            template_id: template_id.clone(),
+                        .map_err(|e| {
+                            TemplateError::CommandExecutionError(Box::new(
+                                CommandExecutionContext {
+                                    message: format!("failed to spawn command: {e}"),
+                                    command: rendered_command.clone(),
+                                    stdout: None,
+                                    working_directory: Some(work_dir.clone()),
+                                    exit_code: None,
+                                    step_index: i,
+                                    template_id: template_id.clone(),
+                                },
+                            ))
                         })?;
 
                     if !output.status.success() {
                         let stderr = String::from_utf8_lossy(&output.stderr);
-                        return Err(TemplateError::CommandExecutionError {
-                            message: format!("command failed: {stderr}"),
-                            command: rendered_command,
-                            exit_code: output.status.code(),
-                            step_index: i,
-                            template_id: template_id.clone(),
-                        });
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        return Err(TemplateError::CommandExecutionError(Box::new(
+                            CommandExecutionContext {
+                                message: format!(
+                                    "command failed with exit code {}: {stderr}",
+                                    output.status.code().unwrap_or(-1)
+                                ),
+                                command: rendered_command,
+                                stdout: Some(stdout.to_string()),
+                                working_directory: Some(work_dir),
+                                exit_code: output.status.code(),
+                                step_index: i,
+                                template_id: template_id.clone(),
+                            },
+                        )));
                     }
                 }
             }

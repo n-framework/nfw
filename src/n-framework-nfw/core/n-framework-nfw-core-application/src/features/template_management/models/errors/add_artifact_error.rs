@@ -15,9 +15,15 @@ pub enum AddArtifactError {
     /// A custom parameter was malformed.
     InvalidParameter(String),
     /// The underlying template engine reported a failure.
-    ExecutionFailed(TemplateError),
+    ExecutionFailed(Box<TemplateError>),
     /// A required module is not present in the target service.
     MissingRequiredModule(String),
+    /// Failed to read nfw.yaml.
+    NfwYamlReadError(String),
+    /// Failed to parse nfw.yaml.
+    NfwYamlParseError(String),
+    /// Failed to write nfw.yaml.
+    NfwYamlWriteError(String),
 }
 
 impl fmt::Display for AddArtifactError {
@@ -30,6 +36,9 @@ impl fmt::Display for AddArtifactError {
             Self::InvalidParameter(msg) => write!(f, "invalid parameter: {}", msg),
             Self::ExecutionFailed(err) => write!(f, "execution failed:\n{}", err),
             Self::MissingRequiredModule(msg) => write!(f, "missing required module: {}", msg),
+            Self::NfwYamlReadError(msg) => write!(f, "nfw.yaml read error: {}", msg),
+            Self::NfwYamlParseError(msg) => write!(f, "nfw.yaml parse error: {}", msg),
+            Self::NfwYamlWriteError(msg) => write!(f, "nfw.yaml write error: {}", msg),
         }
     }
 }

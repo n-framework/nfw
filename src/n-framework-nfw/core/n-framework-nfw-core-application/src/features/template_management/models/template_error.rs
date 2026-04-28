@@ -57,19 +57,34 @@ pub enum TemplateError {
     },
 
     /// Error during shell command execution within a template step.
-    #[error("command execution error at step {step_index} in {}: {message}", .template_id.as_deref().unwrap_or("unknown"))]
-    CommandExecutionError {
-        /// The error message (includes stderr output).
-        message: String,
-        /// The command that was executed.
-        command: String,
-        /// The exit code returned by the process, if available.
-        exit_code: Option<i32>,
-        /// The index of the step that failed.
-        step_index: usize,
-        /// The identifier of the template.
-        template_id: Option<String>,
-    },
+    #[error("command execution error at step {step_index} in {template_id}: {message}\nWorking Dir: {working_dir}\nCommand: {command}\nStdout: {stdout}", 
+        template_id = .0.template_id.as_deref().unwrap_or("unknown"),
+        step_index = .0.step_index,
+        message = .0.message,
+        command = .0.command,
+        working_dir = .0.working_directory.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| "unknown".to_string()),
+        stdout = .0.stdout.as_deref().unwrap_or("(none)")
+    )]
+    CommandExecutionError(Box<CommandExecutionContext>),
+}
+
+/// Rich context for a failed command execution.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+pub struct CommandExecutionContext {
+    /// The error message (includes stderr output).
+    pub message: String,
+    /// The command that was executed.
+    pub command: String,
+    /// The stdout output of the process.
+    pub stdout: Option<String>,
+    /// The execution directory.
+    pub working_directory: Option<PathBuf>,
+    /// The exit code returned by the process, if available.
+    pub exit_code: Option<i32>,
+    /// The index of the step that failed.
+    pub step_index: usize,
+    /// The identifier of the template.
+    pub template_id: Option<String>,
 }
 
 impl TemplateError {
