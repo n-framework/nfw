@@ -49,7 +49,7 @@ where
         let selected_service = if let Some(name) = request.service_name {
             services
                 .into_iter()
-                .find(|s| s.name == name)
+                .find(|s| s.name() == name)
                 .ok_or_else(|| {
                     AddArtifactError::WorkspaceError(format!(
                         "Service '{}' not found in workspace.",
@@ -63,7 +63,7 @@ where
         } else {
             let options: Vec<SelectOption> = services
                 .iter()
-                .map(|s| SelectOption::new(&s.name, &s.name))
+                .map(|s| SelectOption::new(s.name(), s.name()))
                 .collect();
             let selected = self
                 .prompt
@@ -72,7 +72,7 @@ where
 
             services
                 .into_iter()
-                .find(|s| s.name == selected.value())
+                .find(|s| s.name() == selected.value())
                 .ok_or_else(|| {
                     AddArtifactError::WorkspaceError(format!(
                         "Selected service '{}' not found in workspace.",
@@ -85,11 +85,14 @@ where
             .prompt
             .spinner(&format!(
                 "Adding mediator module to '{}'...",
-                selected_service.name
+                selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let command = AddMediatorCommand::new(selected_service.clone(), workspace_context);
+        let command = AddMediatorCommand {
+            service_info: selected_service.clone(),
+            workspace_context,
+        };
 
         let res = self.handler.handle(&command).map_err(|e| {
             spinner.error(&format!("Failed to add mediator: {}", e));
@@ -105,13 +108,13 @@ where
 
         spinner.success(&format!(
             "Mediator module added to '{}'",
-            selected_service.name
+            selected_service.name()
         ));
 
         self.prompt
             .outro(&format!(
                 "Successfully added Mediator module to '{}'.",
-                selected_service.name
+                selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 

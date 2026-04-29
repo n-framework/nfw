@@ -2,7 +2,9 @@ use crate::features::service_management::models::add_service_command_request::Ad
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
 use crate::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
-use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
+use crate::features::service_management::services::abstractions::service_template_selector::{
+    ServiceTemplateSelectionContext, ServiceTemplateSelector,
+};
 use n_framework_core_cli_abstractions::{InteractiveError, InteractivePrompt, Logger};
 use serde_yaml::Value as YamlValue;
 use std::path::Path;
@@ -59,8 +61,10 @@ where
         if let Some(template_id) = request.template_id.as_deref() {
             return self.template_selector.resolve_service_template(
                 template_id,
-                workspace_root,
-                nfw_yaml,
+                ServiceTemplateSelectionContext {
+                    workspace_root,
+                    nfw_yaml,
+                },
             );
         }
 
@@ -103,8 +107,10 @@ where
 
         self.template_selector.resolve_service_template(
             &selected_template_id,
-            workspace_root,
-            nfw_yaml,
+            ServiceTemplateSelectionContext {
+                workspace_root,
+                nfw_yaml,
+            },
         )
     }
 }

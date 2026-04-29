@@ -15,16 +15,76 @@ use crate::features::workspace_management::services::abstractions::working_direc
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceContext {
-    pub workspace_root: PathBuf,
-    pub nfw_yaml: YamlValue,
-    pub preserved_comments: PreservedComments,
+    workspace_root: PathBuf,
+    nfw_yaml: YamlValue,
+    preserved_comments: PreservedComments,
+}
+
+impl WorkspaceContext {
+    pub fn new(
+        workspace_root: PathBuf,
+        nfw_yaml: YamlValue,
+        preserved_comments: PreservedComments,
+    ) -> Result<Self, String> {
+        if workspace_root.as_os_str().is_empty() {
+            return Err("workspace root path cannot be empty".to_string());
+        }
+        Ok(Self {
+            workspace_root,
+            nfw_yaml,
+            preserved_comments,
+        })
+    }
+
+    pub fn workspace_root(&self) -> &PathBuf {
+        &self.workspace_root
+    }
+
+    pub fn nfw_yaml(&self) -> &YamlValue {
+        &self.nfw_yaml
+    }
+
+    pub fn preserved_comments(&self) -> &PreservedComments {
+        &self.preserved_comments
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct ServiceInfo {
-    pub name: String,
-    pub path: String,
-    pub template_id: String,
+    name: String,
+    path: String,
+    template_id: String,
+}
+
+impl ServiceInfo {
+    pub fn new(name: String, path: String, template_id: String) -> Result<Self, String> {
+        if name.is_empty() {
+            return Err("Service name cannot be empty".to_string());
+        }
+        if path.is_empty() {
+            return Err("Service path cannot be empty".to_string());
+        }
+        if template_id.is_empty() {
+            return Err("Service template ID cannot be empty".to_string());
+        }
+        Ok(Self {
+            name,
+            path,
+            template_id,
+        })
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn template_id(&self) -> &str {
+        &self.template_id
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -245,6 +305,14 @@ where
             })
     }
 
+    /// Two-Tier Dynamic Sub-Template Resolution Strategy:
+    /// This method resolves the correct template configuration for secondary artifact generation (like persistence or mediator modules).
+    ///
+    /// 1. Primary Resolution (Base Catalog): It leverages the `TemplateRootResolver` to find the base template directory (either local or from the global catalog).
+    /// 2. Secondary Resolution (Sub-folder extraction): It parses the base `template.yaml` located at the primary root.
+    ///    It uses the `generators` map in the base configuration to map the requested `generator_type` (e.g., 'persistence')
+    ///    to the relative sub-folder. If no such mapping exists, it assumes the sub-folder matches the `generator_type` perfectly.
+    /// 3. Context Contextualization: Constructs the final `AddArtifactContext` containing the nested configuration to be used by the engine.
     pub fn load_template_context(
         &self,
         workspace: WorkspaceContext,

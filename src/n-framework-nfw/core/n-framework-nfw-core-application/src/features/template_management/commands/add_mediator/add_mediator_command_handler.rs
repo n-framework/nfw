@@ -33,18 +33,18 @@ where
             "mediator",
         )?;
 
-        let namespace = self.service.extract_namespace(&workspace.nfw_yaml)?;
+        let namespace = self.service.extract_namespace(workspace.nfw_yaml())?;
 
         let parameters =
             n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters::new()
-                .with_name(&command.service_info.name)
+                .with_name(command.service_info.name())
                 .map_err(AddArtifactError::InvalidParameter)?
                 .with_namespace(namespace)
                 .map_err(AddArtifactError::InvalidParameter)?
-                .with_service(&command.service_info.name)
+                .with_service(command.service_info.name())
                 .map_err(AddArtifactError::InvalidParameter)?;
 
-        let output_root = workspace.workspace_root.join(&command.service_info.path);
+        let output_root = workspace.workspace_root().join(command.service_info.path());
 
         self.service
             .engine()
@@ -57,8 +57,8 @@ where
             .map_err(|e| AddArtifactError::ExecutionFailed(Box::new(e)))?;
 
         self.service.add_service_module(
-            &workspace.workspace_root,
-            &command.service_info.name,
+            workspace.workspace_root(),
+            command.service_info.name(),
             "mediator",
         )?;
 

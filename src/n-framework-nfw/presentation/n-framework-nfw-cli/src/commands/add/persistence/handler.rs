@@ -49,7 +49,7 @@ where
         let selected_service = if let Some(name) = request.service_name {
             services
                 .into_iter()
-                .find(|s| s.name == name)
+                .find(|s| s.name() == name)
                 .ok_or_else(|| {
                     AddArtifactError::WorkspaceError(format!(
                         "Service '{}' not found in workspace.",
@@ -63,7 +63,7 @@ where
         } else {
             let options: Vec<SelectOption> = services
                 .iter()
-                .map(|s| SelectOption::new(&s.name, &s.name))
+                .map(|s| SelectOption::new(s.name(), s.name()))
                 .collect();
             let selected = self
                 .prompt
@@ -72,7 +72,7 @@ where
 
             services
                 .into_iter()
-                .find(|s| s.name == selected.value())
+                .find(|s| s.name() == selected.value())
                 .ok_or_else(|| {
                     AddArtifactError::WorkspaceError(format!(
                         "Selected service '{}' not found in workspace.",
@@ -85,14 +85,26 @@ where
             .prompt
             .spinner(&format!(
                 "Adding persistence module to '{}'...",
-                selected_service.name
+                selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let command = AddPersistenceCommand::new(selected_service.clone(), workspace_context);
+        let command = AddPersistenceCommand::new(selected_service.clone(), workspace_context)
+            .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
         let res = self.handler.handle(&command).map_err(|e| {
-            spinner.error(&format!("Failed to add persistence: {}", e));
+            let error_id = format!(
+                "{:x}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_micros()
+            );
+            spinner.error(&format!(
+                "Failed to add persistence (Log ID: {}): {}",
+                error_id, e
+            ));
+            tracing::error!("[{}] Failed to add persistence: {:?}", error_id, e);
             e
         });
 
@@ -105,13 +117,13 @@ where
 
         spinner.success(&format!(
             "Persistence module added to '{}'",
-            selected_service.name
+            selected_service.name()
         ));
 
         self.prompt
             .outro(&format!(
                 "Successfully added Persistence module to '{}'.",
-                selected_service.name
+                selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 

@@ -395,7 +395,11 @@ impl TemplateConfig {
         &self.required_modules
     }
 
-    /// Returns the map of generator paths.
+    /// Returns the optional nested generator paths configuration.
+    ///
+    /// This property provides a mapping of dynamic generator types (e.g. `persistence`, `mediator`)
+    /// to their relative sub-folder paths within the root template directory. It allows
+    /// complex templates to encompass multiple artifacts within the same template bundle.
     pub fn generators(&self) -> Option<&HashMap<String, String>> {
         self.generators.as_ref()
     }

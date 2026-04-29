@@ -1,16 +1,14 @@
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
-use crate::features::template_management::models::errors::template_selection_error::TemplateSelectionError;
+use crate::features::service_management::services::abstractions::service_template_selector::{
+    ServiceTemplateSelectionContext, ServiceTemplateSelector,
+};
 use crate::features::template_management::models::raw_template_metadata::RawTemplateMetadata;
 use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
-use crate::features::template_management::services::template_selection_service::TemplateSelectionService;
 use crate::features::template_management::services::template_type_resolver::read_template_type;
 use n_framework_nfw_core_domain::features::versioning::version::Version;
-use serde_yaml::Value as YamlValue;
 use std::fs;
-use std::path::Path;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -19,7 +17,6 @@ where
     D: TemplateCatalogDiscoveryService + Clone,
     R: TemplateRootResolver + Clone,
 {
-    template_selection_service: TemplateSelectionService<D>,
     discovery_service: D,
     root_resolver: R,
 }
@@ -31,7 +28,6 @@ where
 {
     pub fn new(discovery_service: D, root_resolver: R) -> Self {
         Self {
-            template_selection_service: TemplateSelectionService::new(discovery_service.clone()),
             discovery_service,
             root_resolver,
         }
@@ -46,73 +42,78 @@ where
     fn resolve_service_template(
         &self,
         template_identifier: &str,
-        workspace_root: &Path,
-        nfw_yaml: &YamlValue,
+        context: ServiceTemplateSelectionContext<'_>,
     ) -> Result<ServiceTemplateResolution, AddServiceError> {
-        // 1. Try resolving via local template_sources in nfw.yaml
-        if let Ok(local_path) =
+        let (source, _id) = Self::parse_identifier(template_identifier);
+
+        let local_path = context.workspace_root.join(template_identifier);
+        let template_root = if source == "local" && local_path.is_dir() {
+            local_path.clone()
+        } else {
             self.root_resolver
-                .resolve(nfw_yaml, template_identifier, workspace_root)
-        {
-            let template_type =
-                read_template_type(&local_path).map_err(AddServiceError::Internal)?;
+                .resolve(context.nfw_yaml, template_identifier, context.workspace_root)
+                .map_err(|e| {
+                    tracing::warn!(
+                        "Failed to resolve template '{}' locally at {}, falling back to catalog search. Error: {}",
+                        template_identifier,
+                        local_path.display(),
+                        e
+                    );
+                    AddServiceError::TemplateNotFound(template_identifier.to_owned())
+                })?
+        };
 
-            if !template_type.eq_ignore_ascii_case("service") {
-                return Err(AddServiceError::InvalidTemplateType {
-                    template_id: template_identifier.to_owned(),
-                    template_type,
-                });
-            }
+        let template_type =
+            read_template_type(&template_root).map_err(AddServiceError::Internal)?;
 
-            let metadata_path = local_path.join("template.yaml");
-            let yaml = fs::read_to_string(&metadata_path).map_err(|e| {
-                AddServiceError::Internal(format!("failed to read local template.yaml: {e}"))
-            })?;
-
-            let raw = serde_yaml::from_str::<RawTemplateMetadata>(&yaml).map_err(|e| {
-                AddServiceError::Internal(format!("failed to parse local template.yaml: {e}"))
-            })?;
-
-            return Ok(ServiceTemplateResolution {
-                source_name: "local".to_owned(),
-                template_name: raw.name.unwrap_or_else(|| template_identifier.to_owned()),
-                template_id: raw.id.unwrap_or_else(|| template_identifier.to_owned()),
-                resolved_version: raw
-                    .version
-                    .and_then(|v| Version::from_str(&v).ok())
-                    .unwrap_or_else(|| Version::from_str("1.0.0").unwrap()),
-                template_type,
-                template_cache_path: local_path,
-                description: raw.description.unwrap_or_default(),
-            });
-        }
-
-        // 2. Fallback to registered catalog discovery
-        let selection = self
-            .template_selection_service
-            .select_template(template_identifier)
-            .map_err(map_template_selection_error)?;
-
-        let template_type = read_template_type(&selection.template.cache_path)
-            .map_err(AddServiceError::Internal)?;
         if !template_type.eq_ignore_ascii_case("service") {
             return Err(AddServiceError::InvalidTemplateType {
-                template_id: format!(
-                    "{}/{}",
-                    selection.source_name, selection.template.metadata.id
-                ),
+                template_id: template_identifier.to_owned(),
                 template_type,
             });
         }
 
+        let metadata_path = template_root.join("template.yaml");
+        let yaml = fs::read_to_string(&metadata_path).map_err(|e| {
+            AddServiceError::Internal(format!("failed to read local template.yaml: {e}"))
+        })?;
+
+        let raw = serde_yaml::from_str::<RawTemplateMetadata>(&yaml).map_err(|e| {
+            AddServiceError::Internal(format!("failed to parse local template.yaml: {e}"))
+        })?;
+
         Ok(ServiceTemplateResolution {
-            source_name: selection.source_name,
-            template_name: selection.template.metadata.name,
-            template_id: selection.template.metadata.id,
-            resolved_version: selection.template.metadata.version,
+            source_name: source.to_owned(),
+            template_name: raw.name.unwrap_or_else(|| {
+                tracing::warn!(
+                    "Template metadata 'name' is missing, defaulting to identifier '{}'",
+                    template_identifier
+                );
+                template_identifier.to_owned()
+            }),
+            template_id: raw.id.unwrap_or_else(|| {
+                tracing::warn!(
+                    "Template metadata 'id' is missing, defaulting to identifier '{}'",
+                    template_identifier
+                );
+                template_identifier.to_owned()
+            }),
+            resolved_version: match raw.version {
+                Some(ref v) => Version::from_str(v).unwrap_or_else(|_| {
+                    tracing::warn!(
+                        "Template metadata 'version' is invalid ('{}'), defaulting to 1.0.0",
+                        v
+                    );
+                    Version::from_str("1.0.0").unwrap()
+                }),
+                None => {
+                    tracing::warn!("Template metadata 'version' is missing, defaulting to 1.0.0");
+                    Version::from_str("1.0.0").unwrap()
+                }
+            },
             template_type,
-            template_cache_path: selection.template.cache_path,
-            description: selection.template.metadata.description,
+            template_cache_path: local_path,
+            description: raw.description.unwrap_or_default(),
         })
     }
 
@@ -153,17 +154,16 @@ where
     }
 }
 
-fn map_template_selection_error(error: TemplateSelectionError) -> AddServiceError {
-    match error {
-        TemplateSelectionError::TemplateNotFound { identifier } => {
-            AddServiceError::TemplateNotFound(identifier)
-        }
-        TemplateSelectionError::AmbiguousTemplateIdentifier { identifier, .. } => {
-            AddServiceError::AmbiguousTemplate(identifier)
-        }
-        TemplateSelectionError::DiscoverTemplatesFailed(reason)
-        | TemplateSelectionError::InternalError { message: reason } => {
-            AddServiceError::Internal(reason)
+impl<D, R> ServiceTemplateSelectionService<D, R>
+where
+    D: TemplateCatalogDiscoveryService + Clone,
+    R: TemplateRootResolver + Clone,
+{
+    fn parse_identifier(identifier: &str) -> (&str, &str) {
+        if let Some(pos) = identifier.find('/') {
+            (&identifier[..pos], &identifier[pos + 1..])
+        } else {
+            ("local", identifier)
         }
     }
 }
