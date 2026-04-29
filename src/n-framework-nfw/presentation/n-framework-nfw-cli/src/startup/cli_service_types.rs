@@ -58,7 +58,7 @@ pub type CliRefreshTemplatesCommandHandler = RefreshTemplatesCommandHandler<CliT
 pub type CliEnsureDefaultSourceCommandHandler = EnsureDefaultSourceCommandHandler<CliConfigStore>;
 pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     CliWorkingDirectoryProvider,
-    n_framework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService<CliTemplatesService>,
+    n_framework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService<CliTemplatesService, FileSystemTemplateRootResolver>,
     crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt<CliclackPromptService>,
     CliclackPromptService,
     FileSystemServiceTemplateRenderer,
@@ -67,6 +67,13 @@ pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
 
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
 pub type CliAddMediatorCommandHandler = AddMediatorCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+>;
+
+use n_framework_nfw_core_application::features::template_management::commands::add_persistence::add_persistence_command_handler::AddPersistenceCommandHandler;
+pub type CliAddPersistenceCommandHandler = AddPersistenceCommandHandler<
     CliWorkingDirectoryProvider,
     FileSystemTemplateRootResolver,
     FileSystemTemplateEngine,
@@ -99,6 +106,7 @@ pub struct CliServiceCollection {
     pub refresh_templates_command_handler: CliRefreshTemplatesCommandHandler,
     pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
     pub add_mediator_command_handler: CliAddMediatorCommandHandler,
+    pub add_persistence_command_handler: CliAddPersistenceCommandHandler,
     pub gen_mediator_command_command_handler: CliGenMediatorCommandCommandHandler,
     pub gen_mediator_query_command_handler: CliGenMediatorQueryCommandHandler,
     pub template_engine: FileSystemTemplateEngine,

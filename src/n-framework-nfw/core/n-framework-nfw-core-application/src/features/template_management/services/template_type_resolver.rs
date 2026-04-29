@@ -50,6 +50,15 @@ fn infer_template_type(value: &Value) -> String {
                 return Some("workspace".to_owned());
             }
 
+            let has_feature_tag = tags
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::trim)
+                .any(|tag| tag.eq_ignore_ascii_case("feature"));
+            if has_feature_tag {
+                return Some("feature".to_owned());
+            }
+
             None
         });
 

@@ -49,12 +49,18 @@ fn setup_template(sandbox: &Path, template_yaml: &str, tera_source: &str) {
         "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  TestService:\n    path: src/TestService\n    template:\n      id: mock-cmd-template\ntemplate_sources:\n  local: \"templates\"\n",
     ).expect("failed to write nfw.yaml");
 
-    let tpl_dir = sandbox
-        .join("templates")
-        .join("mock-cmd-template")
-        .join("command");
-    fs::create_dir_all(&tpl_dir).expect("failed to create template dir");
-    fs::write(tpl_dir.join("template.yaml"), template_yaml).expect("failed to write template.yaml");
+    let root_tpl_dir = sandbox.join("templates").join("mock-cmd-template");
+    fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
+    fs::write(
+        root_tpl_dir.join("template.yaml"),
+        "id: mock-cmd-template\nname: Mock Cmd\nversion: 1.0.0\n",
+    )
+    .expect("failed to write root template.yaml");
+
+    let tpl_dir = root_tpl_dir.join("command");
+    fs::create_dir_all(&tpl_dir).expect("failed to create sub-template dir");
+    fs::write(tpl_dir.join("template.yaml"), template_yaml)
+        .expect("failed to write sub-template template.yaml");
     fs::write(tpl_dir.join("cmd.rs.tera"), tera_source).expect("failed to write tera source");
 }
 

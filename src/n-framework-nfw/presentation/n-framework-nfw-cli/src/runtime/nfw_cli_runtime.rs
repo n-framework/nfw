@@ -3,6 +3,7 @@ use n_framework_core_cli_clap::ClapCliRuntimeBuilder;
 
 use crate::cli_error::CliError;
 use crate::commands::add::mediator::AddMediatorCliCommand;
+use crate::commands::add::persistence::AddPersistenceCliCommand;
 use crate::commands::add::service::AddServiceCliCommand;
 use crate::commands::check::RunCheckCliCommand;
 use crate::commands::r#gen::command::GenMediatorCommandCliCommand;
@@ -42,6 +43,7 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("check", RunCheckCliCommand::handle)
         .register_handler("add/service", AddServiceCliCommand::handle)
         .register_handler("add/mediator", AddMediatorCliCommand::handle)
+        .register_handler("add/persistence", AddPersistenceCliCommand::handle)
         .register_handler("gen/command", GenMediatorCommandCliCommand::handle)
         .register_handler("gen/query", GenMediatorQueryCliCommand::handle)
         .register_handler("templates/list", TemplatesCliCommand::handle)

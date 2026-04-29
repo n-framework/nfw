@@ -1,5 +1,6 @@
 use crate::features::template_management::errors::TemplateConfigError;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Configuration for a template, defining its identity and the steps required to render it.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -16,6 +17,9 @@ pub struct TemplateConfig {
     /// Modules that must be present in the target service before this template can execute.
     #[serde(default)]
     required_modules: Vec<String>,
+    /// Explicit paths for nested generators.
+    #[serde(default)]
+    generators: Option<HashMap<String, String>>,
 }
 
 #[derive(Deserialize)]
@@ -27,6 +31,8 @@ struct TemplateConfigShadow {
     inputs: Vec<TemplateInput>,
     #[serde(default)]
     required_modules: Vec<String>,
+    #[serde(default)]
+    generators: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -85,6 +91,7 @@ impl TryFrom<TemplateConfigShadow> for TemplateConfig {
             steps: shadow.steps,
             inputs: shadow.inputs,
             required_modules: shadow.required_modules,
+            generators: shadow.generators,
         };
         config.validate()?;
         Ok(config)
@@ -138,6 +145,7 @@ impl TemplateConfig {
             steps,
             inputs,
             required_modules: Vec::new(),
+            generators: None,
         };
         config.validate()?;
         Ok(config)
@@ -385,6 +393,11 @@ impl TemplateConfig {
     /// Returns the list of required modules for this template.
     pub fn required_modules(&self) -> &[String] {
         &self.required_modules
+    }
+
+    /// Returns the map of generator paths.
+    pub fn generators(&self) -> Option<&HashMap<String, String>> {
+        self.generators.as_ref()
     }
 }
 

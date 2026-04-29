@@ -251,17 +251,29 @@ where
         service: &ServiceInfo,
         generator_type: &str,
     ) -> Result<AddArtifactContext, AddArtifactError> {
-        let template_id = format!("{}/{}", service.template_id, generator_type);
-
-        let template_root = self
+        let base_root = self
             .root_resolver
-            .resolve(&workspace.nfw_yaml, &template_id, &workspace.workspace_root)
+            .resolve(
+                &workspace.nfw_yaml,
+                &service.template_id,
+                &workspace.workspace_root,
+            )
             .map_err(|_| {
                 AddArtifactError::TemplateNotFound(format!(
-                    "Could not resolve nested template '{}' for service '{}'.",
-                    template_id, service.name
+                    "Could not resolve base template '{}' for service '{}'.",
+                    service.template_id, service.name
                 ))
             })?;
+
+        let base_config = self.load_and_validate_template_config(&base_root)?;
+
+        let sub_folder = base_config
+            .generators()
+            .and_then(|g| g.get(generator_type))
+            .map(|s| s.as_str())
+            .unwrap_or(generator_type);
+
+        let template_root = base_root.join(sub_folder);
 
         let config = self.load_and_validate_template_config(&template_root)?;
 

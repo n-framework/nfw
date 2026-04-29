@@ -2,39 +2,92 @@ use crate::features::service_management::models::errors::add_service_error::AddS
 use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
 use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use crate::features::template_management::models::errors::template_selection_error::TemplateSelectionError;
+use crate::features::template_management::models::raw_template_metadata::RawTemplateMetadata;
 use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use crate::features::template_management::services::template_selection_service::TemplateSelectionService;
 use crate::features::template_management::services::template_type_resolver::read_template_type;
+use n_framework_nfw_core_domain::features::versioning::version::Version;
+use serde_yaml::Value as YamlValue;
+use std::fs;
+use std::path::Path;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
-pub struct ServiceTemplateSelectionService<D>
+pub struct ServiceTemplateSelectionService<D, R>
 where
     D: TemplateCatalogDiscoveryService + Clone,
+    R: TemplateRootResolver + Clone,
 {
     template_selection_service: TemplateSelectionService<D>,
     discovery_service: D,
+    root_resolver: R,
 }
 
-impl<D> ServiceTemplateSelectionService<D>
+impl<D, R> ServiceTemplateSelectionService<D, R>
 where
     D: TemplateCatalogDiscoveryService + Clone,
+    R: TemplateRootResolver + Clone,
 {
-    pub fn new(discovery_service: D) -> Self {
+    pub fn new(discovery_service: D, root_resolver: R) -> Self {
         Self {
             template_selection_service: TemplateSelectionService::new(discovery_service.clone()),
             discovery_service,
+            root_resolver,
         }
     }
 }
 
-impl<D> ServiceTemplateSelector for ServiceTemplateSelectionService<D>
+impl<D, R> ServiceTemplateSelector for ServiceTemplateSelectionService<D, R>
 where
     D: TemplateCatalogDiscoveryService + Clone,
+    R: TemplateRootResolver + Clone,
 {
     fn resolve_service_template(
         &self,
         template_identifier: &str,
+        workspace_root: &Path,
+        nfw_yaml: &YamlValue,
     ) -> Result<ServiceTemplateResolution, AddServiceError> {
+        // 1. Try resolving via local template_sources in nfw.yaml
+        if let Ok(local_path) =
+            self.root_resolver
+                .resolve(nfw_yaml, template_identifier, workspace_root)
+        {
+            let template_type =
+                read_template_type(&local_path).map_err(AddServiceError::Internal)?;
+
+            if !template_type.eq_ignore_ascii_case("service") {
+                return Err(AddServiceError::InvalidTemplateType {
+                    template_id: template_identifier.to_owned(),
+                    template_type,
+                });
+            }
+
+            let metadata_path = local_path.join("template.yaml");
+            let yaml = fs::read_to_string(&metadata_path).map_err(|e| {
+                AddServiceError::Internal(format!("failed to read local template.yaml: {e}"))
+            })?;
+
+            let raw = serde_yaml::from_str::<RawTemplateMetadata>(&yaml).map_err(|e| {
+                AddServiceError::Internal(format!("failed to parse local template.yaml: {e}"))
+            })?;
+
+            return Ok(ServiceTemplateResolution {
+                source_name: "local".to_owned(),
+                template_name: raw.name.unwrap_or_else(|| template_identifier.to_owned()),
+                template_id: raw.id.unwrap_or_else(|| template_identifier.to_owned()),
+                resolved_version: raw
+                    .version
+                    .and_then(|v| Version::from_str(&v).ok())
+                    .unwrap_or_else(|| Version::from_str("1.0.0").unwrap()),
+                template_type,
+                template_cache_path: local_path,
+                description: raw.description.unwrap_or_default(),
+            });
+        }
+
+        // 2. Fallback to registered catalog discovery
         let selection = self
             .template_selection_service
             .select_template(template_identifier)

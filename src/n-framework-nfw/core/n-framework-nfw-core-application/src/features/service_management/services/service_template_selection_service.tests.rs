@@ -11,6 +11,9 @@ use n_framework_nfw_core_domain::features::template_management::template_catalog
 use n_framework_nfw_core_domain::features::template_management::template_descriptor::TemplateDescriptor;
 use n_framework_nfw_core_domain::features::template_management::template_metadata::TemplateMetadata;
 use n_framework_nfw_core_domain::features::versioning::version::Version;
+use serde_yaml::Value as YamlValue;
+use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 struct StubDiscoveryService {
@@ -25,6 +28,20 @@ impl TemplateCatalogDiscoveryService for StubDiscoveryService {
     }
 }
 
+#[derive(Debug, Clone)]
+struct StubRootResolver;
+
+impl TemplateRootResolver for StubRootResolver {
+    fn resolve(
+        &self,
+        _nfw_yaml: &YamlValue,
+        _template_id: &str,
+        _workspace_root: &Path,
+    ) -> Result<PathBuf, String> {
+        Err("not found".to_owned())
+    }
+}
+
 #[test]
 fn list_service_templates_filters_non_service_templates() {
     let sandbox = create_sandbox_directory("service-selection-list");
@@ -32,15 +49,18 @@ fn list_service_templates_filters_non_service_templates() {
     let workspace_template_dir =
         create_template_directory(&sandbox, "blank-workspace", "workspace");
 
-    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![
-                descriptor("dotnet-service", service_template_dir),
-                descriptor("blank-workspace", workspace_template_dir),
-            ],
-        )],
-    });
+    let service = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![
+                    descriptor("dotnet-service", service_template_dir),
+                    descriptor("blank-workspace", workspace_template_dir),
+                ],
+            )],
+        },
+        StubRootResolver,
+    );
 
     let templates = service
         .list_service_templates()
@@ -61,15 +81,18 @@ fn resolve_service_template_rejects_wrong_template_type() {
     let workspace_template_dir =
         create_template_directory(&sandbox, "blank-workspace", "workspace");
 
-    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor("blank-workspace", workspace_template_dir)],
-        )],
-    });
+    let service = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor("blank-workspace", workspace_template_dir)],
+            )],
+        },
+        StubRootResolver,
+    );
 
     let error = service
-        .resolve_service_template("official/blank-workspace")
+        .resolve_service_template("official/blank-workspace", Path::new("."), &YamlValue::Null)
         .expect_err("workspace template type should be rejected");
 
     match error {
@@ -90,15 +113,18 @@ fn list_service_templates_accepts_service_tag_without_type_field() {
     let workspace_template_dir =
         create_template_directory_with_tags(&sandbox, "blank-workspace", &["workspace"]);
 
-    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![
-                descriptor("dotnet-service", service_template_dir),
-                descriptor("blank-workspace", workspace_template_dir),
-            ],
-        )],
-    });
+    let service = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![
+                    descriptor("dotnet-service", service_template_dir),
+                    descriptor("blank-workspace", workspace_template_dir),
+                ],
+            )],
+        },
+        StubRootResolver,
+    );
 
     let templates = service
         .list_service_templates()
@@ -119,15 +145,18 @@ fn resolve_service_template_accepts_service_tag_without_type_field() {
     let service_template_dir =
         create_template_directory_with_tags(&sandbox, "dotnet-service", &["service", "dotnet"]);
 
-    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor("dotnet-service", service_template_dir)],
-        )],
-    });
+    let service = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor("dotnet-service", service_template_dir)],
+            )],
+        },
+        StubRootResolver,
+    );
 
     let resolution = service
-        .resolve_service_template("official/dotnet-service")
+        .resolve_service_template("official/dotnet-service", Path::new("."), &YamlValue::Null)
         .expect("service tag should classify template as service");
 
     assert_eq!(resolution.template_type, "service");
@@ -144,15 +173,18 @@ fn resolve_service_template_accepts_case_insensitive_type_field() {
     let sandbox = create_sandbox_directory("service-selection-resolve-case-insensitive-type");
     let service_template_dir = create_template_directory(&sandbox, "dotnet-service", "Service");
 
-    let service = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor("dotnet-service", service_template_dir)],
-        )],
-    });
+    let service = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor("dotnet-service", service_template_dir)],
+            )],
+        },
+        StubRootResolver,
+    );
 
     let resolution = service
-        .resolve_service_template("official/dotnet-service")
+        .resolve_service_template("official/dotnet-service", Path::new("."), &YamlValue::Null)
         .expect("type field should be matched case-insensitively");
 
     assert_eq!(

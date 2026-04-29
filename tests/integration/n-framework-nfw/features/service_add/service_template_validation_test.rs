@@ -13,6 +13,8 @@ use n_framework_nfw_core_domain::features::template_management::template_catalog
 use n_framework_nfw_core_domain::features::template_management::template_descriptor::TemplateDescriptor;
 use n_framework_nfw_core_domain::features::template_management::template_metadata::TemplateMetadata;
 use n_framework_nfw_core_domain::features::versioning::version::Version;
+use serde_yaml::Value as YamlValue;
+use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 
 #[derive(Debug, Clone)]
 struct StubDiscoveryService {
@@ -27,20 +29,37 @@ impl TemplateCatalogDiscoveryService for StubDiscoveryService {
     }
 }
 
+#[derive(Debug, Clone)]
+struct StubRootResolver;
+
+impl TemplateRootResolver for StubRootResolver {
+    fn resolve(
+        &self,
+        _nfw_yaml: &YamlValue,
+        _template_id: &str,
+        _workspace_root: &Path,
+    ) -> Result<PathBuf, String> {
+        Err("not found".to_owned())
+    }
+}
+
 #[test]
 fn fails_for_unknown_template_identifier() {
     let sandbox = create_sandbox_directory("service-template-validation-not-found");
     let service_template_path = create_template_dir(&sandbox, "dotnet-service", "service");
 
-    let selector = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor("dotnet-service", service_template_path)],
-        )],
-    });
+    let selector = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor("dotnet-service", service_template_path)],
+            )],
+        },
+        StubRootResolver,
+    );
 
     let error = selector
-        .resolve_service_template("official/missing")
+        .resolve_service_template("official/missing", Path::new("."), &YamlValue::Null)
         .expect_err("missing template should fail");
 
     match error {
@@ -58,15 +77,18 @@ fn fails_for_template_with_non_service_type() {
     let sandbox = create_sandbox_directory("service-template-validation-type");
     let workspace_template_path = create_template_dir(&sandbox, "blank-workspace", "workspace");
 
-    let selector = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor("blank-workspace", workspace_template_path)],
-        )],
-    });
+    let selector = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor("blank-workspace", workspace_template_path)],
+            )],
+        },
+        StubRootResolver,
+    );
 
     let error = selector
-        .resolve_service_template("official/blank-workspace")
+        .resolve_service_template("official/blank-workspace", Path::new("."), &YamlValue::Null)
         .expect_err("wrong template type should fail");
 
     match error {

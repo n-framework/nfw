@@ -89,9 +89,19 @@ where
             .workspace_context_guard
             .ensure_workspace_root(&current_directory)?;
 
-        let template_resolution = self
-            .input_resolution_service
-            .resolve_template_selection(&request)?;
+        // Load nfw.yaml to get local template sources
+        let nfw_yaml_path = workspace_root.join("nfw.yaml");
+        let nfw_yaml_content = std::fs::read_to_string(&nfw_yaml_path).map_err(|e| {
+            AddServiceError::Internal(format!("failed to read nfw.yaml from workspace root: {e}"))
+        })?;
+        let nfw_yaml: serde_yaml::Value = serde_yaml::from_str(&nfw_yaml_content)
+            .map_err(|e| AddServiceError::Internal(format!("failed to parse nfw.yaml: {e}")))?;
+
+        let template_resolution = self.input_resolution_service.resolve_template_selection(
+            &request,
+            &workspace_root,
+            &nfw_yaml,
+        )?;
 
         self.plan_builder
             .build(&service_name, &workspace_root, &template_resolution)

@@ -4,6 +4,8 @@ use crate::features::service_management::models::service_template_resolution::Se
 use crate::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
 use crate::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
 use n_framework_core_cli_abstractions::{InteractiveError, InteractivePrompt, Logger};
+use serde_yaml::Value as YamlValue;
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 pub struct AddServiceInputResolutionService<S, P, Q>
@@ -51,9 +53,15 @@ where
     pub fn resolve_template_selection(
         &self,
         request: &AddServiceCommandRequest,
+        workspace_root: &Path,
+        nfw_yaml: &YamlValue,
     ) -> Result<ServiceTemplateResolution, AddServiceError> {
         if let Some(template_id) = request.template_id.as_deref() {
-            return self.template_selector.resolve_service_template(template_id);
+            return self.template_selector.resolve_service_template(
+                template_id,
+                workspace_root,
+                nfw_yaml,
+            );
         }
 
         if request.is_non_interactive() {
@@ -93,8 +101,11 @@ where
             .select_template(&templates)
             .map_err(AddServiceError::PromptFailed)?;
 
-        self.template_selector
-            .resolve_service_template(&selected_template_id)
+        self.template_selector.resolve_service_template(
+            &selected_template_id,
+            workspace_root,
+            nfw_yaml,
+        )
     }
 }
 
