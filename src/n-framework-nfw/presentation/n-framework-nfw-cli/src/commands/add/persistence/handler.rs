@@ -92,12 +92,13 @@ where
         let command = AddPersistenceCommand::new(selected_service.clone(), workspace_context)
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let res = self.handler.handle(&command).map_err(|e| {
+        let res = self.handler.handle(&command);
+        if let Err(e) = res {
             let error_id = format!(
                 "{:x}",
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
+                    .unwrap_or_else(|_| std::time::Duration::from_secs(0))
                     .as_micros()
             );
             spinner.error(&format!(
@@ -105,10 +106,6 @@ where
                 error_id, e
             ));
             tracing::error!("[{}] Failed to add persistence: {:?}", error_id, e);
-            e
-        });
-
-        if let Err(e) = res {
             return Err(CliError::silent(
                 ExitCodes::from_add_artifact_error(&e) as i32,
                 e.to_string(),

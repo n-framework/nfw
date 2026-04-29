@@ -47,8 +47,14 @@ where
         let (source, _id) = Self::parse_identifier(template_identifier);
 
         let local_path = context.workspace_root.join(template_identifier);
-        let template_root = if source == "local" && local_path.is_dir() {
-            local_path.clone()
+        let template_root = if source == "local" {
+            if local_path.is_dir() {
+                local_path.clone()
+            } else {
+                return Err(AddServiceError::TemplateNotFound(
+                    template_identifier.to_owned(),
+                ));
+            }
         } else {
             self.root_resolver
                 .resolve(context.nfw_yaml, template_identifier, context.workspace_root)
@@ -84,31 +90,31 @@ where
 
         Ok(ServiceTemplateResolution {
             source_name: source.to_owned(),
-            template_name: raw.name.unwrap_or_else(|| {
-                tracing::warn!(
-                    "Template metadata 'name' is missing, defaulting to identifier '{}'",
-                    template_identifier
-                );
-                template_identifier.to_owned()
-            }),
-            template_id: raw.id.unwrap_or_else(|| {
-                tracing::warn!(
-                    "Template metadata 'id' is missing, defaulting to identifier '{}'",
-                    template_identifier
-                );
-                template_identifier.to_owned()
-            }),
+            template_name: raw.name.ok_or_else(|| {
+                AddServiceError::Internal(format!(
+                    "Template metadata 'name' is missing in {}",
+                    metadata_path.display()
+                ))
+            })?,
+            template_id: raw.id.ok_or_else(|| {
+                AddServiceError::Internal(format!(
+                    "Template metadata 'id' is missing in {}",
+                    metadata_path.display()
+                ))
+            })?,
             resolved_version: match raw.version {
-                Some(ref v) => Version::from_str(v).unwrap_or_else(|_| {
-                    tracing::warn!(
-                        "Template metadata 'version' is invalid ('{}'), defaulting to 1.0.0",
-                        v
-                    );
-                    Version::from_str("1.0.0").unwrap()
-                }),
+                Some(ref v) => Version::from_str(v).map_err(|_| {
+                    AddServiceError::Internal(format!(
+                        "Template metadata 'version' is invalid ('{}') in {}",
+                        v,
+                        metadata_path.display()
+                    ))
+                })?,
                 None => {
-                    tracing::warn!("Template metadata 'version' is missing, defaulting to 1.0.0");
-                    Version::from_str("1.0.0").unwrap()
+                    return Err(AddServiceError::Internal(format!(
+                        "Template metadata 'version' is missing in {}",
+                        metadata_path.display()
+                    )));
                 }
             },
             template_type,

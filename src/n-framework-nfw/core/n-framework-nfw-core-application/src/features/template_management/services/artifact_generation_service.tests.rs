@@ -266,3 +266,78 @@ services:
         "Should fail since persistence sub-template is missing"
     );
 }
+
+#[test]
+fn validate_identifiers_success() {
+    let (_, service) = setup_workspace();
+    assert!(
+        service
+            .validate_identifiers("ValidName", Some("ValidFeature"))
+            .is_ok()
+    );
+    assert!(service.validate_identifiers("valid_name-123", None).is_ok());
+}
+
+#[test]
+fn validate_identifiers_invalid_name() {
+    let (_, service) = setup_workspace();
+    let result = service.validate_identifiers("Invalid Name!", None);
+    assert!(result.is_err());
+    if let Err(AddArtifactError::InvalidIdentifier(msg)) = result {
+        assert!(msg.contains("invalid name"));
+    } else {
+        panic!("Expected InvalidIdentifier, got {:?}", result);
+    }
+}
+
+#[test]
+fn validate_identifiers_empty_name() {
+    let (_, service) = setup_workspace();
+    let result = service.validate_identifiers("", None);
+    assert!(result.is_err());
+    if let Err(AddArtifactError::InvalidIdentifier(msg)) = result {
+        assert!(msg.contains("name cannot be empty"));
+    } else {
+        panic!("Expected InvalidIdentifier, got {:?}", result);
+    }
+}
+
+#[test]
+fn validate_required_modules_fails_on_missing() {
+    let (_, service) = setup_workspace();
+    let nfw_yaml = serde_yaml::from_str(
+        r#"
+services:
+  MyService:
+    path: "src/MyService"
+    modules: ["mediator"]
+"#,
+    )
+    .unwrap();
+
+    // We need to simulate required_modules. Since TemplateConfig fields are private,
+    // we use a yaml string to deserialize it.
+    let config_yaml = "id: test\nrequired_modules: [\"persistence\"]";
+    let config: TemplateConfig = serde_yaml::from_str(config_yaml).unwrap();
+
+    let result = service.validate_required_modules(&config, &nfw_yaml, Path::new("src/MyService"));
+    assert!(result.is_err());
+    if let Err(AddArtifactError::MissingRequiredModule(msg)) = result {
+        assert!(msg.contains("module 'persistence' is required but not installed"));
+    } else {
+        panic!("Expected MissingRequiredModule, got {:?}", result);
+    }
+}
+
+#[test]
+fn extract_namespace_fails_on_missing() {
+    let (_, service) = setup_workspace();
+    let nfw_yaml = serde_yaml::from_str("workspace: {}").unwrap();
+    let result = service.extract_namespace(&nfw_yaml);
+    assert!(result.is_err());
+    if let Err(AddArtifactError::ConfigError(msg)) = result {
+        assert!(msg.contains("missing 'workspace.namespace'"));
+    } else {
+        panic!("Expected ConfigError, got {:?}", result);
+    }
+}
