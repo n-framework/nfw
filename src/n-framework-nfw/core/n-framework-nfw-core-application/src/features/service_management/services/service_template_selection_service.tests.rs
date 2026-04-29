@@ -1,9 +1,11 @@
-use super::*;
 use std::fs;
-use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
+use crate::features::service_management::services::abstractions::service_template_selector::{
+    ServiceTemplateSelectionContext, ServiceTemplateSelector,
+};
+use crate::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
 use crate::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
 use n_framework_nfw_core_domain::features::template_management::language::Language;
@@ -13,7 +15,8 @@ use n_framework_nfw_core_domain::features::template_management::template_metadat
 use n_framework_nfw_core_domain::features::versioning::version::Version;
 use serde_yaml::Value as YamlValue;
 use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 struct StubDiscoveryService {
@@ -29,16 +32,21 @@ impl TemplateCatalogDiscoveryService for StubDiscoveryService {
 }
 
 #[derive(Debug, Clone)]
-struct StubRootResolver;
+struct StubRootResolver {
+    known_templates: HashMap<String, PathBuf>,
+}
 
 impl TemplateRootResolver for StubRootResolver {
     fn resolve(
         &self,
         _nfw_yaml: &YamlValue,
-        _template_id: &str,
+        template_id: &str,
         _workspace_root: &Path,
     ) -> Result<PathBuf, String> {
-        Err("not found".to_owned())
+        self.known_templates
+            .get(template_id)
+            .cloned()
+            .ok_or_else(|| "not found".to_owned())
     }
 }
 
@@ -54,12 +62,16 @@ fn list_service_templates_filters_non_service_templates() {
             catalogs: vec![TemplateCatalog::new(
                 "official".to_owned(),
                 vec![
-                    descriptor("dotnet-service", service_template_dir),
+                    descriptor("dotnet-service", service_template_dir.clone()),
                     descriptor("blank-workspace", workspace_template_dir),
                 ],
             )],
         },
-        StubRootResolver,
+        StubRootResolver {
+            known_templates: [("official/dotnet-service".to_owned(), service_template_dir)]
+                .into_iter()
+                .collect(),
+        },
     );
 
     let templates = service
@@ -85,14 +97,27 @@ fn resolve_service_template_rejects_wrong_template_type() {
         StubDiscoveryService {
             catalogs: vec![TemplateCatalog::new(
                 "official".to_owned(),
-                vec![descriptor("blank-workspace", workspace_template_dir)],
+                vec![descriptor(
+                    "blank-workspace",
+                    workspace_template_dir.clone(),
+                )],
             )],
         },
-        StubRootResolver,
+        StubRootResolver {
+            known_templates: [(
+                "official/blank-workspace".to_owned(),
+                workspace_template_dir,
+            )]
+            .into_iter()
+            .collect(),
+        },
     );
 
     let error = service
-        .resolve_service_template("official/blank-workspace", Path::new("."), &YamlValue::Null)
+        .resolve_service_template(
+            "official/blank-workspace",
+            ServiceTemplateSelectionContext::new(Path::new("."), &YamlValue::Null),
+        )
         .expect_err("workspace template type should be rejected");
 
     match error {
@@ -118,12 +143,16 @@ fn list_service_templates_accepts_service_tag_without_type_field() {
             catalogs: vec![TemplateCatalog::new(
                 "official".to_owned(),
                 vec![
-                    descriptor("dotnet-service", service_template_dir),
+                    descriptor("dotnet-service", service_template_dir.clone()),
                     descriptor("blank-workspace", workspace_template_dir),
                 ],
             )],
         },
-        StubRootResolver,
+        StubRootResolver {
+            known_templates: [("official/dotnet-service".to_owned(), service_template_dir)]
+                .into_iter()
+                .collect(),
+        },
     );
 
     let templates = service
@@ -149,14 +178,21 @@ fn resolve_service_template_accepts_service_tag_without_type_field() {
         StubDiscoveryService {
             catalogs: vec![TemplateCatalog::new(
                 "official".to_owned(),
-                vec![descriptor("dotnet-service", service_template_dir)],
+                vec![descriptor("dotnet-service", service_template_dir.clone())],
             )],
         },
-        StubRootResolver,
+        StubRootResolver {
+            known_templates: [("official/dotnet-service".to_owned(), service_template_dir)]
+                .into_iter()
+                .collect(),
+        },
     );
 
     let resolution = service
-        .resolve_service_template("official/dotnet-service", Path::new("."), &YamlValue::Null)
+        .resolve_service_template(
+            "official/dotnet-service",
+            ServiceTemplateSelectionContext::new(Path::new("."), &YamlValue::Null),
+        )
         .expect("service tag should classify template as service");
 
     assert_eq!(resolution.template_type, "service");
@@ -177,14 +213,21 @@ fn resolve_service_template_accepts_case_insensitive_type_field() {
         StubDiscoveryService {
             catalogs: vec![TemplateCatalog::new(
                 "official".to_owned(),
-                vec![descriptor("dotnet-service", service_template_dir)],
+                vec![descriptor("dotnet-service", service_template_dir.clone())],
             )],
         },
-        StubRootResolver,
+        StubRootResolver {
+            known_templates: [("official/dotnet-service".to_owned(), service_template_dir)]
+                .into_iter()
+                .collect(),
+        },
     );
 
     let resolution = service
-        .resolve_service_template("official/dotnet-service", Path::new("."), &YamlValue::Null)
+        .resolve_service_template(
+            "official/dotnet-service",
+            ServiceTemplateSelectionContext::new(Path::new("."), &YamlValue::Null),
+        )
         .expect("type field should be matched case-insensitively");
 
     assert_eq!(

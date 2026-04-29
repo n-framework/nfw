@@ -11,7 +11,7 @@ use n_framework_nfw_core_application::features::service_management::commands::ad
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use n_framework_nfw_core_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
-use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
+use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::{ServiceTemplateSelectionContext, ServiceTemplateSelector};
 use n_framework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use n_framework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
@@ -19,7 +19,6 @@ use n_framework_nfw_core_domain::features::versioning::version::Version;
 use n_framework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
 use n_framework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 use n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
-use serde_yaml::Value as YamlValue;
 
 #[derive(Debug, Clone)]
 pub struct FixedWorkingDirectoryProvider {
@@ -41,8 +40,7 @@ impl ServiceTemplateSelector for StaticTemplateSelector {
     fn resolve_service_template(
         &self,
         _template_identifier: &str,
-        _workspace_root: &Path,
-        _nfw_yaml: &YamlValue,
+        _context: ServiceTemplateSelectionContext<'_>,
     ) -> Result<ServiceTemplateResolution, AddServiceError> {
         Ok(self.resolution.clone())
     }
