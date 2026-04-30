@@ -52,7 +52,7 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  mediator: mediator\n",
     )
     .expect("failed to write root template.yaml");
 
@@ -227,7 +227,7 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  mediator: mediator\n",
     )
     .unwrap();
 

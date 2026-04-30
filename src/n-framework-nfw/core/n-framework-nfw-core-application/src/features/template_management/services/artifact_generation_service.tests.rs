@@ -336,7 +336,7 @@ fn extract_namespace_fails_on_missing() {
     let result = service.extract_namespace(&nfw_yaml);
     assert!(result.is_err());
     if let Err(AddArtifactError::ConfigError(msg)) = result {
-        assert!(msg.contains("missing 'workspace.namespace'"));
+        assert!(msg.contains("Missing 'workspace.namespace'"));
     } else {
         panic!("Expected ConfigError, got {:?}", result);
     }

@@ -92,13 +92,12 @@ where
         let command = AddPersistenceCommand::new(selected_service.clone(), workspace_context)
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let res = self.handler.handle(&command);
-        if let Err(e) = res {
+        if let Err(e) = self.handler.handle(&command) {
             let error_id = format!(
                 "{:x}",
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_else(|_| std::time::Duration::from_secs(0))
+                    .unwrap_or_default()
                     .as_micros()
             );
             spinner.error(&format!(

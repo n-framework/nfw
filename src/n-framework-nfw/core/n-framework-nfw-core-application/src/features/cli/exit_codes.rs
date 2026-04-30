@@ -38,7 +38,8 @@ impl ExitCodes {
         match error {
             AddServiceError::MissingRequiredInput(_)
             | AddServiceError::InvalidServiceName(_)
-            | AddServiceError::InvalidTemplateType { .. } => Self::ValidationError,
+            | AddServiceError::InvalidTemplateType { .. }
+            | AddServiceError::TemplateConfigError(_) => Self::ValidationError,
             AddServiceError::InvalidWorkspaceContext(_)
             | AddServiceError::TargetDirectoryAlreadyExists(_)
             | AddServiceError::AmbiguousTemplate(_) => Self::Conflict,
@@ -46,6 +47,7 @@ impl ExitCodes {
             AddServiceError::PromptFailed(_)
             | AddServiceError::RenderFailed(_)
             | AddServiceError::ProvenanceWriteFailed(_)
+            | AddServiceError::TemplateReadError(_)
             | AddServiceError::CleanupFailed(_) => Self::ExternalDependencyFailure,
             AddServiceError::DependencyRuleViolation(_)
             | AddServiceError::HealthEndpointsMissing(_)

@@ -53,7 +53,7 @@ fn setup_template(sandbox: &Path, template_yaml: &str, tera_source: &str) {
     fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: mock-cmd-template\nname: Mock Cmd\nversion: 1.0.0\n",
+        "id: mock-cmd-template\nname: Mock Cmd\nversion: 1.0.0\ngenerators:\n  command: command\n",
     )
     .expect("failed to write root template.yaml");
 

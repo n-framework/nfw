@@ -70,7 +70,7 @@ where
         };
 
         let template_type =
-            read_template_type(&template_root).map_err(AddServiceError::Internal)?;
+            read_template_type(&template_root).map_err(AddServiceError::TemplateReadError)?;
 
         if !template_type.eq_ignore_ascii_case("service") {
             return Err(AddServiceError::InvalidTemplateType {
@@ -81,30 +81,30 @@ where
 
         let metadata_path = template_root.join("template.yaml");
         let yaml = fs::read_to_string(&metadata_path).map_err(|e| {
-            AddServiceError::Internal(format!("failed to read local template.yaml: {e}"))
+            AddServiceError::TemplateReadError(format!("failed to read template.yaml: {e}"))
         })?;
 
         let raw = serde_yaml::from_str::<RawTemplateMetadata>(&yaml).map_err(|e| {
-            AddServiceError::Internal(format!("failed to parse local template.yaml: {e}"))
+            AddServiceError::TemplateConfigError(format!("failed to parse template.yaml: {e}"))
         })?;
 
         Ok(ServiceTemplateResolution {
             source_name: source.to_owned(),
             template_name: raw.name.ok_or_else(|| {
-                AddServiceError::Internal(format!(
+                AddServiceError::TemplateConfigError(format!(
                     "Template metadata 'name' is missing in {}",
                     metadata_path.display()
                 ))
             })?,
             template_id: raw.id.ok_or_else(|| {
-                AddServiceError::Internal(format!(
+                AddServiceError::TemplateConfigError(format!(
                     "Template metadata 'id' is missing in {}",
                     metadata_path.display()
                 ))
             })?,
             resolved_version: match raw.version {
                 Some(ref v) => Version::from_str(v).map_err(|_| {
-                    AddServiceError::Internal(format!(
+                    AddServiceError::TemplateConfigError(format!(
                         "Template metadata 'version' is invalid ('{}') in {}",
                         v,
                         metadata_path.display()

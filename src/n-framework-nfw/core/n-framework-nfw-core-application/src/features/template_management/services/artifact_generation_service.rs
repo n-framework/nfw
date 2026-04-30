@@ -299,7 +299,7 @@ where
             .map(|s| s.to_string())
             .ok_or_else(|| {
                 AddArtifactError::ConfigError(
-                    "missing 'workspace.namespace' in nfw.yaml. this is required for feature discovery."
+                    "Missing 'workspace.namespace' in nfw.yaml. This is required for feature discovery."
                         .to_string(),
                 )
             })
@@ -339,7 +339,12 @@ where
             .generators()
             .and_then(|g| g.get(generator_type))
             .map(|s| s.as_str())
-            .unwrap_or(generator_type);
+            .ok_or_else(|| {
+                AddArtifactError::ConfigError(format!(
+                    "Base template '{}' does not support generator type '{}'. Check 'generators' mapping in template.yaml.",
+                    service.template_id, generator_type
+                ))
+            })?;
 
         let template_root = base_root.join(sub_folder);
 
@@ -457,7 +462,7 @@ where
         })?;
         config.validate().map_err(|e| {
             AddArtifactError::ConfigError(format!(
-                "template validation failed for {}: {e}",
+                "Template validation failed for {}: {e}",
                 path.display()
             ))
         })?;
@@ -548,10 +553,16 @@ where
             .or_insert_with(|| YamlValue::Sequence(Vec::new()));
 
         let module_value = YamlValue::String(module_name.to_string());
-        if let Some(seq) = modules.as_sequence_mut()
-            && !seq.contains(&module_value)
-        {
-            seq.push(module_value);
+        if let Some(seq) = modules.as_sequence_mut() {
+            if seq.contains(&module_value) {
+                tracing::info!(
+                    "Module '{}' is already registered for service '{}', skipping.",
+                    module_name,
+                    service_name
+                );
+            } else {
+                seq.push(module_value);
+            }
         }
 
         self.write_nfw_yaml(workspace_root, &yaml, &preserved_comments)?;
