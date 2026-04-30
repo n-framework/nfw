@@ -6,14 +6,14 @@ use crate::features::template_management::services::artifact_generation_service:
 use crate::features::template_management::services::template_engine::TemplateEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 
-use super::add_mediator_command::AddMediatorCommand;
+use super::add_persistence_command::AddPersistenceCommand;
 
 #[derive(Debug, Clone)]
-pub struct AddMediatorCommandHandler<W, R, E> {
+pub struct AddPersistenceCommandHandler<W, R, E> {
     service: ArtifactGenerationService<W, R, E>,
 }
 
-impl<W, R, E> AddMediatorCommandHandler<W, R, E>
+impl<W, R, E> AddPersistenceCommandHandler<W, R, E>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
@@ -25,26 +25,33 @@ where
         }
     }
 
-    pub fn handle(&self, command: &AddMediatorCommand) -> Result<(), AddArtifactError> {
-        let workspace = &command.workspace_context;
+    /// Handles the `add persistence` command workflow.
+    ///
+    /// ## Workflow Context
+    /// 1. Extracts variables required for rendering template content and names, including identifying target service properties.
+    /// 2. Performs a robust template resolution algorithm to locate the appropriate templates on disk or fallback paths.
+    /// 3. Validates naming rules matching NFramework identifiers against CLI payload properties.
+    /// 4. Executes code generation using the templating engine.
+    pub fn handle(&self, cmd: &AddPersistenceCommand) -> Result<(), AddArtifactError> {
+        let workspace = cmd.workspace_context();
         let context = self.service.load_template_context(
             workspace.clone(),
-            &command.service_info,
-            "mediator",
+            cmd.service_info(),
+            AddPersistenceCommand::GENERATOR_TYPE,
         )?;
 
         let namespace = self.service.extract_namespace(workspace.nfw_yaml())?;
 
         let parameters =
             n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters::new()
-                .with_name(command.service_info.name())
+                .with_name(cmd.service_info().name())
                 .map_err(AddArtifactError::InvalidParameter)?
                 .with_namespace(namespace)
                 .map_err(AddArtifactError::InvalidParameter)?
-                .with_service(command.service_info.name())
+                .with_service(cmd.service_info().name())
                 .map_err(AddArtifactError::InvalidParameter)?;
 
-        let output_root = workspace.workspace_root().join(command.service_info.path());
+        let output_root = workspace.workspace_root().join(cmd.service_info().path());
 
         self.service
             .engine()
@@ -58,8 +65,8 @@ where
 
         self.service.add_service_module(
             workspace.workspace_root(),
-            command.service_info.name(),
-            "mediator",
+            cmd.service_info().name(),
+            AddPersistenceCommand::GENERATOR_TYPE,
         )?;
 
         Ok(())
@@ -76,3 +83,7 @@ where
         self.service.extract_services(workspace)
     }
 }
+
+#[cfg(test)]
+#[path = "add_persistence_command_handler.tests.rs"]
+mod tests;

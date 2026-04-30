@@ -8,6 +8,16 @@
     "$schema": {
       "type": "string"
     },
+    "template_sources": {
+      "type": "object",
+      "properties": {
+        "local": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "workspace": {
       "type": "object",
       "required": ["name", "template", "namespace"],

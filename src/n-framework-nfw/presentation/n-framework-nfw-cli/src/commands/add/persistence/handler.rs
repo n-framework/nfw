@@ -1,39 +1,39 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use crate::cli_error::CliError;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command::AddMediatorCommand;
-use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::add_persistence::add_persistence_command::AddPersistenceCommand;
+use n_framework_nfw_core_application::features::template_management::commands::add_persistence::add_persistence_command_handler::AddPersistenceCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 
 #[derive(Debug, Clone)]
-pub struct AddMediatorCliCommand<W, R, E, P> {
-    handler: AddMediatorCommandHandler<W, R, E>,
+pub struct AddPersistenceCliCommand<W, R, E, P> {
+    handler: AddPersistenceCommandHandler<W, R, E>,
     prompt: P,
 }
 
-pub struct AddMediatorRequest<'a> {
+pub struct AddPersistenceRequest<'a> {
     pub no_input: bool,
     pub is_interactive_terminal: bool,
     pub service_name: Option<&'a str>,
 }
 
-impl<W, R, E, P> AddMediatorCliCommand<W, R, E, P>
+impl<W, R, E, P> AddPersistenceCliCommand<W, R, E, P>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
     E: TemplateEngine,
     P: InteractivePrompt + Logger,
 {
-    pub fn new(handler: AddMediatorCommandHandler<W, R, E>, prompt: P) -> Self {
+    pub fn new(handler: AddPersistenceCommandHandler<W, R, E>, prompt: P) -> Self {
         Self { handler, prompt }
     }
 
-    pub fn execute(&self, request: AddMediatorRequest) -> Result<(), CliError> {
+    pub fn execute(&self, request: AddPersistenceRequest) -> Result<(), CliError> {
         self.prompt
-            .intro("Add Mediator Module")
+            .intro("Add Persistence Module")
             .map_err(|e| CliError::internal(e.to_string()))?;
 
         let workspace_context = self.handler.get_workspace_context()?;
@@ -67,7 +67,7 @@ where
                 .collect();
             let selected = self
                 .prompt
-                .select("Select a service to add mediator to:", &options, Some(0))
+                .select("Select a service to add persistence to:", &options, Some(0))
                 .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
             services
@@ -84,22 +84,27 @@ where
         let spinner = self
             .prompt
             .spinner(&format!(
-                "Adding mediator module to '{}'...",
+                "Adding persistence module to '{}'...",
                 selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let command = AddMediatorCommand {
-            service_info: selected_service.clone(),
-            workspace_context,
-        };
+        let command = AddPersistenceCommand::new(selected_service.clone(), workspace_context)
+            .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let res = self.handler.handle(&command).map_err(|e| {
-            spinner.error(&format!("Failed to add mediator: {}", e));
-            e
-        });
-
-        if let Err(e) = res {
+        if let Err(e) = self.handler.handle(&command) {
+            let error_id = format!(
+                "{:x}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_micros()
+            );
+            spinner.error(&format!(
+                "Failed to add persistence (Log ID: {}): {}",
+                error_id, e
+            ));
+            tracing::error!("[{}] Failed to add persistence: {:?}", error_id, e);
             return Err(CliError::silent(
                 ExitCodes::from_add_artifact_error(&e) as i32,
                 e.to_string(),
@@ -107,13 +112,13 @@ where
         }
 
         spinner.success(&format!(
-            "Mediator module added to '{}'",
+            "Persistence module added to '{}'",
             selected_service.name()
         ));
 
         self.prompt
             .outro(&format!(
-                "Successfully added Mediator module to '{}'.",
+                "Successfully added Persistence module to '{}'.",
                 selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
@@ -122,7 +127,7 @@ where
     }
 }
 
-impl AddMediatorCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
+impl AddPersistenceCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
     pub fn handle(
         command: &dyn n_framework_core_cli_abstractions::Command,
         context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
@@ -130,11 +135,11 @@ impl AddMediatorCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPr
         use std::io::{self, IsTerminal};
         let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
 
-        AddMediatorCliCommand::new(
-            context.add_mediator_command_handler.clone(),
+        AddPersistenceCliCommand::new(
+            context.add_persistence_command_handler.clone(),
             n_framework_core_cli_cliclack::CliclackPromptService::new(),
         )
-        .execute(AddMediatorRequest {
+        .execute(AddPersistenceRequest {
             no_input: command.option("no-input").is_some(),
             is_interactive_terminal,
             service_name: command.option("service"),

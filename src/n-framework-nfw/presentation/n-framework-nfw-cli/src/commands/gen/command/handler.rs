@@ -54,19 +54,23 @@ where
             if (request.no_input || !request.is_interactive_terminal) && services.len() == 1 {
                 services.into_iter().next().unwrap()
             } else {
-                let options: std::vec::Vec<SelectOption> = services
+                let options: Vec<SelectOption> = services
                     .iter()
-                    .map(|s| SelectOption::new(&s.name, &s.name))
+                    .map(|s| SelectOption::new(s.name(), s.name()))
                     .collect();
                 let selected = self
                     .prompt
-                    .select("Select a service for the new command:", &options, Some(0))
+                    .select("Select target service:", &options, Some(0))
                     .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
                 services
                     .into_iter()
-                    .find(|s| s.name == selected.value())
-                    .unwrap()
+                    .find(|s| s.name() == selected.value())
+                    .ok_or_else(|| {
+                        AddArtifactError::WorkspaceError(
+                            "No service found matching the selection".to_string(),
+                        )
+                    })?
             };
 
         let context = self.handler.load_template_context(

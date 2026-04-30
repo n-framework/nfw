@@ -11,7 +11,7 @@ use n_framework_nfw_core_application::features::service_management::commands::ad
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use n_framework_nfw_core_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
-use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
+use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::{ServiceTemplateSelectionContext, ServiceTemplateSelector};
 use n_framework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
 use n_framework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
@@ -40,6 +40,7 @@ impl ServiceTemplateSelector for StaticTemplateSelector {
     fn resolve_service_template(
         &self,
         _template_identifier: &str,
+        _context: ServiceTemplateSelectionContext<'_>,
     ) -> Result<ServiceTemplateResolution, AddServiceError> {
         Ok(self.resolution.clone())
     }

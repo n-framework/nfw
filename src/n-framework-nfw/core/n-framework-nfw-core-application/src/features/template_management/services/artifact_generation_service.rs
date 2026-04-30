@@ -15,16 +15,76 @@ use crate::features::workspace_management::services::abstractions::working_direc
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceContext {
-    pub workspace_root: PathBuf,
-    pub nfw_yaml: YamlValue,
-    pub preserved_comments: PreservedComments,
+    workspace_root: PathBuf,
+    nfw_yaml: YamlValue,
+    preserved_comments: PreservedComments,
+}
+
+impl WorkspaceContext {
+    pub fn new(
+        workspace_root: PathBuf,
+        nfw_yaml: YamlValue,
+        preserved_comments: PreservedComments,
+    ) -> Result<Self, String> {
+        if workspace_root.as_os_str().is_empty() {
+            return Err("workspace root path cannot be empty".to_string());
+        }
+        Ok(Self {
+            workspace_root,
+            nfw_yaml,
+            preserved_comments,
+        })
+    }
+
+    pub fn workspace_root(&self) -> &PathBuf {
+        &self.workspace_root
+    }
+
+    pub fn nfw_yaml(&self) -> &YamlValue {
+        &self.nfw_yaml
+    }
+
+    pub fn preserved_comments(&self) -> &PreservedComments {
+        &self.preserved_comments
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct ServiceInfo {
-    pub name: String,
-    pub path: String,
-    pub template_id: String,
+    name: String,
+    path: String,
+    template_id: String,
+}
+
+impl ServiceInfo {
+    pub fn new(name: String, path: String, template_id: String) -> Result<Self, String> {
+        if name.is_empty() {
+            return Err("Service name cannot be empty".to_string());
+        }
+        if path.is_empty() {
+            return Err("Service path cannot be empty".to_string());
+        }
+        if template_id.is_empty() {
+            return Err("Service template ID cannot be empty".to_string());
+        }
+        Ok(Self {
+            name,
+            path,
+            template_id,
+        })
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn template_id(&self) -> &str {
+        &self.template_id
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -239,29 +299,54 @@ where
             .map(|s| s.to_string())
             .ok_or_else(|| {
                 AddArtifactError::ConfigError(
-                    "missing 'workspace.namespace' in nfw.yaml. this is required for feature discovery."
+                    "Missing 'workspace.namespace' in nfw.yaml. This is required for feature discovery."
                         .to_string(),
                 )
             })
     }
 
+    /// Two-Tier Dynamic Sub-Template Resolution Strategy:
+    /// This method resolves the correct template configuration for secondary artifact generation (like persistence or mediator modules).
+    ///
+    /// 1. Primary Resolution (Base Catalog): It leverages the `TemplateRootResolver` to find the base template directory (either local or from the global catalog).
+    /// 2. Secondary Resolution (Sub-folder extraction): It parses the base `template.yaml` located at the primary root.
+    ///    It uses the `generators` map in the base configuration to map the requested `generator_type` (e.g., 'persistence')
+    ///    to the relative sub-folder. If no such mapping exists, it assumes the sub-folder matches the `generator_type` perfectly.
+    /// 3. Context Contextualization: Constructs the final `AddArtifactContext` containing the nested configuration to be used by the engine.
     pub fn load_template_context(
         &self,
         workspace: WorkspaceContext,
         service: &ServiceInfo,
         generator_type: &str,
     ) -> Result<AddArtifactContext, AddArtifactError> {
-        let template_id = format!("{}/{}", service.template_id, generator_type);
-
-        let template_root = self
+        let base_root = self
             .root_resolver
-            .resolve(&workspace.nfw_yaml, &template_id, &workspace.workspace_root)
+            .resolve(
+                &workspace.nfw_yaml,
+                &service.template_id,
+                &workspace.workspace_root,
+            )
             .map_err(|_| {
                 AddArtifactError::TemplateNotFound(format!(
-                    "Could not resolve nested template '{}' for service '{}'.",
-                    template_id, service.name
+                    "Could not resolve base template '{}' for service '{}'.",
+                    service.template_id, service.name
                 ))
             })?;
+
+        let base_config = self.load_and_validate_template_config(&base_root)?;
+
+        let sub_folder = base_config
+            .generators()
+            .and_then(|g| g.get(generator_type))
+            .map(|s| s.as_str())
+            .ok_or_else(|| {
+                AddArtifactError::ConfigError(format!(
+                    "Base template '{}' does not support generator type '{}'. Check 'generators' mapping in template.yaml.",
+                    service.template_id, generator_type
+                ))
+            })?;
+
+        let template_root = base_root.join(sub_folder);
 
         let config = self.load_and_validate_template_config(&template_root)?;
 
@@ -377,7 +462,7 @@ where
         })?;
         config.validate().map_err(|e| {
             AddArtifactError::ConfigError(format!(
-                "template validation failed for {}: {e}",
+                "Template validation failed for {}: {e}",
                 path.display()
             ))
         })?;
@@ -468,10 +553,16 @@ where
             .or_insert_with(|| YamlValue::Sequence(Vec::new()));
 
         let module_value = YamlValue::String(module_name.to_string());
-        if let Some(seq) = modules.as_sequence_mut()
-            && !seq.contains(&module_value)
-        {
-            seq.push(module_value);
+        if let Some(seq) = modules.as_sequence_mut() {
+            if seq.contains(&module_value) {
+                tracing::info!(
+                    "Module '{}' is already registered for service '{}', skipping.",
+                    module_name,
+                    service_name
+                );
+            } else {
+                seq.push(module_value);
+            }
         }
 
         self.write_nfw_yaml(workspace_root, &yaml, &preserved_comments)?;

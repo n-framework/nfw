@@ -16,6 +16,8 @@ pub enum AddServiceError {
     RenderFailed(String),
     DependencyRuleViolation(String),
     HealthEndpointsMissing(String),
+    TemplateReadError(String),
+    TemplateConfigError(String),
     ProvenanceWriteFailed(String),
     CleanupFailed(String),
     Interrupted,
@@ -66,6 +68,12 @@ impl Display for AddServiceError {
             }
             Self::ProvenanceWriteFailed(reason) => {
                 write!(f, "failed to persist service template provenance: {reason}")
+            }
+            Self::TemplateReadError(reason) => {
+                write!(f, "failed to read service template structure: {reason}")
+            }
+            Self::TemplateConfigError(reason) => {
+                write!(f, "service template configuration is invalid: {reason}")
             }
             Self::CleanupFailed(reason) => {
                 write!(

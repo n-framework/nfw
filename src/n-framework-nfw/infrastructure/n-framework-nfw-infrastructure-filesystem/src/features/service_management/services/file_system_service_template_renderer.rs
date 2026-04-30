@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::Path;
+use tracing;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use n_framework_nfw_core_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
@@ -33,11 +34,43 @@ impl Default for FileSystemServiceTemplateRenderer {
 
 impl ServiceTemplateRenderer for FileSystemServiceTemplateRenderer {
     fn render_service(&self, plan: &ServiceGenerationPlan) -> Result<(), AddServiceError> {
-        let service_config_path = plan
-            .template_cache_path
-            .join("service")
-            .join("template.yaml");
-        let service_root = plan.template_cache_path.join("service");
+        let base_config_path = plan.template_cache_path.join("template.yaml");
+        let mut service_folder = String::from("service");
+
+        // Dynamic Sub-template Resolution Algorithm:
+        // 1. Check if the root template cache contains a base `template.yaml`.
+        // 2. If it exists, parse it and look up the `generators.service` key to find the exact sub-folder for the service template.
+        // 3. Fall back to the default `service` folder if not specified or if parsing the base template fails.
+        if base_config_path.exists() {
+            match fs::read_to_string(&base_config_path) {
+                Ok(yaml) => match serde_yaml::from_str::<TemplateConfig>(&yaml) {
+                    Ok(base_config) => {
+                        if let Some(generators) = base_config.generators()
+                            && let Some(folder) = generators.get("service")
+                        {
+                            service_folder = folder.clone();
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            "Failed to parse base template.yaml at {}: {}; falling back to default 'service' folder",
+                            base_config_path.display(),
+                            e
+                        );
+                    }
+                },
+                Err(e) => {
+                    tracing::warn!(
+                        "Failed to read base template.yaml at {}: {}; falling back to default 'service' folder",
+                        base_config_path.display(),
+                        e
+                    );
+                }
+            }
+        }
+
+        let service_root = plan.template_cache_path.join(&service_folder);
+        let service_config_path = service_root.join("template.yaml");
 
         if !service_config_path.exists() {
             return Err(AddServiceError::RenderFailed(format!(

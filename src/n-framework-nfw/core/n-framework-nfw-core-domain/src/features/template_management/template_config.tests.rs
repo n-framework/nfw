@@ -82,3 +82,18 @@ fn template_config_validate_succeeds_with_valid_run_command() {
     );
     assert!(config.is_ok());
 }
+
+#[test]
+fn template_config_parses_generators() {
+    let json = r#"{
+"id": "t1",
+"generators": {
+  "persistence": "sub/persistence",
+  "mediator": "sub/mediator"
+}
+}"#;
+    let config: TemplateConfig = serde_json::from_str(json).expect("should parse generators");
+    let generators = config.generators().expect("generators should be set");
+    assert_eq!(generators.get("persistence").unwrap(), "sub/persistence");
+    assert_eq!(generators.get("mediator").unwrap(), "sub/mediator");
+}

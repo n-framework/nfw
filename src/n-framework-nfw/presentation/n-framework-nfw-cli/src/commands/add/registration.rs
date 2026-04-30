@@ -6,4 +6,5 @@ pub fn register() -> CliCommandSpec {
         .require_subcommand()
         .with_subcommand(crate::commands::add::service::registration::register())
         .with_subcommand(crate::commands::add::mediator::registration::register())
+        .with_subcommand(crate::commands::add::persistence::registration::register())
 }

@@ -11,4 +11,5 @@ pub struct RawTemplateMetadata {
     pub author: Option<String>,
     pub min_cli_version: Option<String>,
     pub source_url: Option<String>,
+    pub generators: Option<std::collections::HashMap<String, String>>,
 }

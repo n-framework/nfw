@@ -4,7 +4,9 @@ use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::ServiceTemplateSelector;
+use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::{
+    ServiceTemplateSelectionContext, ServiceTemplateSelector,
+};
 use n_framework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
 use n_framework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
@@ -13,6 +15,8 @@ use n_framework_nfw_core_domain::features::template_management::template_catalog
 use n_framework_nfw_core_domain::features::template_management::template_descriptor::TemplateDescriptor;
 use n_framework_nfw_core_domain::features::template_management::template_metadata::TemplateMetadata;
 use n_framework_nfw_core_domain::features::versioning::version::Version;
+use serde_yaml::Value as YamlValue;
+use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 
 #[derive(Debug, Clone)]
 struct StubDiscoveryService {
@@ -27,20 +31,49 @@ impl TemplateCatalogDiscoveryService for StubDiscoveryService {
     }
 }
 
+#[derive(Debug, Clone)]
+struct StubRootResolver {
+    known_templates: std::collections::HashMap<String, PathBuf>,
+}
+
+impl TemplateRootResolver for StubRootResolver {
+    fn resolve(
+        &self,
+        _nfw_yaml: &YamlValue,
+        template_id: &str,
+        _workspace_root: &Path,
+    ) -> Result<PathBuf, String> {
+        self.known_templates
+            .get(template_id)
+            .cloned()
+            .ok_or_else(|| "not found".to_owned())
+    }
+}
+
 #[test]
 fn fails_for_unknown_template_identifier() {
     let sandbox = create_sandbox_directory("service-template-validation-not-found");
     let service_template_path = create_template_dir(&sandbox, "dotnet-service", "service");
 
-    let selector = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor("dotnet-service", service_template_path)],
-        )],
-    });
+    let selector = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor("dotnet-service", service_template_path.clone())],
+            )],
+        },
+        StubRootResolver {
+            known_templates: [("official/dotnet-service".to_owned(), service_template_path)]
+                .into_iter()
+                .collect(),
+        },
+    );
 
     let error = selector
-        .resolve_service_template("official/missing")
+        .resolve_service_template(
+            "official/missing",
+            ServiceTemplateSelectionContext::new(Path::new("."), &YamlValue::Null),
+        )
         .expect_err("missing template should fail");
 
     match error {
@@ -58,15 +91,31 @@ fn fails_for_template_with_non_service_type() {
     let sandbox = create_sandbox_directory("service-template-validation-type");
     let workspace_template_path = create_template_dir(&sandbox, "blank-workspace", "workspace");
 
-    let selector = ServiceTemplateSelectionService::new(StubDiscoveryService {
-        catalogs: vec![TemplateCatalog::new(
-            "official".to_owned(),
-            vec![descriptor("blank-workspace", workspace_template_path)],
-        )],
-    });
+    let selector = ServiceTemplateSelectionService::new(
+        StubDiscoveryService {
+            catalogs: vec![TemplateCatalog::new(
+                "official".to_owned(),
+                vec![descriptor(
+                    "blank-workspace",
+                    workspace_template_path.clone(),
+                )],
+            )],
+        },
+        StubRootResolver {
+            known_templates: [(
+                "official/blank-workspace".to_owned(),
+                workspace_template_path,
+            )]
+            .into_iter()
+            .collect(),
+        },
+    );
 
     let error = selector
-        .resolve_service_template("official/blank-workspace")
+        .resolve_service_template(
+            "official/blank-workspace",
+            ServiceTemplateSelectionContext::new(Path::new("."), &YamlValue::Null),
+        )
         .expect_err("wrong template type should fail");
 
     match error {
