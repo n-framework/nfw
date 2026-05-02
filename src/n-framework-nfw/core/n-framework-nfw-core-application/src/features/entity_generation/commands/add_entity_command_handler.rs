@@ -63,6 +63,7 @@ where
     ) -> Result<(EntitySchema, PathBuf), EntityGenerationError> {
         self.validate_feature(command, workspace, service)?;
         self.validate_persistence_module(service)?;
+        self.validate_id_type(command)?;
 
         if let Some(schema_path) = command.from_schema() {
             let schema = self.handle_from_schema(schema_path, command)?;

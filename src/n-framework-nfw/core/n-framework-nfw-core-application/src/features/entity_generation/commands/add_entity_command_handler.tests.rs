@@ -117,6 +117,44 @@ fn validate_id_type_supports_common_types() {
 }
 
 #[test]
+fn validate_id_type_fails_on_unsupported_types() {
+    let handler = setup_handler(false);
+
+    let unsupported_types = vec![
+        GeneralType::Decimal,
+        GeneralType::Boolean,
+        GeneralType::DateTime,
+        GeneralType::Bytes,
+    ];
+
+    for id_type in unsupported_types {
+        let command = AddEntityCommand::try_new(
+            "Product".to_owned(),
+            vec![],
+            id_type.clone(),
+            EntityType::Entity,
+            EntityGenerationOptions::default(),
+        )
+        .unwrap();
+
+        let result = handler.validate_id_type(&command);
+        assert!(
+            result.is_err(),
+            "Expected error for ID type {:?}, but got Ok",
+            id_type
+        );
+        match result {
+            Err(EntityGenerationError::UnsupportedIdType {
+                id_type: err_type, ..
+            }) => {
+                assert_eq!(err_type, id_type.to_string().to_lowercase());
+            }
+            _ => panic!("Expected UnsupportedIdType error, got {:?}", result),
+        }
+    }
+}
+
+#[test]
 fn validate_persistence_module_checks_service() {
     let handler = setup_handler(false);
 
