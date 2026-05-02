@@ -25,6 +25,13 @@ impl ServiceInfo {
         modules: Vec<String>,
     ) -> Result<Self, EntityGenerationError> {
         ValidationUtils::validate_pascal_case(&name, GlobalConstants::SERVICE_LABEL)?;
+
+        if !path.exists() {
+            return Err(EntityGenerationError::ConfigError {
+                reason: format!("Service directory does not exist: {}", path.display()),
+            });
+        }
+
         Ok(Self::new(name, path, modules))
     }
 

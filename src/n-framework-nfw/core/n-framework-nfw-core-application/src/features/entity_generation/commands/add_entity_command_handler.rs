@@ -153,9 +153,15 @@ where
         let feature_name = command.feature();
         let service_root = service.path();
 
-        // Use the same robust discovery logic as ArtifactGenerationService
+        // N-Framework services typically follow one of several project structure conventions.
+        // We attempt to find the feature directory by checking these common locations in order
+        // of likelihood:
+        // 1. {ServiceRoot}/src/core/Features/{Feature} - Standard vertical slice in core
+        // 2. {ServiceRoot}/src/Application/Features/{Feature} - Application layer in Hexagonal/Clean
+        // 3. {ServiceRoot}/src/Features/{Feature} - Simplified feature folders
+        // 4. {ServiceRoot}/Features/{Feature} - Flat feature folders
         let possible_feature_roots = vec![
-            service_root.join("src").join("core").join("Features"), // Simplified for brevity in mapping
+            service_root.join("src").join("core").join("Features"),
             service_root
                 .join("src")
                 .join("Application")

@@ -14,24 +14,7 @@ impl ValidationUtils {
             });
         }
 
-        if name.starts_with(|c: char| c.is_ascii_digit()) {
-            return Err(EntityGenerationError::InvalidEntityName {
-                name: name.to_owned(),
-                reason: format!("{} name must not start with a digit", entity_type_label),
-            });
-        }
-
-        if !name.chars().all(|c| c.is_alphanumeric() || c == '_') {
-            return Err(EntityGenerationError::InvalidEntityName {
-                name: name.to_owned(),
-                reason: format!(
-                    "{} name must contain only alphanumeric characters and underscores",
-                    entity_type_label
-                ),
-            });
-        }
-
-        if !name.starts_with(|c: char| c.is_uppercase()) {
+        if !name.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
             return Err(EntityGenerationError::InvalidEntityName {
                 name: name.to_owned(),
                 reason: format!(
@@ -39,6 +22,30 @@ impl ValidationUtils {
                     entity_type_label
                 ),
             });
+        }
+
+        if name.chars().any(|c| !c.is_ascii_alphanumeric()) {
+            return Err(EntityGenerationError::InvalidEntityName {
+                name: name.to_owned(),
+                reason: format!(
+                    "{} name must contain only alphanumeric characters (no underscores or special characters)",
+                    entity_type_label
+                ),
+            });
+        }
+
+        // Check for consecutive uppercase letters to reject MYENTITY-style names
+        let chars: Vec<char> = name.chars().collect();
+        for i in 0..chars.len() - 1 {
+            if chars[i].is_ascii_uppercase() && chars[i + 1].is_ascii_uppercase() {
+                return Err(EntityGenerationError::InvalidEntityName {
+                    name: name.to_owned(),
+                    reason: format!(
+                        "{} name must be in PascalCase (e.g., 'MyEntity'). Consecutive uppercase letters like in '{}' are not allowed.",
+                        entity_type_label, name
+                    ),
+                });
+            }
         }
 
         Ok(())

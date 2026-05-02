@@ -84,6 +84,7 @@ impl EntitySchema {
     }
 
     pub fn from_command(command: &AddEntityCommand) -> Self {
+        // We assume command is already validated via try_new
         Self::new(
             command.entity_name().to_string(),
             command.id_type().clone(),

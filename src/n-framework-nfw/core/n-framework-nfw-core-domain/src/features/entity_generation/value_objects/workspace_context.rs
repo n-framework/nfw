@@ -18,6 +18,19 @@ impl WorkspaceContext {
         root: PathBuf,
         services: Vec<ServiceInfo>,
     ) -> Result<Self, EntityGenerationError> {
+        if !root.exists() {
+            return Err(EntityGenerationError::WorkspaceError {
+                reason: format!(
+                    "Workspace root directory does not exist: {}",
+                    root.display()
+                ),
+            });
+        }
+
+        if services.is_empty() {
+            return Err(EntityGenerationError::NoServicesInWorkspace);
+        }
+
         let mut names = HashSet::new();
         for service in &services {
             if !names.insert(service.name().to_string()) {

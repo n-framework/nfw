@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use super::super::errors::entity_generation_error::EntityGenerationError;
@@ -123,7 +124,20 @@ impl AddEntityCommand {
         entity_type: EntityType,
         options: EntityGenerationOptions,
     ) -> Result<Self, EntityGenerationError> {
-        Self::validate_name(&entity_name)?;
+        ValidationUtils::validate_pascal_case(&entity_name, GlobalConstants::ENTITY_LABEL)?;
+
+        if properties.is_empty() && options.from_schema().is_none() {
+            return Err(EntityGenerationError::EmptyProperties);
+        }
+
+        let mut names = HashSet::new();
+        for prop in &properties {
+            if !names.insert(prop.name().to_string()) {
+                return Err(EntityGenerationError::DuplicatePropertyName {
+                    name: prop.name().to_string(),
+                });
+            }
+        }
 
         Ok(Self {
             entity_name,
@@ -132,10 +146,6 @@ impl AddEntityCommand {
             entity_type,
             options,
         })
-    }
-
-    fn validate_name(name: &str) -> Result<(), EntityGenerationError> {
-        ValidationUtils::validate_pascal_case(name, GlobalConstants::ENTITY_LABEL)
     }
 
     pub fn entity_name(&self) -> &str {

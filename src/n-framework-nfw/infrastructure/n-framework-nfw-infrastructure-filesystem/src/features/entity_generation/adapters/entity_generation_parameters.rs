@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 /// This serves as a data-carrying object between infrastructure adapters
 /// and the core application logic, ensuring all necessary context is available
 /// for the generation engine while maintaining proper encapsulation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct EntityGenerationParameters {
     entity_name: String,
     namespace: String,
@@ -19,28 +19,9 @@ pub struct EntityGenerationParameters {
 }
 
 impl EntityGenerationParameters {
-    /// Creates a new set of generation parameters.
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        entity_name: String,
-        namespace: String,
-        id_type: GeneralType,
-        id_type_cli: String,
-        properties: Vec<PropertyTemplate>,
-        base_class: String,
-        service_name: String,
-        service_path: PathBuf,
-    ) -> Self {
-        Self {
-            entity_name,
-            namespace,
-            id_type,
-            id_type_cli,
-            properties,
-            base_class,
-            service_name,
-            service_path,
-        }
+    /// Returns a new builder for EntityGenerationParameters.
+    pub fn builder() -> EntityGenerationParametersBuilder {
+        EntityGenerationParametersBuilder::default()
     }
 
     pub fn entity_name(&self) -> &str {
@@ -73,6 +54,75 @@ impl EntityGenerationParameters {
 
     pub fn service_path(&self) -> &Path {
         &self.service_path
+    }
+}
+
+/// Builder for EntityGenerationParameters to handle complex construction
+/// with many arguments.
+#[derive(Debug, Clone, Default)]
+pub struct EntityGenerationParametersBuilder {
+    entity_name: String,
+    namespace: String,
+    id_type: GeneralType,
+    id_type_cli: String,
+    properties: Vec<PropertyTemplate>,
+    base_class: String,
+    service_name: String,
+    service_path: PathBuf,
+}
+
+impl EntityGenerationParametersBuilder {
+    pub fn entity_name(mut self, value: String) -> Self {
+        self.entity_name = value;
+        self
+    }
+
+    pub fn namespace(mut self, value: String) -> Self {
+        self.namespace = value;
+        self
+    }
+
+    pub fn id_type(mut self, value: GeneralType) -> Self {
+        self.id_type = value;
+        self
+    }
+
+    pub fn id_type_cli(mut self, value: String) -> Self {
+        self.id_type_cli = value;
+        self
+    }
+
+    pub fn properties(mut self, value: Vec<PropertyTemplate>) -> Self {
+        self.properties = value;
+        self
+    }
+
+    pub fn base_class(mut self, value: String) -> Self {
+        self.base_class = value;
+        self
+    }
+
+    pub fn service_name(mut self, value: String) -> Self {
+        self.service_name = value;
+        self
+    }
+
+    pub fn service_path(mut self, value: PathBuf) -> Self {
+        self.service_path = value;
+        self
+    }
+
+    pub fn build(self) -> EntityGenerationParameters {
+        EntityGenerationParameters {
+            entity_name: self.entity_name,
+            namespace: self.namespace,
+            id_type: self.id_type,
+            id_type_cli: self.id_type_cli,
+            properties: self.properties,
+            base_class: self.base_class,
+            service_name: self.service_name,
+            service_path: self.service_path,
+        }
     }
 }
 

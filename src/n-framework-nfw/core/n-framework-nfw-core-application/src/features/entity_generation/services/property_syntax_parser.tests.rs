@@ -90,7 +90,7 @@ fn rejects_duplicate_property_names() {
 
 #[test]
 fn rejects_case_insensitive_duplicates() {
-    let result = PropertySyntaxParser::parse("Name:string,NAme:int");
+    let result = PropertySyntaxParser::parse("ProductPrice:string,Productprice:int");
     assert!(matches!(
         result,
         Err(EntityGenerationError::DuplicatePropertyName { .. })

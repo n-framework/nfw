@@ -151,7 +151,13 @@ fn fails_on_missing_schema_file() {
         "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
     ).unwrap();
 
-    let opts = make_opts("Product", Some("Catalog"), None, Some("missing.yaml"), true);
+    let opts = make_opts(
+        "Product",
+        Some("Catalog"),
+        Some("Name:string"),
+        Some("missing.yaml"),
+        true,
+    );
 
     let result = run(&sandbox, opts);
     assert!(result.is_err());
@@ -181,7 +187,7 @@ fn fails_on_invalid_schema_yaml() {
     let opts = make_opts(
         "Product",
         Some("Catalog"),
-        None,
+        Some("Name:string"),
         Some(schema_path.to_str().unwrap()),
         true,
     );

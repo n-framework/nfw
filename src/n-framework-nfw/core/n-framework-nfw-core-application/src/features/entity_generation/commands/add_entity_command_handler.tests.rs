@@ -7,6 +7,7 @@ use n_framework_nfw_core_domain::features::entity_generation::entities::add_enti
     AddEntityCommand, EntityGenerationOptions, EntityType,
 };
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::general_type::GeneralType;
+use n_framework_nfw_core_domain::features::entity_generation::value_objects::property_definition::PropertyDefinition;
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::service_info::ServiceInfo;
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::workspace_context::WorkspaceContext;
 use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
@@ -84,10 +85,15 @@ fn setup_handler(
 #[test]
 fn validate_id_type_supports_common_types() {
     let handler = setup_handler(false);
+    let default_props = vec![PropertyDefinition::new(
+        "Id".to_owned(),
+        GeneralType::Uuid,
+        false,
+    )];
 
     let command = AddEntityCommand::try_new(
         "Product".to_owned(),
-        vec![],
+        default_props.clone(),
         GeneralType::Uuid,
         EntityType::Entity,
         EntityGenerationOptions::default(),
@@ -97,7 +103,7 @@ fn validate_id_type_supports_common_types() {
 
     let command = AddEntityCommand::try_new(
         "Product".to_owned(),
-        vec![],
+        default_props.clone(),
         GeneralType::Integer,
         EntityType::Entity,
         EntityGenerationOptions::default(),
@@ -107,7 +113,7 @@ fn validate_id_type_supports_common_types() {
 
     let command = AddEntityCommand::try_new(
         "Product".to_owned(),
-        vec![],
+        default_props,
         GeneralType::String,
         EntityType::Entity,
         EntityGenerationOptions::default(),
@@ -119,6 +125,11 @@ fn validate_id_type_supports_common_types() {
 #[test]
 fn validate_id_type_fails_on_unsupported_types() {
     let handler = setup_handler(false);
+    let default_props = vec![PropertyDefinition::new(
+        "Id".to_owned(),
+        GeneralType::Uuid,
+        false,
+    )];
 
     let unsupported_types = vec![
         GeneralType::Decimal,
@@ -130,7 +141,7 @@ fn validate_id_type_fails_on_unsupported_types() {
     for id_type in unsupported_types {
         let command = AddEntityCommand::try_new(
             "Product".to_owned(),
-            vec![],
+            default_props.clone(),
             id_type.clone(),
             EntityType::Entity,
             EntityGenerationOptions::default(),
@@ -180,6 +191,67 @@ fn validate_persistence_module_checks_service() {
 }
 
 #[test]
+fn validate_feature_returns_error_if_not_found() {
+    let temp = tempfile::tempdir().unwrap();
+    let service_root = temp.path().join("src/Catalog");
+    std::fs::create_dir_all(&service_root).unwrap();
+
+    let handler = setup_handler(false);
+    let command = AddEntityCommand::try_new(
+        "Product".to_owned(),
+        vec![PropertyDefinition::new(
+            "Name".to_owned(),
+            GeneralType::String,
+            false,
+        )],
+        GeneralType::Uuid,
+        EntityType::Entity,
+        EntityGenerationOptions::new(None, "NonExistentFeature".to_owned(), false, None, true),
+    )
+    .unwrap();
+    let workspace = WorkspaceContext::new(PathBuf::from("/"), vec![]);
+    let service = ServiceInfo::new(
+        "Catalog".to_owned(),
+        service_root,
+        vec!["persistence".to_owned()],
+    );
+
+    let result = handler.validate_feature(&command, &workspace, &service);
+    assert!(result.is_err());
+    if let Err(EntityGenerationError::FeatureNotFound { feature }) = result {
+        assert_eq!(feature, "NonExistentFeature");
+    } else {
+        panic!("Expected FeatureNotFound error, got {:?}", result);
+    }
+}
+
+#[test]
+fn handle_from_schema_fails_if_schema_not_found() {
+    let handler = setup_handler(false); // schema_exists returns false
+    let command = AddEntityCommand::try_new(
+        "Product".to_owned(),
+        vec![PropertyDefinition::new(
+            "Name".to_owned(),
+            GeneralType::String,
+            false,
+        )],
+        GeneralType::Uuid,
+        EntityType::Entity,
+        EntityGenerationOptions::default(),
+    )
+    .unwrap();
+    let schema_path = PathBuf::from("non_existent_schema.yaml");
+
+    let result = handler.handle_from_schema(&schema_path, &command);
+    assert!(result.is_err());
+    if let Err(EntityGenerationError::SchemaFileNotFound { path }) = result {
+        assert_eq!(path, schema_path);
+    } else {
+        panic!("Expected SchemaFileNotFound error, got {:?}", result);
+    }
+}
+
+#[test]
 fn handle_fails_if_schema_already_exists() {
     let temp = tempfile::tempdir().unwrap();
     let service_path = temp.path().join("src/Catalog");
@@ -189,7 +261,11 @@ fn handle_fails_if_schema_already_exists() {
     let handler = setup_handler(true); // schema exists
     let command = AddEntityCommand::try_new(
         "Product".to_owned(),
-        vec![],
+        vec![PropertyDefinition::new(
+            "Name".to_owned(),
+            GeneralType::String,
+            false,
+        )],
         GeneralType::Uuid,
         EntityType::Entity,
         EntityGenerationOptions::new(None, "Catalog".to_owned(), false, None, true),
@@ -235,5 +311,63 @@ fn map_add_artifact_error_preserves_context() {
             assert_eq!(reason, "Failed to parse nfw.yaml: invalid yaml")
         }
         _ => panic!("Expected ConfigError"),
+    }
+}
+
+#[test]
+fn map_add_artifact_error_covers_all_variants() {
+    // Tests for variants not covered in map_add_artifact_error_preserves_context
+    let variants = vec![
+        (
+            AddArtifactError::InvalidIdentifier("bad id".to_owned()),
+            "bad id",
+        ),
+        (
+            AddArtifactError::ConfigError("config fail".to_owned()),
+            "config fail",
+        ),
+        (
+            AddArtifactError::TemplateNotFound("missing_tpl".to_owned()),
+            "Template not found: missing_tpl",
+        ),
+        (
+            AddArtifactError::InvalidParameter("bad param".to_owned()),
+            "Invalid template parameter: bad param",
+        ),
+        (
+            AddArtifactError::ExecutionFailed(Box::new(TemplateError::IoError {
+                message: "run fail".to_owned(),
+                path: None,
+            })),
+            "run fail",
+        ),
+        (
+            AddArtifactError::MissingRequiredModule("module x".to_owned()),
+            "Missing required module: module x",
+        ),
+        (
+            AddArtifactError::NfwYamlReadError("read fail".to_owned()),
+            "Failed to read nfw.yaml: read fail",
+        ),
+        (
+            AddArtifactError::NfwYamlWriteError("write fail".to_owned()),
+            "Failed to write nfw.yaml: write fail",
+        ),
+    ];
+
+    for (err, expected_reason_part) in variants {
+        let mapped = map_add_artifact_error(err);
+        let actual_reason = match mapped {
+            EntityGenerationError::InvalidEntityName { reason, .. } => reason,
+            EntityGenerationError::ConfigError { reason } => reason,
+            EntityGenerationError::TemplateExecutionError { reason } => reason,
+            _ => panic!("Unexpected mapping for error: {:?}", mapped),
+        };
+        assert!(
+            actual_reason.contains(expected_reason_part),
+            "Expected reason to contain '{}', but got '{}'",
+            expected_reason_part,
+            actual_reason
+        );
     }
 }

@@ -1,3 +1,9 @@
+//! Global constants used across the N-Framework CLI for consistent directory naming
+//! and validation labels.
+//!
+//! These constants define the directory structure conventions used for identifying
+//! features, specifications, and entities within a service.
+
 pub struct GlobalConstants;
 
 impl GlobalConstants {
