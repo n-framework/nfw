@@ -4,14 +4,20 @@ use n_framework_core_cli_clap::ClapCliRuntimeBuilder;
 use crate::cli_error::CliError;
 use crate::commands::add::mediator::AddMediatorCliCommand;
 use crate::commands::add::persistence::AddPersistenceCliCommand;
+use crate::commands::add::registration::register as add_registration;
 use crate::commands::add::service::AddServiceCliCommand;
 use crate::commands::check::RunCheckCliCommand;
+use crate::commands::check::registration::register as check_registration;
 use crate::commands::r#gen::command::GenMediatorCommandCliCommand;
+use crate::commands::r#gen::entity::GenEntityCliCommand;
 use crate::commands::r#gen::query::GenMediatorQueryCliCommand;
+use crate::commands::r#gen::registration::register as gen_registration;
 use crate::commands::new::NewWorkspaceCliCommand;
+use crate::commands::new::registration::register as new_registration;
 use crate::commands::templates::add::AddSourceCliCommand;
 use crate::commands::templates::list::TemplatesCliCommand;
 use crate::commands::templates::refresh::RefreshTemplatesCliCommand;
+use crate::commands::templates::registration::register as templates_registration;
 use crate::commands::templates::remove::RemoveSourceCliCommand;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
@@ -26,11 +32,11 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
         CliSpec::new("nfw")
             .with_about("NFramework CLI")
             .require_command()
-            .with_command(crate::commands::new::registration::register())
-            .with_command(crate::commands::templates::registration::register())
-            .with_command(crate::commands::check::registration::register())
-            .with_command(crate::commands::add::registration::register())
-            .with_command(crate::commands::r#gen::registration::register()),
+            .with_command(new_registration())
+            .with_command(templates_registration())
+            .with_command(check_registration())
+            .with_command(add_registration())
+            .with_command(gen_registration()),
     )
 }
 
@@ -45,6 +51,7 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("add/mediator", AddMediatorCliCommand::handle)
         .register_handler("add/persistence", AddPersistenceCliCommand::handle)
         .register_handler("gen/command", GenMediatorCommandCliCommand::handle)
+        .register_handler("gen/entity", GenEntityCliCommand::handle)
         .register_handler("gen/query", GenMediatorQueryCliCommand::handle)
         .register_handler("templates/list", TemplatesCliCommand::handle)
         .register_handler("templates/add", AddSourceCliCommand::handle)

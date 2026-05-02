@@ -77,6 +77,12 @@ impl CliServiceCollectionFactory {
                 FileSystemTemplateRootResolver::new(),
                 n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
             ),
+            gen_entity_command_handler: n_framework_nfw_core_application::features::entity_generation::commands::add_entity_command_handler::AddEntityCommandHandler::new(
+                StandardWorkingDirectoryProvider::new(),
+                FileSystemTemplateRootResolver::new(),
+                n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
+                n_framework_nfw_infrastructure_filesystem::features::entity_generation::adapters::file_system_entity_schema_store::FileSystemEntitySchemaStore::new(),
+            ),
             template_engine: n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
         }
     }

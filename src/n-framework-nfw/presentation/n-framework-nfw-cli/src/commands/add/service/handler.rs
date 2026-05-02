@@ -9,6 +9,7 @@ use n_framework_nfw_core_application::features::service_management::services::ab
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 use crate::cli_error::CliError;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 #[derive(Debug, Clone)]
 pub struct AddServiceCliCommand<H, P> {
@@ -106,7 +107,7 @@ where
 impl AddServiceCliCommand<(), n_framework_core_cli_cliclack::CliclackPromptService> {
     pub fn handle(
         command: &dyn n_framework_core_cli_abstractions::Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+        context: &CliServiceCollection,
     ) -> Result<(), String> {
         use std::io::{self, IsTerminal};
         let no_input = command.option("no-input").is_some();

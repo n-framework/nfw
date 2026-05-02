@@ -1,6 +1,7 @@
 use n_framework_nfw_core_application::features::template_management::commands::refresh_templates::refresh_templates_command::RefreshTemplatesCommand;
 use n_framework_nfw_core_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 /// Thin CLI presentation layer for refreshing templates.
 /// Delegates all business logic to the application layer command handler.
@@ -42,7 +43,7 @@ where
 impl RefreshTemplatesCliCommand<()> {
     pub fn handle(
         _command: &dyn n_framework_core_cli_abstractions::Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+        context: &CliServiceCollection,
     ) -> Result<(), String> {
         RefreshTemplatesCliCommand::new(context.refresh_templates_command_handler.clone()).execute()
     }

@@ -118,7 +118,7 @@ where
                 }
             },
             template_type,
-            template_cache_path: local_path,
+            template_cache_path: template_root,
             description: raw.description.unwrap_or_default(),
         })
     }

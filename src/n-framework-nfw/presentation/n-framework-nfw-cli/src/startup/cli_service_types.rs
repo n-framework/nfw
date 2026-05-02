@@ -19,6 +19,7 @@ use n_framework_nfw_infrastructure_git::features::template_management::services:
 use n_framework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
 use n_framework_nfw_infrastructure_yaml::features::template_management::services::serde_yaml_parser::SerdeYamlParser;
 
+use crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt;
 use crate::startup::cli_validator::CliValidator;
 
 use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
@@ -59,7 +60,7 @@ pub type CliEnsureDefaultSourceCommandHandler = EnsureDefaultSourceCommandHandle
 pub type CliAddServiceCommandHandler = AddServiceCommandHandler<
     CliWorkingDirectoryProvider,
     n_framework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService<CliTemplatesService, FileSystemTemplateRootResolver>,
-    crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt<CliclackPromptService>,
+    InteractiveServiceTemplatePrompt<CliclackPromptService>,
     CliclackPromptService,
     FileSystemServiceTemplateRenderer,
     n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter,
@@ -96,6 +97,18 @@ pub type CliGenMediatorQueryCommandHandler = GenMediatorQueryCommandHandler<
 use n_framework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
 pub type CliCheckCommandHandler = CheckCommandHandler;
 
+use n_framework_nfw_core_application::features::entity_generation::commands::add_entity_command_handler::AddEntityCommandHandler;
+use n_framework_nfw_infrastructure_filesystem::features::entity_generation::adapters::file_system_entity_schema_store::FileSystemEntitySchemaStore;
+pub type CliAddEntityCommandHandler = AddEntityCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+    FileSystemEntitySchemaStore,
+>;
+
+pub type ArtServiceInfo = n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::ServiceInfo;
+pub type ArtWorkspaceContext = n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::WorkspaceContext;
+
 pub struct CliServiceCollection {
     pub new_workspace_command_handler: CliNewWorkspaceCommandHandler,
     pub add_service_command_handler: CliAddServiceCommandHandler,
@@ -109,5 +122,6 @@ pub struct CliServiceCollection {
     pub add_persistence_command_handler: CliAddPersistenceCommandHandler,
     pub gen_mediator_command_command_handler: CliGenMediatorCommandCommandHandler,
     pub gen_mediator_query_command_handler: CliGenMediatorQueryCommandHandler,
+    pub gen_entity_command_handler: CliAddEntityCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
 }

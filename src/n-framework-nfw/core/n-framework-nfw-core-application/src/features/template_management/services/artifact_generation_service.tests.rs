@@ -2,6 +2,7 @@ use super::*;
 use std::fs;
 use tempfile::TempDir;
 
+use crate::features::template_management::models::template_error::TemplateError;
 use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use crate::features::template_management::services::template_engine::TemplateEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
@@ -35,8 +36,7 @@ impl TemplateEngine for MockEngine {
         _root: &Path,
         _output: &Path,
         _params: &TemplateParameters,
-    ) -> Result<(), crate::features::template_management::models::template_error::TemplateError>
-    {
+    ) -> Result<(), TemplateError> {
         Ok(())
     }
 }

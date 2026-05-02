@@ -2,6 +2,7 @@ use n_framework_nfw_core_application::features::template_management::commands::r
 use n_framework_nfw_core_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
 use n_framework_nfw_core_application::features::cli::configuration::abstractions::config_store::ConfigStore;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 /// Thin CLI presentation layer for removing a template source.
 /// Delegates all business logic to the application layer command handler.
@@ -33,11 +34,11 @@ where
 
 impl RemoveSourceCliCommand<()> {
     pub fn handle(
-        command: &dyn n_framework_core_cli_abstractions::Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+        _command: &dyn n_framework_core_cli_abstractions::Command,
+        context: &CliServiceCollection,
     ) -> Result<(), String> {
         RemoveSourceCliCommand::new(context.remove_template_source_command_handler.clone()).execute(
-            command
+            _command
                 .option("name")
                 .ok_or_else(|| "[exit:1] Option 'name' is required".to_string())?,
         )

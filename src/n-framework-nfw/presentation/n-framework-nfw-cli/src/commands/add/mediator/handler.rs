@@ -1,5 +1,6 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use crate::cli_error::CliError;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command::AddMediatorCommand;
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
@@ -125,7 +126,7 @@ where
 impl AddMediatorCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
     pub fn handle(
         command: &dyn n_framework_core_cli_abstractions::Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+        context: &CliServiceCollection,
     ) -> Result<(), String> {
         use std::io::{self, IsTerminal};
         let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();

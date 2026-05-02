@@ -1,4 +1,5 @@
 use super::*;
+use crate::features::template_management::models::template_error::TemplateError;
 use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 use std::path::{Path, PathBuf};
@@ -21,15 +22,9 @@ impl TemplateEngine for MockEngine {
         _root: &Path,
         _output: &Path,
         _params: &TemplateParameters,
-    ) -> Result<(), crate::features::template_management::models::template_error::TemplateError>
-    {
+    ) -> Result<(), TemplateError> {
         if self.fail_execution {
-            Err(
-                crate::features::template_management::models::template_error::TemplateError::io(
-                    "mock error",
-                    PathBuf::from("mock"),
-                ),
-            )
+            Err(TemplateError::io("mock error", PathBuf::from("mock")))
         } else {
             Ok(())
         }

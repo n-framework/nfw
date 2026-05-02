@@ -149,3 +149,16 @@ path = "../../../../tests/integration/n-framework-nfw/features/artifact/mediator
 [[test]]
 name = "persistence_add_test"
 path = "../../../../tests/integration/n-framework-nfw/features/artifact/persistence_add_test.rs"
+
+[[test]]
+name = "entity_generation_success_test"
+path = "../../../../tests/integration/n-framework-nfw/features/entity_generation/success_tests.rs"
+
+[[test]]
+name = "entity_generation_error_test"
+path = "../../../../tests/integration/n-framework-nfw/features/entity_generation/error_tests.rs"
+
+[[test]]
+name = "entity_generation_schema_test"
+path = "../../../../tests/integration/n-framework-nfw/features/entity_generation/schema_tests.rs"
+

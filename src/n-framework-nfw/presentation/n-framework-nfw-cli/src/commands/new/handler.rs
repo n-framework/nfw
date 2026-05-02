@@ -1,14 +1,12 @@
 use std::io::{self, IsTerminal};
 use n_framework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command::NewWorkspaceCommand;
 use n_framework_core_cli_abstractions::Command;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 pub struct NewWorkspaceCliCommand {}
 
 impl NewWorkspaceCliCommand {
-    pub fn handle(
-        command: &dyn Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
-    ) -> Result<(), String> {
+    pub fn handle(command: &dyn Command, context: &CliServiceCollection) -> Result<(), String> {
         let workspace_name = command.option("workspace-name").map(|s| s.to_string());
         let template_id = command.option("template").map(|s| s.to_string());
         let no_input = command.option("no-input").is_some();
