@@ -77,7 +77,8 @@ where
 
         let selected_art_service = self.select_service(&request, &art_services)?;
 
-        let modules = self.extract_modules_from_art_service(&art_workspace, &selected_art_service);
+        let modules =
+            self.extract_modules_from_art_service(&art_workspace, &selected_art_service)?;
         let service_path = PathBuf::from(selected_art_service.path());
 
         let service = ServiceInfo::new(
@@ -110,19 +111,20 @@ where
             Vec::new()
         };
 
-        let command = AddEntityCommand::new(
+        let command = AddEntityCommand::try_new(
             name.clone(),
             properties,
             id_type,
             entity_type,
-            EntityGenerationOptions {
-                service_name: None,
+            EntityGenerationOptions::new(
+                None,
                 feature,
-                schema_only: request.schema_only,
+                request.schema_only,
                 from_schema,
-                non_interactive: request.no_input,
-            },
-        );
+                request.no_input,
+            ),
+        )
+        .map_err(|e| CliError::new(ExitCodes::ValidationError as i32, e.to_string()))?;
 
         let spinner = self
             .prompt
@@ -130,18 +132,26 @@ where
             .map_err(|e| CliError::internal(e.to_string()))?;
 
         match self.handler.handle(&command, &workspace, &service) {
-            Ok(schema) => {
+            Ok((schema, schema_path)) => {
                 spinner.success(&format!(
                     "Entity '{}' generated successfully",
-                    schema.entity
+                    schema.entity()
                 ));
 
                 self.prompt
                     .outro(&format!(
                         "Successfully generated entity '{}'. Schema: {}",
-                        schema.entity, schema.entity_type
+                        schema.entity(),
+                        schema_path.display()
                     ))
                     .map_err(|e| CliError::internal(e.to_string()))?;
+
+                if request.schema_only {
+                    println!("\n◇  Schema file created at: {}", schema_path.display());
+                    println!(
+                        "│  You can now refine the schema and run without --schema-only to generate code.\n"
+                    );
+                }
 
                 Ok(())
             }
@@ -205,8 +215,7 @@ where
         &self,
         workspace: &ArtWorkspaceContext,
         service: &ArtServiceInfo,
-    ) -> Vec<String> {
-        // ... (omitted)
+    ) -> Result<Vec<String>, CliError> {
         if let Some(services) = workspace.nfw_yaml().get("services")
             && let Some(map) = services.as_mapping()
         {
@@ -214,20 +223,33 @@ where
                 if let Some(name) = name_val.as_str()
                     && name == service.name()
                 {
-                    return details_val
-                        .get("modules")
-                        .and_then(|m| m.as_sequence())
-                        .map(|seq| {
-                            seq.iter()
+                    match details_val.get("modules") {
+                        Some(modules_val) => {
+                            let seq = modules_val.as_sequence().ok_or_else(|| {
+                                CliError::internal(format!(
+                                    "'modules' for service '{}' in nfw.yaml must be a sequence",
+                                    name
+                                ))
+                            })?;
+
+                            return Ok(seq
+                                .iter()
                                 .filter_map(|v| v.as_str())
                                 .map(|s| s.to_string())
-                                .collect()
-                        })
-                        .unwrap_or_default();
+                                .collect());
+                        }
+                        None => {
+                            return Ok(Vec::new());
+                        }
+                    }
                 }
             }
         }
-        Vec::new()
+
+        Err(CliError::internal(format!(
+            "Service '{}' details not found in nfw.yaml",
+            service.name()
+        )))
     }
 
     fn resolve_feature(

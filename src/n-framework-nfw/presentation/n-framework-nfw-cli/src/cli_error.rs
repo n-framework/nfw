@@ -80,6 +80,6 @@ impl From<&str> for CliError {
 
 impl From<EntityGenerationError> for CliError {
     fn from(error: EntityGenerationError) -> Self {
-        Self::silent(ExitCodes::ValidationError as i32, error.to_string())
+        Self::new(ExitCodes::ValidationError as i32, error.to_string())
     }
 }

@@ -1,6 +1,7 @@
 use super::general_type::GeneralType;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PropertyDefinition {
     name: String,
     cli_type: String,

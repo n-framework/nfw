@@ -10,18 +10,10 @@ fn sample_schema() -> EntitySchema {
     EntitySchema::new(
         "Product".to_owned(),
         GeneralType::Uuid,
-        &EntityType::Entity,
+        EntityType::Entity,
         vec![
-            SchemaProperty {
-                name: "Name".to_owned(),
-                general_type: GeneralType::String,
-                nullable: false,
-            },
-            SchemaProperty {
-                name: "Price".to_owned(),
-                general_type: GeneralType::Decimal,
-                nullable: true,
-            },
+            SchemaProperty::new("Name".to_owned(), GeneralType::String, false),
+            SchemaProperty::new("Price".to_owned(), GeneralType::Decimal, false),
         ],
     )
 }
@@ -43,9 +35,9 @@ fn write_and_read_roundtrip() {
     let read_back = store
         .read_schema(&schema_path)
         .expect("read should succeed");
-    assert_eq!(read_back.entity, schema.entity);
-    assert_eq!(read_back.id_type, schema.id_type);
-    assert_eq!(read_back.properties.len(), 2);
+    assert_eq!(read_back.entity(), schema.entity());
+    assert_eq!(read_back.id_type(), schema.id_type());
+    assert_eq!(read_back.properties().len(), 2);
 }
 
 #[test]

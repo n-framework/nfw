@@ -28,6 +28,30 @@ impl GeneralType {
         }
     }
 
+    pub fn to_csharp_type(&self) -> &'static str {
+        match self {
+            Self::String => "string",
+            Self::Integer => "long",
+            Self::Decimal => "decimal",
+            Self::Boolean => "bool",
+            Self::DateTime => "DateTimeOffset",
+            Self::Uuid => "Guid",
+            Self::Bytes => "byte[]",
+        }
+    }
+
+    pub fn to_rust_type(&self) -> &'static str {
+        match self {
+            Self::String => "String",
+            Self::Integer => "i64",
+            Self::Decimal => "Decimal",
+            Self::Boolean => "bool",
+            Self::DateTime => "DateTime<Utc>",
+            Self::Uuid => "Uuid",
+            Self::Bytes => "Vec<u8>",
+        }
+    }
+
     pub fn supported_cli_types() -> &'static [&'static str] {
         &[
             "string",

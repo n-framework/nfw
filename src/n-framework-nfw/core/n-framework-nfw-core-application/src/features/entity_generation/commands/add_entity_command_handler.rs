@@ -1,16 +1,13 @@
 use std::path::Path;
 
 use n_framework_nfw_core_domain::features::entity_generation::entities::add_entity_command::AddEntityCommand;
-use n_framework_nfw_core_domain::features::entity_generation::entities::entity_schema::{
-    EntitySchema, SchemaProperty,
-};
+use n_framework_nfw_core_domain::features::entity_generation::entities::entity_schema::EntitySchema;
 use n_framework_nfw_core_domain::features::entity_generation::errors::entity_generation_error::EntityGenerationError;
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::general_type::GeneralType;
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::service_info::ServiceInfo;
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::workspace_context::WorkspaceContext;
 
 use crate::features::entity_generation::abstractions::entity_schema_store::EntitySchemaStore;
-use crate::features::entity_generation::services::entity_name_validator::EntityNameValidator;
 use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use crate::features::template_management::services::artifact_generation_service::{
@@ -19,7 +16,18 @@ use crate::features::template_management::services::artifact_generation_service:
 };
 use crate::features::template_management::services::template_engine::TemplateEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use std::path::PathBuf;
 
+const PARAM_PROPERTIES: &str = "Properties";
+const PARAM_ID_TYPE: &str = "IdType";
+const PARAM_ENTITY_TYPE: &str = "EntityType";
+
+/// Orchestrates the process of adding a new entity.
+///
+/// This handler coordinates several steps:
+/// 1. Validating the feature directory and persistence module.
+/// 2. Handling schema creation/reading (including `--from-schema`).
+/// 3. Invoking the template engine to generate code artifacts.
 #[derive(Debug, Clone)]
 pub struct AddEntityCommandHandler<W, R, E, S> {
     artifact_service: ArtifactGenerationService<W, R, E>,
@@ -44,21 +52,28 @@ where
         }
     }
 
+    /// Executes the command to add a new entity.
+    ///
+    /// Returns the generated `EntitySchema` and the path to the schema file.
     pub fn handle(
         &self,
         command: &AddEntityCommand,
         workspace: &WorkspaceContext,
         service: &ServiceInfo,
-    ) -> Result<EntitySchema, EntityGenerationError> {
-        EntityNameValidator::validate(command.entity_name())?;
-        self.validate_id_type(command)?;
+    ) -> Result<(EntitySchema, PathBuf), EntityGenerationError> {
+        self.validate_feature(command, workspace, service)?;
         self.validate_persistence_module(service)?;
 
         if let Some(schema_path) = command.from_schema() {
-            return self.handle_from_schema(schema_path, command);
+            let schema = self.handle_from_schema(schema_path, command)?;
+            if !command.is_schema_only() {
+                self.invoke_template_engine(command, workspace, service)?;
+            }
+
+            return Ok((schema, schema_path.clone()));
         }
 
-        let schema = self.build_schema(command);
+        let schema = EntitySchema::from_command(command);
         let specs_dir = service
             .path()
             .join("specs")
@@ -78,12 +93,24 @@ where
                 "Schema file created at {}. Skipping template invocation (--schema-only).",
                 schema_file.display()
             );
-            return Ok(schema);
+            return Ok((schema, schema_file));
         }
 
         self.invoke_template_engine(command, workspace, service)?;
 
-        Ok(schema)
+        Ok((schema, schema_file))
+    }
+
+    pub fn validate_id_type(
+        &self,
+        command: &AddEntityCommand,
+    ) -> Result<(), EntityGenerationError> {
+        match command.id_type() {
+            GeneralType::Integer | GeneralType::Uuid | GeneralType::String => Ok(()),
+            other => Err(EntityGenerationError::UnsupportedIdType {
+                id_type: other.to_string(),
+            }),
+        }
     }
 
     pub fn get_workspace_context(&self) -> Result<TemplateWorkspaceContext, AddArtifactError> {
@@ -115,44 +142,32 @@ where
         self.artifact_service.list_features(workspace, service)
     }
 
-    fn validate_id_type(&self, command: &AddEntityCommand) -> Result<(), EntityGenerationError> {
-        match command.id_type() {
-            GeneralType::Integer | GeneralType::Uuid | GeneralType::String => Ok(()),
-            other => Err(EntityGenerationError::UnsupportedIdType {
-                id_type: other.to_string(),
-            }),
+    fn validate_feature(
+        &self,
+        command: &AddEntityCommand,
+        _workspace: &WorkspaceContext,
+        service: &ServiceInfo,
+    ) -> Result<(), EntityGenerationError> {
+        let feature_path = service.path().join("Features").join(command.feature());
+
+        if !feature_path.exists() {
+            return Err(EntityGenerationError::FeatureNotFound {
+                feature: command.feature().to_string(),
+            });
         }
+        Ok(())
     }
 
     fn validate_persistence_module(
         &self,
         service: &ServiceInfo,
     ) -> Result<(), EntityGenerationError> {
-        if !service.has_module("persistence") {
+        if !service.modules().iter().any(|m| m == "persistence") {
             return Err(EntityGenerationError::MissingPersistenceModule {
-                service_name: service.name().to_owned(),
+                service_name: service.name().to_string(),
             });
         }
         Ok(())
-    }
-
-    fn build_schema(&self, command: &AddEntityCommand) -> EntitySchema {
-        let properties = command
-            .properties()
-            .iter()
-            .map(|p| SchemaProperty {
-                name: p.name().to_owned(),
-                general_type: p.general_type().clone(),
-                nullable: p.nullable(),
-            })
-            .collect();
-
-        EntitySchema::new(
-            command.entity_name().to_owned(),
-            command.id_type().clone(),
-            command.entity_type(),
-            properties,
-        )
     }
 
     fn handle_from_schema(
@@ -187,12 +202,12 @@ where
         let app_workspace = self
             .artifact_service
             .get_workspace_context()
-            .map_err(|e| EntityGenerationError::Internal(e.to_string()))?;
+            .map_err(map_add_artifact_error)?;
 
         let services = self
             .artifact_service
             .extract_services(&app_workspace)
-            .map_err(|e| EntityGenerationError::Internal(e.to_string()))?;
+            .map_err(map_add_artifact_error)?;
 
         let app_service = services
             .into_iter()
@@ -228,15 +243,15 @@ where
 
         let mut params = serde_json::Map::new();
         params.insert(
-            "Properties".to_string(),
+            PARAM_PROPERTIES.to_string(),
             serde_json::Value::Array(properties),
         );
         params.insert(
-            "IdType".to_string(),
+            PARAM_ID_TYPE.to_string(),
             serde_json::Value::String(command.id_type().to_string()),
         );
         params.insert(
-            "EntityType".to_string(),
+            PARAM_ENTITY_TYPE.to_string(),
             serde_json::Value::String(command.entity_type().as_schema_value().to_string()),
         );
 
@@ -254,5 +269,26 @@ where
             })?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+#[path = "add_entity_command_handler.tests.rs"]
+mod tests;
+
+fn map_add_artifact_error(e: AddArtifactError) -> EntityGenerationError {
+    match e {
+        AddArtifactError::WorkspaceError(reason) => {
+            EntityGenerationError::WorkspaceError { reason }
+        }
+        AddArtifactError::ConfigError(reason)
+        | AddArtifactError::NfwYamlReadError(reason)
+        | AddArtifactError::NfwYamlParseError(reason) => {
+            EntityGenerationError::ConfigError { reason }
+        }
+        AddArtifactError::ExecutionFailed(err) => EntityGenerationError::TemplateExecutionError {
+            reason: err.to_string(),
+        },
+        other => EntityGenerationError::Internal(other.to_string()),
     }
 }

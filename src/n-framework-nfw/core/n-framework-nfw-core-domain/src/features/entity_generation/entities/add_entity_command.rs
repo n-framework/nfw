@@ -1,18 +1,62 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+use super::super::errors::entity_generation_error::EntityGenerationError;
 use super::super::value_objects::general_type::GeneralType;
 use super::super::value_objects::property_definition::PropertyDefinition;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EntityGenerationOptions {
-    pub service_name: Option<String>,
-    pub feature: String,
-    pub schema_only: bool,
-    pub from_schema: Option<PathBuf>,
-    pub non_interactive: bool,
+    service_name: Option<String>,
+    feature: String,
+    schema_only: bool,
+    from_schema: Option<PathBuf>,
+    non_interactive: bool,
 }
 
-#[derive(Debug, Clone)]
+impl EntityGenerationOptions {
+    pub fn new(
+        service_name: Option<String>,
+        feature: String,
+        schema_only: bool,
+        from_schema: Option<PathBuf>,
+        non_interactive: bool,
+    ) -> Self {
+        Self {
+            service_name,
+            feature,
+            schema_only,
+            from_schema,
+            non_interactive,
+        }
+    }
+
+    pub fn service_name(&self) -> Option<&str> {
+        self.service_name.as_deref()
+    }
+
+    pub fn feature(&self) -> &str {
+        &self.feature
+    }
+
+    pub fn schema_only(&self) -> bool {
+        self.schema_only
+    }
+
+    pub fn from_schema(&self) -> Option<&PathBuf> {
+        self.from_schema.as_ref()
+    }
+
+    pub fn non_interactive(&self) -> bool {
+        self.non_interactive
+    }
+}
+
+/// Domain command for adding a new entity to a service.
+///
+/// This command contains all the necessary data to generate both the
+/// persistence schema file and the actual entity source code.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddEntityCommand {
     entity_name: String,
     properties: Vec<PropertyDefinition>,
@@ -21,15 +65,24 @@ pub struct AddEntityCommand {
     options: EntityGenerationOptions,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+/// Represents the type of entity being generated.
+///
+/// Different entity types trigger different templates and add specific
+/// metadata or base classes (e.g., Auditable, SoftDeletable).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum EntityType {
+    /// A standard domain entity.
     #[default]
     Entity,
+    /// An entity that tracks creation and modification timestamps/users.
     AuditableEntity,
+    /// An entity that supports logical deletion instead of physical deletion.
     SoftDeletableEntity,
 }
 
 impl EntityType {
+    /// Returns the string representation used in schema files.
     pub fn as_schema_value(&self) -> &str {
         match self {
             Self::Entity => "entity",
@@ -55,20 +108,61 @@ impl std::fmt::Display for EntityType {
 }
 
 impl AddEntityCommand {
-    pub fn new(
+    /// Attempts to create a new AddEntityCommand with validation.
+    ///
+    /// # Errors
+    ///
+    /// Returns `EntityGenerationError::InvalidEntityName` if the name violates
+    /// naming conventions (PascalCase, alphanumeric).
+    pub fn try_new(
         entity_name: String,
         properties: Vec<PropertyDefinition>,
         id_type: GeneralType,
         entity_type: EntityType,
         options: EntityGenerationOptions,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, EntityGenerationError> {
+        Self::validate_name(&entity_name)?;
+
+        Ok(Self {
             entity_name,
             properties,
             id_type,
             entity_type,
             options,
+        })
+    }
+
+    fn validate_name(name: &str) -> Result<(), EntityGenerationError> {
+        if name.is_empty() {
+            return Err(EntityGenerationError::InvalidEntityName {
+                name: name.to_owned(),
+                reason: "entity name cannot be empty".to_owned(),
+            });
         }
+
+        if name.starts_with(|c: char| c.is_ascii_digit()) {
+            return Err(EntityGenerationError::InvalidEntityName {
+                name: name.to_owned(),
+                reason: "entity name must not start with a digit".to_owned(),
+            });
+        }
+
+        if !name.chars().all(|c| c.is_alphanumeric() || c == '_') {
+            return Err(EntityGenerationError::InvalidEntityName {
+                name: name.to_owned(),
+                reason: "entity name must contain only alphanumeric characters and underscores"
+                    .to_owned(),
+            });
+        }
+
+        if !name.starts_with(|c: char| c.is_uppercase()) {
+            return Err(EntityGenerationError::InvalidEntityName {
+                name: name.to_owned(),
+                reason: "entity name must start with an uppercase letter (PascalCase)".to_owned(),
+            });
+        }
+
+        Ok(())
     }
 
     pub fn entity_name(&self) -> &str {
@@ -88,22 +182,22 @@ impl AddEntityCommand {
     }
 
     pub fn service_name(&self) -> Option<&str> {
-        self.options.service_name.as_deref()
+        self.options.service_name()
     }
 
     pub fn feature(&self) -> &str {
-        &self.options.feature
+        self.options.feature()
     }
 
     pub fn is_schema_only(&self) -> bool {
-        self.options.schema_only
+        self.options.schema_only()
     }
 
     pub fn from_schema(&self) -> Option<&PathBuf> {
-        self.options.from_schema.as_ref()
+        self.options.from_schema()
     }
 
     pub fn is_non_interactive(&self) -> bool {
-        self.options.non_interactive
+        self.options.non_interactive()
     }
 }

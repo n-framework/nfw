@@ -27,26 +27,17 @@ impl EntitySchemaStore for FileSystemEntitySchemaStore {
         specs_dir: &Path,
         schema: &EntitySchema,
     ) -> Result<(), EntityGenerationError> {
-        if specs_dir.exists() && !specs_dir.is_dir() {
-            return Err(EntityGenerationError::SpecsPathNotDirectory {
+        std::fs::create_dir_all(specs_dir).map_err(|e| {
+            EntityGenerationError::DirectoryCreationError {
                 path: specs_dir.to_path_buf(),
-            });
-        }
-
-        if !specs_dir.exists() {
-            fs::create_dir_all(specs_dir).map_err(|e| {
-                EntityGenerationError::DirectoryCreationError {
-                    path: specs_dir.to_path_buf(),
-                    reason: e.to_string(),
-                }
-            })?;
-        }
-
-        let schema_path = specs_dir.join(format!("{}.yaml", schema.entity));
-        let yaml =
-            serde_yaml::to_string(schema).map_err(|e| EntityGenerationError::SchemaWriteError {
-                path: schema_path.clone(),
                 reason: e.to_string(),
+            }
+        })?;
+
+        let schema_path = specs_dir.join(format!("{}.yaml", schema.entity()));
+        let yaml =
+            serde_yaml::to_string(schema).map_err(|e| EntityGenerationError::ConfigError {
+                reason: format!("failed to serialize schema: {e}"),
             })?;
 
         fs::write(&schema_path, &yaml).map_err(|e| EntityGenerationError::SchemaWriteError {

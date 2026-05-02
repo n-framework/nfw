@@ -25,6 +25,9 @@ pub enum EntityGenerationError {
     #[error("service '{name}' not found in workspace")]
     ServiceNotFound { name: String },
 
+    #[error("feature '{feature}' not found in service")]
+    FeatureNotFound { feature: String },
+
     #[error(
         "service '{service_name}' does not have the persistence module. \
          Add it with: nfw add persistence --service {service_name}"
@@ -60,6 +63,12 @@ pub enum EntityGenerationError {
 
     #[error("interactive prompt failed: {reason}")]
     PromptError { reason: String },
+
+    #[error("workspace error: {reason}")]
+    WorkspaceError { reason: String },
+
+    #[error("configuration error: {reason}")]
+    ConfigError { reason: String },
 
     #[error("{0}")]
     Internal(String),

@@ -32,6 +32,7 @@ fn make_opts(
     name: &str,
     feature: Option<&str>,
     properties: Option<&str>,
+    from_schema: Option<&str>,
     no_input: bool,
 ) -> HashMap<String, String> {
     let mut opts = HashMap::new();
@@ -41,6 +42,9 @@ fn make_opts(
     }
     if let Some(p) = properties {
         opts.insert("properties".to_string(), p.to_string());
+    }
+    if let Some(s) = from_schema {
+        opts.insert("from-schema".to_string(), s.to_string());
     }
     if no_input {
         opts.insert("no-input".to_string(), "true".to_string());
@@ -62,13 +66,19 @@ fn run(sandbox: &Path, opts: HashMap<String, String>) -> Result<(), String> {
 fn fails_on_invalid_entity_name() {
     let sandbox = support::create_sandbox_directory("gen-entity-invalid-name");
 
-    fs::create_dir_all(sandbox.join("src/Application")).unwrap();
+    fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
         sandbox.join("nfw.yaml"),
         "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
     ).unwrap();
 
-    let opts = make_opts("invalid_name", Some("Catalog"), Some("Name:string"), true);
+    let opts = make_opts(
+        "invalid_name",
+        Some("Catalog"),
+        Some("Name:string"),
+        None,
+        true,
+    );
 
     let result = run(&sandbox, opts);
     assert!(result.is_err());
@@ -86,13 +96,13 @@ fn fails_on_invalid_entity_name() {
 fn fails_on_invalid_property_syntax() {
     let sandbox = support::create_sandbox_directory("gen-entity-invalid-prop");
 
-    fs::create_dir_all(sandbox.join("src/Application")).unwrap();
+    fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
         sandbox.join("nfw.yaml"),
         "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
     ).unwrap();
 
-    let opts = make_opts("Product", Some("Catalog"), Some("Name-string"), true); // Missing colon
+    let opts = make_opts("Product", Some("Catalog"), Some("Name-string"), None, true); // Missing colon
 
     let result = run(&sandbox, opts);
     assert!(result.is_err());
@@ -110,20 +120,77 @@ fn fails_on_invalid_property_syntax() {
 fn fails_when_no_persistence_module_found() {
     let sandbox = support::create_sandbox_directory("gen-entity-no-persist");
 
-    fs::create_dir_all(sandbox.join("src/Application")).unwrap();
+    fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     // Missing persistence module
     fs::write(
         sandbox.join("nfw.yaml"),
         "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n",
     ).unwrap();
 
-    let opts = make_opts("Product", Some("Catalog"), Some("Name:string"), true);
+    let opts = make_opts("Product", Some("Catalog"), Some("Name:string"), None, true);
 
     let result = run(&sandbox, opts);
     assert!(result.is_err());
     let err_msg = result.unwrap_err();
     assert!(
         err_msg.contains("does not have the persistence module"),
+        "Actual error: {}",
+        err_msg
+    );
+
+    support::cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn fails_on_missing_schema_file() {
+    let sandbox = support::create_sandbox_directory("gen-entity-missing-schema");
+
+    fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
+    fs::write(
+        sandbox.join("nfw.yaml"),
+        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+    ).unwrap();
+
+    let opts = make_opts("Product", Some("Catalog"), None, Some("missing.yaml"), true);
+
+    let result = run(&sandbox, opts);
+    assert!(result.is_err());
+    let err_msg = result.unwrap_err();
+    assert!(
+        err_msg.contains("schema file not found"),
+        "Actual error: {}",
+        err_msg
+    );
+
+    support::cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn fails_on_invalid_schema_yaml() {
+    let sandbox = support::create_sandbox_directory("gen-entity-invalid-schema-yaml");
+
+    fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
+    fs::write(
+        sandbox.join("nfw.yaml"),
+        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+    ).unwrap();
+
+    let schema_path = sandbox.join("invalid.yaml");
+    fs::write(&schema_path, "invalid: yaml: [ : }").unwrap();
+
+    let opts = make_opts(
+        "Product",
+        Some("Catalog"),
+        None,
+        Some(schema_path.to_str().unwrap()),
+        true,
+    );
+
+    let result = run(&sandbox, opts);
+    assert!(result.is_err());
+    let err_msg = result.unwrap_err();
+    assert!(
+        err_msg.contains("invalid schema content"),
         "Actual error: {}",
         err_msg
     );

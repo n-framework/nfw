@@ -1,56 +1,50 @@
 use super::*;
+use crate::features::entity_generation::entities::add_entity_command::{
+    AddEntityCommand, EntityGenerationOptions, EntityType,
+};
+use crate::features::entity_generation::value_objects::property_definition::PropertyDefinition;
 
 #[test]
 fn new_creates_valid_schema() {
     let schema = EntitySchema::new(
         "Product".to_owned(),
         GeneralType::Uuid,
-        &EntityType::Entity,
+        EntityType::Entity,
         vec![
-            SchemaProperty {
-                name: "Name".to_owned(),
-                general_type: GeneralType::String,
-                nullable: false,
-            },
-            SchemaProperty {
-                name: "Price".to_owned(),
-                general_type: GeneralType::Decimal,
-                nullable: false,
-            },
+            SchemaProperty::new("Name".to_owned(), GeneralType::String, false),
+            SchemaProperty::new("Price".to_owned(), GeneralType::Decimal, false),
         ],
     );
 
-    assert_eq!(schema.entity, "Product");
-    assert_eq!(schema.id_type, GeneralType::Uuid);
-    assert_eq!(schema.entity_type, "entity");
-    assert_eq!(schema.properties.len(), 2);
+    assert_eq!(schema.entity(), "Product");
+    assert_eq!(schema.id_type(), &GeneralType::Uuid);
+    assert_eq!(schema.entity_type(), &EntityType::Entity);
+    assert_eq!(schema.properties().len(), 2);
 }
 
 #[test]
-fn entity_type_parsed_returns_entity_type() {
-    let schema = EntitySchema::new(
-        "Order".to_owned(),
-        GeneralType::Integer,
-        &EntityType::AuditableEntity,
-        vec![],
-    );
+fn from_command_creates_valid_schema() {
+    let command = AddEntityCommand::try_new(
+        "Product".to_owned(),
+        vec![PropertyDefinition::new(
+            "Name".to_owned(),
+            "string".to_owned(),
+            GeneralType::String,
+            false,
+        )],
+        GeneralType::Uuid,
+        EntityType::Entity,
+        EntityGenerationOptions::new(None, "Catalog".to_owned(), false, None, true),
+    )
+    .expect("valid command");
 
-    assert_eq!(
-        schema.entity_type_parsed(),
-        Some(EntityType::AuditableEntity)
-    );
-}
+    let schema = EntitySchema::from_command(&command);
 
-#[test]
-fn entity_type_parsed_returns_none_for_unknown() {
-    let schema = EntitySchema {
-        entity: "Foo".to_owned(),
-        id_type: GeneralType::Integer,
-        entity_type: "unknown-type".to_owned(),
-        properties: vec![],
-    };
-
-    assert_eq!(schema.entity_type_parsed(), None);
+    assert_eq!(schema.entity(), "Product");
+    assert_eq!(schema.id_type(), &GeneralType::Uuid);
+    assert_eq!(schema.entity_type(), &EntityType::Entity);
+    assert_eq!(schema.properties().len(), 1);
+    assert_eq!(schema.properties()[0].name(), "Name");
 }
 
 #[test]
@@ -58,18 +52,10 @@ fn serde_roundtrip_yaml() {
     let schema = EntitySchema::new(
         "Product".to_owned(),
         GeneralType::Uuid,
-        &EntityType::Entity,
+        EntityType::Entity,
         vec![
-            SchemaProperty {
-                name: "Name".to_owned(),
-                general_type: GeneralType::String,
-                nullable: false,
-            },
-            SchemaProperty {
-                name: "Price".to_owned(),
-                general_type: GeneralType::Decimal,
-                nullable: true,
-            },
+            SchemaProperty::new("Name".to_owned(), GeneralType::String, false),
+            SchemaProperty::new("Price".to_owned(), GeneralType::Decimal, true),
         ],
     );
 
@@ -84,12 +70,12 @@ fn yaml_matches_expected_format() {
     let schema = EntitySchema::new(
         "Product".to_owned(),
         GeneralType::Uuid,
-        &EntityType::Entity,
-        vec![SchemaProperty {
-            name: "Name".to_owned(),
-            general_type: GeneralType::String,
-            nullable: false,
-        }],
+        EntityType::Entity,
+        vec![SchemaProperty::new(
+            "Name".to_owned(),
+            GeneralType::String,
+            false,
+        )],
     );
 
     let yaml = serde_yaml::to_string(&schema).expect("serialize");

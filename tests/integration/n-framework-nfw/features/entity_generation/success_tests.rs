@@ -67,7 +67,7 @@ fn generates_entity_successfully() {
     let sandbox = support::create_sandbox_directory("gen-entity-success");
 
     // Write a dummy workspace
-    fs::create_dir_all(sandbox.join("src/Application")).unwrap();
+    fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
         sandbox.join("nfw.yaml"),
         "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: mock-entity-template\n    modules:\n      - persistence\ntemplate_sources:\n  local: \"templates\"\n",

@@ -1,45 +1,99 @@
 use serde::{Deserialize, Serialize};
 
 use super::super::value_objects::general_type::GeneralType;
-use super::add_entity_command::EntityType;
+use super::add_entity_command::{AddEntityCommand, EntityType};
 
-/// Language-agnostic entity schema stored as YAML.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
+/// Represents the persistence schema for an entity.
+///
+/// This is typically serialized to a YAML file in the service's `specs` directory
+/// and serves as the source of truth for code generation when using `--from-schema`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntitySchema {
-    pub entity: String,
-    pub id_type: GeneralType,
-    pub entity_type: String,
-    pub properties: Vec<SchemaProperty>,
+    entity: String,
+    id_type: GeneralType,
+    entity_type: EntityType,
+    properties: Vec<SchemaProperty>,
 }
 
-/// A single property within an entity schema.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
+/// A property definition within an `EntitySchema`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SchemaProperty {
-    pub name: String,
+    name: String,
     #[serde(rename = "type")]
-    pub general_type: GeneralType,
-    pub nullable: bool,
+    general_type: GeneralType,
+    nullable: bool,
+}
+
+impl SchemaProperty {
+    pub fn new(name: String, general_type: GeneralType, nullable: bool) -> Self {
+        Self {
+            name,
+            general_type,
+            nullable,
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn general_type(&self) -> &GeneralType {
+        &self.general_type
+    }
+
+    pub fn nullable(&self) -> bool {
+        self.nullable
+    }
 }
 
 impl EntitySchema {
     pub fn new(
         entity_name: String,
         id_type: GeneralType,
-        entity_type: &EntityType,
+        entity_type: EntityType,
         properties: Vec<SchemaProperty>,
     ) -> Self {
         Self {
             entity: entity_name,
             id_type,
-            entity_type: entity_type.as_schema_value().to_owned(),
+            entity_type,
             properties,
         }
     }
 
-    pub fn entity_type_parsed(&self) -> Option<EntityType> {
-        EntityType::from_str_value(&self.entity_type)
+    pub fn from_command(command: &AddEntityCommand) -> Self {
+        Self::new(
+            command.entity_name().to_string(),
+            command.id_type().clone(),
+            command.entity_type().clone(),
+            command
+                .properties()
+                .iter()
+                .map(|p| {
+                    SchemaProperty::new(
+                        p.name().to_string(),
+                        p.general_type().clone(),
+                        p.nullable(),
+                    )
+                })
+                .collect(),
+        )
+    }
+
+    pub fn entity(&self) -> &str {
+        &self.entity
+    }
+
+    pub fn id_type(&self) -> &GeneralType {
+        &self.id_type
+    }
+
+    pub fn entity_type(&self) -> &EntityType {
+        &self.entity_type
+    }
+
+    pub fn properties(&self) -> &[SchemaProperty] {
+        &self.properties
     }
 }
 
