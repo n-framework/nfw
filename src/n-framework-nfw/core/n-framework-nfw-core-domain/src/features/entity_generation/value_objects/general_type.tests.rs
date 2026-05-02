@@ -51,6 +51,10 @@ fn from_cli_type_maps_datetime_variants() {
         Some(GeneralType::DateTime)
     );
     assert_eq!(
+        GeneralType::from_cli_type("datetime"),
+        Some(GeneralType::DateTime)
+    );
+    assert_eq!(
         GeneralType::from_cli_type("DateTimeOffset"),
         Some(GeneralType::DateTime)
     );
@@ -59,6 +63,8 @@ fn from_cli_type_maps_datetime_variants() {
 #[test]
 fn from_cli_type_maps_guid_to_uuid() {
     assert_eq!(GeneralType::from_cli_type("Guid"), Some(GeneralType::Uuid));
+    assert_eq!(GeneralType::from_cli_type("guid"), Some(GeneralType::Uuid));
+    assert_eq!(GeneralType::from_cli_type("GUID"), Some(GeneralType::Uuid));
 }
 
 #[test]

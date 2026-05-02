@@ -1,3 +1,6 @@
+use super::global_constants::GlobalConstants;
+use super::validation_utils::ValidationUtils;
+use crate::features::entity_generation::errors::entity_generation_error::EntityGenerationError;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -5,22 +8,24 @@ pub struct ServiceInfo {
     name: String,
     path: PathBuf,
     modules: Vec<String>,
-    entity_specs_path: Option<PathBuf>,
 }
 
 impl ServiceInfo {
-    pub fn new(
-        name: String,
-        path: PathBuf,
-        modules: Vec<String>,
-        entity_specs_path: Option<PathBuf>,
-    ) -> Self {
+    pub fn new(name: String, path: PathBuf, modules: Vec<String>) -> Self {
         Self {
             name,
             path,
             modules,
-            entity_specs_path,
         }
+    }
+
+    pub fn try_new(
+        name: String,
+        path: PathBuf,
+        modules: Vec<String>,
+    ) -> Result<Self, EntityGenerationError> {
+        ValidationUtils::validate_pascal_case(&name, GlobalConstants::SERVICE_LABEL)?;
+        Ok(Self::new(name, path, modules))
     }
 
     pub fn name(&self) -> &str {
@@ -34,18 +39,8 @@ impl ServiceInfo {
     pub fn modules(&self) -> &[String] {
         &self.modules
     }
-
-    pub fn has_module(&self, module: &str) -> bool {
-        self.modules.iter().any(|m| m == module)
-    }
-
-    pub fn entity_specs_path(&self) -> Option<&PathBuf> {
-        self.entity_specs_path.as_ref()
-    }
-
-    pub fn resolved_entity_specs_path(&self) -> PathBuf {
-        self.entity_specs_path
-            .clone()
-            .unwrap_or_else(|| self.path.join("specs").join("entities"))
-    }
 }
+
+#[cfg(test)]
+#[path = "domain_objects.tests.rs"]
+mod tests;

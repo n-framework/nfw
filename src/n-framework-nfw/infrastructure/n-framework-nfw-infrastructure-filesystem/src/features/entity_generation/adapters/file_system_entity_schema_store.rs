@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::Path;
+use tracing;
 
 use n_framework_nfw_core_application::features::entity_generation::abstractions::entity_schema_store::EntitySchemaStore;
 use n_framework_nfw_core_domain::features::entity_generation::entities::entity_schema::EntitySchema;
@@ -27,7 +28,13 @@ impl EntitySchemaStore for FileSystemEntitySchemaStore {
         specs_dir: &Path,
         schema: &EntitySchema,
     ) -> Result<(), EntityGenerationError> {
+        tracing::debug!("Ensuring specs directory exists at {}", specs_dir.display());
         std::fs::create_dir_all(specs_dir).map_err(|e| {
+            tracing::error!(
+                "Failed to create specs directory {}: {}",
+                specs_dir.display(),
+                e
+            );
             EntityGenerationError::DirectoryCreationError {
                 path: specs_dir.to_path_buf(),
                 reason: e.to_string(),
@@ -40,16 +47,29 @@ impl EntitySchemaStore for FileSystemEntitySchemaStore {
                 reason: format!("failed to serialize schema: {e}"),
             })?;
 
-        fs::write(&schema_path, &yaml).map_err(|e| EntityGenerationError::SchemaWriteError {
-            path: schema_path,
-            reason: e.to_string(),
+        tracing::info!("Writing entity schema to {}", schema_path.display());
+        fs::write(&schema_path, &yaml).map_err(|e| {
+            tracing::error!(
+                "Failed to write schema file {}: {}",
+                schema_path.display(),
+                e
+            );
+            EntityGenerationError::SchemaWriteError {
+                path: schema_path,
+                reason: e.to_string(),
+            }
         })?;
 
         Ok(())
     }
-
     fn read_schema(&self, schema_path: &Path) -> Result<EntitySchema, EntityGenerationError> {
+        tracing::debug!("Reading entity schema from {}", schema_path.display());
         let content = fs::read_to_string(schema_path).map_err(|e| {
+            tracing::error!(
+                "Failed to read schema file {}: {}",
+                schema_path.display(),
+                e
+            );
             EntityGenerationError::SchemaReadError {
                 path: schema_path.to_path_buf(),
                 reason: e.to_string(),
@@ -57,6 +77,11 @@ impl EntitySchemaStore for FileSystemEntitySchemaStore {
         })?;
 
         let schema: EntitySchema = serde_yaml::from_str(&content).map_err(|e| {
+            tracing::error!(
+                "Failed to parse schema content in {}: {}",
+                schema_path.display(),
+                e
+            );
             EntityGenerationError::InvalidSchemaContent {
                 path: schema_path.to_path_buf(),
                 reason: e.to_string(),

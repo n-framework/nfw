@@ -72,12 +72,7 @@ impl PropertySyntaxParser {
             }
         })?;
 
-        Ok(PropertyDefinition::new(
-            name.to_owned(),
-            cli_type.to_owned(),
-            general_type,
-            nullable,
-        ))
+        PropertyDefinition::try_new(name.to_owned(), general_type, nullable)
     }
 }
 

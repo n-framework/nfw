@@ -162,7 +162,6 @@ fn validate_persistence_module_checks_service() {
         "Catalog".to_owned(),
         PathBuf::from("/src/Catalog"),
         vec!["persistence".to_owned()],
-        None,
     );
     assert!(handler.validate_persistence_module(&service).is_ok());
 
@@ -170,7 +169,6 @@ fn validate_persistence_module_checks_service() {
         "Catalog".to_owned(),
         PathBuf::from("/src/Catalog"),
         vec!["api".to_owned()],
-        None,
     );
     let result = handler.validate_persistence_module(&service);
     assert!(result.is_err());
@@ -202,7 +200,6 @@ fn handle_fails_if_schema_already_exists() {
         "Catalog".to_owned(),
         service_path.clone(),
         vec!["persistence".to_owned()],
-        None,
     );
 
     // We need MockSchemaStore to return true for the specific schema file path
@@ -234,7 +231,9 @@ fn map_add_artifact_error_preserves_context() {
     let err = AddArtifactError::NfwYamlParseError("invalid yaml".to_owned());
     let mapped = map_add_artifact_error(err);
     match mapped {
-        EntityGenerationError::ConfigError { reason } => assert_eq!(reason, "invalid yaml"),
+        EntityGenerationError::ConfigError { reason } => {
+            assert_eq!(reason, "Failed to parse nfw.yaml: invalid yaml")
+        }
         _ => panic!("Expected ConfigError"),
     }
 }

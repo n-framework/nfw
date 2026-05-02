@@ -165,7 +165,7 @@ where
             return Ok(());
         }
 
-        let installed = self.get_service_modules(nfw_yaml, service_path);
+        let installed = self.get_service_modules(nfw_yaml, service_path)?;
 
         for module in required {
             if !installed.iter().any(|m| m == module) {
@@ -179,17 +179,35 @@ where
         Ok(())
     }
 
-    fn get_service_modules(&self, nfw_yaml: &YamlValue, service_path: &Path) -> Vec<String> {
+    fn get_service_modules(
+        &self,
+        nfw_yaml: &YamlValue,
+        service_path: &Path,
+    ) -> Result<Vec<String>, AddArtifactError> {
         let service_path_str = service_path.to_string_lossy();
-        let services = match nfw_yaml.get("services").and_then(|s| s.as_mapping()) {
-            Some(s) => s,
-            None => return Vec::new(),
-        };
+        let services = nfw_yaml
+            .get("services")
+            .and_then(|s| s.as_mapping())
+            .ok_or_else(|| {
+                AddArtifactError::ConfigError(
+                    "nfw.yaml is missing its 'services' mapping".to_string(),
+                )
+            })?;
 
-        for (_name, details) in services {
-            let path = details.get("path").and_then(|v| v.as_str()).unwrap_or("");
+        for (name, details) in services {
+            let path = details
+                .get("path")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| {
+                    let service_name = name.as_str().unwrap_or("unknown");
+                    AddArtifactError::ConfigError(format!(
+                        "service '{}' is missing its 'path' field",
+                        service_name
+                    ))
+                })?;
+
             if path == service_path_str {
-                return details
+                return Ok(details
                     .get("modules")
                     .and_then(|m| m.as_sequence())
                     .map(|seq| {
@@ -198,11 +216,11 @@ where
                             .map(|s| s.to_string())
                             .collect()
                     })
-                    .unwrap_or_default();
+                    .unwrap_or_default());
             }
         }
 
-        Vec::new()
+        Ok(Vec::new())
     }
 
     pub fn get_workspace_context(&self) -> Result<WorkspaceContext, AddArtifactError> {
@@ -229,29 +247,51 @@ where
         workspace: &WorkspaceContext,
     ) -> Result<Vec<ServiceInfo>, AddArtifactError> {
         let mut result = Vec::new();
-        if let Some(services) = workspace.nfw_yaml.get("services")
-            && let Some(map) = services.as_mapping()
-        {
+        if let Some(services) = workspace.nfw_yaml.get("services") {
+            let map = services.as_mapping().ok_or_else(|| {
+                AddArtifactError::ConfigError(
+                    "nfw.yaml is missing its 'services' mapping".to_string(),
+                )
+            })?;
             for (name_val, details_val) in map {
-                if let (Some(name), Some(details)) = (name_val.as_str(), details_val.as_mapping()) {
-                    let path = details
-                        .get("path")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string();
-                    let template_id = details
-                        .get("template")
-                        .and_then(|t| t.as_mapping())
-                        .and_then(|t| t.get("id"))
-                        .and_then(|id| id.as_str())
-                        .unwrap_or("")
-                        .to_string();
-                    result.push(ServiceInfo {
-                        name: name.to_string(),
-                        path,
-                        template_id,
-                    });
-                }
+                let name = name_val.as_str().ok_or_else(|| {
+                    AddArtifactError::ConfigError(
+                        "service key in nfw.yaml must be a string".to_string(),
+                    )
+                })?;
+                let details = details_val.as_mapping().ok_or_else(|| {
+                    AddArtifactError::ConfigError(format!(
+                        "service '{name}' details must be a mapping"
+                    ))
+                })?;
+
+                let path = details
+                    .get("path")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| {
+                        AddArtifactError::ConfigError(format!(
+                            "service '{name}' is missing its 'path' field"
+                        ))
+                    })?
+                    .to_string();
+
+                let template_id = details
+                    .get("template")
+                    .and_then(|t| t.as_mapping())
+                    .and_then(|t| t.get("id"))
+                    .and_then(|id| id.as_str())
+                    .ok_or_else(|| {
+                        AddArtifactError::ConfigError(format!(
+                            "service '{name}' is missing its 'template.id' field"
+                        ))
+                    })?
+                    .to_string();
+
+                result.push(ServiceInfo {
+                    name: name.to_string(),
+                    path,
+                    template_id,
+                });
             }
         }
         Ok(result)
@@ -263,17 +303,40 @@ where
         service: &ServiceInfo,
     ) -> Result<Vec<String>, AddArtifactError> {
         let namespace = self.extract_namespace(&workspace.nfw_yaml)?;
-        let features_root = workspace
-            .workspace_root
-            .join(&service.path)
-            .join("src")
-            .join("core")
-            .join(format!("{}.Core.Application", namespace))
-            .join("Features");
+        let service_root = workspace.workspace_root.join(&service.path);
 
-        if !features_root.is_dir() {
-            return Ok(Vec::new());
+        let possible_roots = vec![
+            service_root
+                .join("src")
+                .join("core")
+                .join(format!("{}.Core.Application", namespace))
+                .join("Features"),
+            service_root
+                .join("src")
+                .join("Application")
+                .join("Features"),
+            service_root.join("src").join("Features"),
+            service_root.join("Features"),
+        ];
+
+        let mut features_root = None;
+        for root in possible_roots {
+            tracing::debug!("Checking for Features root at: {}", root.display());
+            if root.is_dir() {
+                tracing::info!("Found Features root at: {}", root.display());
+                features_root = Some(root);
+                break;
+            }
         }
+
+        let Some(features_root) = features_root else {
+            tracing::warn!(
+                "No Features directory found in service '{}' ({})",
+                service.name,
+                service.path
+            );
+            return Ok(Vec::new());
+        };
 
         let mut features = Vec::new();
         if let Ok(entries) = fs::read_dir(features_root) {

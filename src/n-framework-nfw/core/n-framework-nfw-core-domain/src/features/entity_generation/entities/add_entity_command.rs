@@ -3,7 +3,9 @@ use std::path::PathBuf;
 
 use super::super::errors::entity_generation_error::EntityGenerationError;
 use super::super::value_objects::general_type::GeneralType;
+use super::super::value_objects::global_constants::GlobalConstants;
 use super::super::value_objects::property_definition::PropertyDefinition;
+use super::super::value_objects::validation_utils::ValidationUtils;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EntityGenerationOptions {
@@ -133,36 +135,7 @@ impl AddEntityCommand {
     }
 
     fn validate_name(name: &str) -> Result<(), EntityGenerationError> {
-        if name.is_empty() {
-            return Err(EntityGenerationError::InvalidEntityName {
-                name: name.to_owned(),
-                reason: "entity name cannot be empty".to_owned(),
-            });
-        }
-
-        if name.starts_with(|c: char| c.is_ascii_digit()) {
-            return Err(EntityGenerationError::InvalidEntityName {
-                name: name.to_owned(),
-                reason: "entity name must not start with a digit".to_owned(),
-            });
-        }
-
-        if !name.chars().all(|c| c.is_alphanumeric() || c == '_') {
-            return Err(EntityGenerationError::InvalidEntityName {
-                name: name.to_owned(),
-                reason: "entity name must contain only alphanumeric characters and underscores"
-                    .to_owned(),
-            });
-        }
-
-        if !name.starts_with(|c: char| c.is_uppercase()) {
-            return Err(EntityGenerationError::InvalidEntityName {
-                name: name.to_owned(),
-                reason: "entity name must start with an uppercase letter (PascalCase)".to_owned(),
-            });
-        }
-
-        Ok(())
+        ValidationUtils::validate_pascal_case(name, GlobalConstants::ENTITY_LABEL)
     }
 
     pub fn entity_name(&self) -> &str {
@@ -201,3 +174,7 @@ impl AddEntityCommand {
         self.options.non_interactive()
     }
 }
+
+#[cfg(test)]
+#[path = "add_entity_command.tests.rs"]
+mod tests;

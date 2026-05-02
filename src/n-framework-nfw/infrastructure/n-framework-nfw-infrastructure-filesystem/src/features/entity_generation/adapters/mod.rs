@@ -1,1 +1,2 @@
+pub mod entity_generation_parameters;
 pub mod file_system_entity_schema_store;

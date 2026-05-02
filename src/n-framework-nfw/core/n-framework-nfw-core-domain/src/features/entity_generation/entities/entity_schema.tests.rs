@@ -28,7 +28,6 @@ fn from_command_creates_valid_schema() {
         "Product".to_owned(),
         vec![PropertyDefinition::new(
             "Name".to_owned(),
-            "string".to_owned(),
             GeneralType::String,
             false,
         )],
@@ -86,4 +85,33 @@ fn yaml_matches_expected_format() {
     assert!(yaml.contains("name: Name"));
     assert!(yaml.contains("type: string"));
     assert!(yaml.contains("nullable: false"));
+}
+
+#[test]
+fn try_new_validates_entity_name() {
+    let result = EntitySchema::try_new(
+        "invalid name".to_owned(),
+        GeneralType::Uuid,
+        EntityType::Entity,
+        vec![],
+    );
+
+    assert!(result.is_err());
+    if let Err(EntityGenerationError::InvalidEntityName { reason, .. }) = result {
+        assert!(reason.contains("entity name"));
+    } else {
+        panic!("Expected InvalidEntityName error");
+    }
+}
+
+#[test]
+fn schema_property_try_new_validates_name() {
+    let result = SchemaProperty::try_new("invalid name".to_owned(), GeneralType::String, false);
+
+    assert!(result.is_err());
+    if let Err(EntityGenerationError::InvalidEntityName { reason, .. }) = result {
+        assert!(reason.contains("property name"));
+    } else {
+        panic!("Expected InvalidEntityName error");
+    }
 }

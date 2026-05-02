@@ -85,7 +85,6 @@ where
             selected_art_service.name().to_owned(),
             service_path,
             modules,
-            None,
         );
 
         let workspace = WorkspaceContext::new(
@@ -97,6 +96,9 @@ where
             .handler
             .list_features(&art_workspace, &selected_art_service)
             .map_err(|e| CliError::internal(format!("failed to list features: {e}")))?;
+
+        tracing::debug!("Existing features discovered: {:?}", existing_features);
+
         let feature = self.resolve_feature(&request, existing_features)?;
 
         let name = self.resolve_name(&request)?;

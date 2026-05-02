@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+use super::super::errors::entity_generation_error::EntityGenerationError;
 use super::super::value_objects::general_type::GeneralType;
+use super::super::value_objects::global_constants::GlobalConstants;
+use super::super::value_objects::validation_utils::ValidationUtils;
 use super::add_entity_command::{AddEntityCommand, EntityType};
 
 /// Represents the persistence schema for an entity.
@@ -33,6 +36,15 @@ impl SchemaProperty {
         }
     }
 
+    pub fn try_new(
+        name: String,
+        general_type: GeneralType,
+        nullable: bool,
+    ) -> Result<Self, EntityGenerationError> {
+        ValidationUtils::validate_pascal_case(&name, GlobalConstants::PROPERTY_LABEL)?;
+        Ok(Self::new(name, general_type, nullable))
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -59,6 +71,16 @@ impl EntitySchema {
             entity_type,
             properties,
         }
+    }
+
+    pub fn try_new(
+        entity_name: String,
+        id_type: GeneralType,
+        entity_type: EntityType,
+        properties: Vec<SchemaProperty>,
+    ) -> Result<Self, EntityGenerationError> {
+        ValidationUtils::validate_pascal_case(&entity_name, GlobalConstants::ENTITY_LABEL)?;
+        Ok(Self::new(entity_name, id_type, entity_type, properties))
     }
 
     pub fn from_command(command: &AddEntityCommand) -> Self {

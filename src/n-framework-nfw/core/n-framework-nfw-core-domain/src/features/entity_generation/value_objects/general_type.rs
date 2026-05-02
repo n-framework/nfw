@@ -16,13 +16,13 @@ pub enum GeneralType {
 
 impl GeneralType {
     pub fn from_cli_type(cli_type: &str) -> Option<Self> {
-        match cli_type {
+        match cli_type.to_lowercase().as_str() {
             "string" => Some(Self::String),
             "int" | "long" => Some(Self::Integer),
             "decimal" | "double" | "float" => Some(Self::Decimal),
             "bool" => Some(Self::Boolean),
-            "DateTime" | "DateTimeOffset" => Some(Self::DateTime),
-            "Guid" => Some(Self::Uuid),
+            "datetime" | "datetimeoffset" => Some(Self::DateTime),
+            "guid" => Some(Self::Uuid),
             "byte[]" => Some(Self::Bytes),
             _ => None,
         }
@@ -61,9 +61,9 @@ impl GeneralType {
             "double",
             "float",
             "bool",
-            "DateTime",
-            "DateTimeOffset",
-            "Guid",
+            "datetime",
+            "datetimeoffset",
+            "guid",
             "byte[]",
         ]
     }

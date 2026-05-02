@@ -1,6 +1,7 @@
-use std::path::PathBuf;
-
 use super::service_info::ServiceInfo;
+use crate::features::entity_generation::errors::entity_generation_error::EntityGenerationError;
+use std::collections::HashSet;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceContext {
@@ -11,6 +12,22 @@ pub struct WorkspaceContext {
 impl WorkspaceContext {
     pub fn new(root: PathBuf, services: Vec<ServiceInfo>) -> Self {
         Self { root, services }
+    }
+
+    pub fn try_new(
+        root: PathBuf,
+        services: Vec<ServiceInfo>,
+    ) -> Result<Self, EntityGenerationError> {
+        let mut names = HashSet::new();
+        for service in &services {
+            if !names.insert(service.name().to_string()) {
+                return Err(EntityGenerationError::InvalidEntityName {
+                    name: service.name().to_string(),
+                    reason: "duplicate service name in workspace".to_string(),
+                });
+            }
+        }
+        Ok(Self::new(root, services))
     }
 
     pub fn root(&self) -> &PathBuf {

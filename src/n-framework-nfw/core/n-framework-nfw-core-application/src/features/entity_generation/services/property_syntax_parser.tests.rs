@@ -90,7 +90,7 @@ fn rejects_duplicate_property_names() {
 
 #[test]
 fn rejects_case_insensitive_duplicates() {
-    let result = PropertySyntaxParser::parse("Name:string,name:int");
+    let result = PropertySyntaxParser::parse("Name:string,NAme:int");
     assert!(matches!(
         result,
         Err(EntityGenerationError::DuplicatePropertyName { .. })
@@ -103,4 +103,13 @@ fn trims_whitespace_around_properties() {
     assert_eq!(result.len(), 2);
     assert_eq!(result[0].name(), "Name");
     assert_eq!(result[1].name(), "Price");
+}
+
+#[test]
+fn rejects_non_pascal_case_property_name() {
+    let result = PropertySyntaxParser::parse("name:string");
+    assert!(matches!(
+        result,
+        Err(EntityGenerationError::InvalidEntityName { .. })
+    ));
 }
