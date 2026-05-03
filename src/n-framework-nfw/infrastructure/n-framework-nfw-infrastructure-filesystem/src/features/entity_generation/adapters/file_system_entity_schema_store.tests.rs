@@ -4,6 +4,7 @@ use n_framework_nfw_core_domain::features::entity_generation::entities::entity_s
     EntitySchema, SchemaProperty,
 };
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::general_type::GeneralType;
+use std::fs;
 use tempfile::TempDir;
 
 fn sample_schema() -> EntitySchema {
@@ -68,6 +69,20 @@ fn read_nonexistent_schema_returns_error() {
     assert!(matches!(
         result,
         Err(EntityGenerationError::SchemaReadError { .. })
+    ));
+}
+
+#[test]
+fn read_invalid_schema_content_returns_error() {
+    let temp = TempDir::new().unwrap();
+    let schema_path = temp.path().join("Invalid.yaml");
+    fs::write(&schema_path, "invalid: yaml: content: [").unwrap();
+
+    let store = FileSystemEntitySchemaStore::new();
+    let result = store.read_schema(&schema_path);
+    assert!(matches!(
+        result,
+        Err(EntityGenerationError::InvalidSchemaContent { .. })
     ));
 }
 

@@ -25,9 +25,6 @@ pub enum EntityGenerationError {
     #[error("service '{name}' not found in workspace")]
     ServiceNotFound { name: String },
 
-    #[error("feature '{feature}' not found in service")]
-    FeatureNotFound { feature: String },
-
     #[error(
         "service '{service_name}' does not have the persistence module. \
          Add it with: nfw add persistence --service {service_name}"

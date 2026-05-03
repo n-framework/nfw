@@ -35,16 +35,23 @@ impl ValidationUtils {
         }
 
         // Check for consecutive uppercase letters to reject MYENTITY-style names
+        // Allow up to 3 consecutive uppercase letters for common abbreviations (PDF, XML, ID)
         let chars: Vec<char> = name.chars().collect();
-        for i in 0..chars.len() - 1 {
-            if chars[i].is_ascii_uppercase() && chars[i + 1].is_ascii_uppercase() {
-                return Err(EntityGenerationError::InvalidEntityName {
-                    name: name.to_owned(),
-                    reason: format!(
-                        "{} name must be in PascalCase (e.g., 'MyEntity'). Consecutive uppercase letters like in '{}' are not allowed.",
-                        entity_type_label, name
-                    ),
-                });
+        let mut consecutive_upper = 0;
+        for c in chars {
+            if c.is_ascii_uppercase() {
+                consecutive_upper += 1;
+                if consecutive_upper > 3 {
+                    return Err(EntityGenerationError::InvalidEntityName {
+                        name: name.to_owned(),
+                        reason: format!(
+                            "{} name must be in PascalCase (e.g., 'MyEntity'). More than 3 consecutive uppercase letters like in '{}' are not allowed.",
+                            entity_type_label, name
+                        ),
+                    });
+                }
+            } else {
+                consecutive_upper = 0;
             }
         }
 

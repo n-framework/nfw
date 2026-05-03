@@ -112,8 +112,22 @@ impl EntityGenerationParametersBuilder {
         self
     }
 
-    pub fn build(self) -> EntityGenerationParameters {
-        EntityGenerationParameters {
+    /// Builds the EntityGenerationParameters after validating mandatory fields.
+    pub fn build(self) -> Result<EntityGenerationParameters, String> {
+        if self.entity_name.is_empty() {
+            return Err("entity_name cannot be empty".to_string());
+        }
+        if self.namespace.is_empty() {
+            return Err("namespace cannot be empty".to_string());
+        }
+        if self.service_name.is_empty() {
+            return Err("service_name cannot be empty".to_string());
+        }
+        if self.service_path.as_os_str().is_empty() {
+            return Err("service_path cannot be empty".to_string());
+        }
+
+        Ok(EntityGenerationParameters {
             entity_name: self.entity_name,
             namespace: self.namespace,
             id_type: self.id_type,
@@ -122,7 +136,7 @@ impl EntityGenerationParametersBuilder {
             base_class: self.base_class,
             service_name: self.service_name,
             service_path: self.service_path,
-        }
+        })
     }
 }
 
@@ -156,3 +170,7 @@ impl PropertyTemplate {
         self.nullable
     }
 }
+
+#[cfg(test)]
+#[path = "entity_generation_parameters.tests.rs"]
+mod tests;
