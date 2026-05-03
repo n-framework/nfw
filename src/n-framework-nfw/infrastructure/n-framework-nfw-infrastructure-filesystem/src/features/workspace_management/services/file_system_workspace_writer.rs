@@ -15,6 +15,7 @@ use crate::features::workspace_management::services::file_system_workspace_write
     ensure_workspace_metadata_banner_comments, ensure_workspace_metadata_file,
     normalize_workspace_metadata_file,
 };
+use crate::features::workspace_management::services::file_system_workspace_writer::render_support::stable_project_guid;
 use crate::features::workspace_management::services::file_system_workspace_writer::template_copy::copy_template_content;
 
 #[derive(Debug, Clone)]
@@ -89,10 +90,8 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
             let _ = parameters.insert("WorkspaceName", &resolution.workspace_name);
 
             // Note: ProjectGuid is typically used in C# templates, providing it for compatibility
-            let project_guid = crate::features::workspace_management::services::file_system_workspace_writer::render_support::stable_project_guid(
-                &resolution.workspace_name,
-                &resolution.template_id
-            );
+            let project_guid =
+                stable_project_guid(&resolution.workspace_name, &resolution.template_id);
             let _ = parameters.insert("ProjectGuid", project_guid);
 
             self.engine

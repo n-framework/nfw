@@ -20,7 +20,7 @@
 - [X] T001 Create service management domain module skeleton in `src/nframework-nfw/core/nframework-nfw-domain/src/features/service_management/` and export it from `src/nframework-nfw/core/nframework-nfw-domain/src/features/mod.rs`
 - [X] T002 Create service management application module skeleton in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/` and export it from `src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs`
 - [X] T003 [P] Create filesystem service management module skeleton in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/` and export it from `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/mod.rs`
-- [X] T004 [P] Create CLI add-service command module skeleton in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/service/` and export it from `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/mod.rs`
+- [X] T004 [P] Create CLI add-service command module skeleton in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/service/` and export it from `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/mod.rs`
 
 ---
 
@@ -36,7 +36,7 @@
 - [X] T008 [P] Remove language-specific layer-dependency enforcement from `nfw add service` scope and keep CLI language-agnostic
 - [X] T009 Define service-generation abstraction interfaces in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/abstractions/service_template_selector.rs`, `service_template_renderer.rs`, and `service_provenance_store.rs`
 - [X] T010 Define service-generation error model and exit-code mapping in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/errors/add_service_error.rs` and update `src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs`
-- [X] T011 Wire service-management services into CLI dependency registration in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs`
+- [X] T011 Wire service-management services into CLI dependency registration in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs`
 
 **Checkpoint**: Foundation ready; user stories can proceed.
 
@@ -62,8 +62,8 @@
 - [X] T015 [P] [US1] Implement generation-plan builder for `src/<ServiceName>/` output in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generation_plan_builder.rs`
 - [X] T016 [US1] Implement filesystem template rendering and write operations in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/file_system_service_template_renderer.rs`
 - [X] T017 [US1] Implement add-service command handler in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/commands/add_service/add_service_command_handler.rs`
-- [X] T018 [US1] Implement CLI command handler for `nfw add service` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/service/add_service.rs`
-- [X] T019 [US1] Register `add service` command routing and options in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
+- [X] T018 [US1] Implement CLI command handler for `nfw add service` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/service/add_service.rs`
+- [X] T019 [US1] Register `add service` command routing and options in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
 - [X] T043 [US1] Implement explicit workspace-context guard (`nfw.yaml` discovery) in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_workspace_context_guard.rs`
 - [X] T044 [US1] Implement partial-output cleanup coordinator for failure/SIGINT paths in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/service_generation_cleanup.rs` and integrate it in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/file_system_service_template_renderer.rs`
 
@@ -85,7 +85,7 @@
 ### Implementation for User Story 4
 
 - [X] T022 [P] [US4] Implement service-template selection adapter using existing template-management services in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_template_selection_service.rs`
-- [X] T023 [US4] Implement interactive template prompt adapter for add-service flow in `src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/interactive_service_template_prompt.rs`
+- [X] T023 [US4] Implement interactive template prompt adapter for add-service flow in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/interactive_service_template_prompt.rs`
 - [X] T024 [US4] Integrate interactive/non-interactive template selection policy in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_input_resolution_service.rs`
 - [X] T025 [US4] Enforce template metadata `type=service` check before render in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_template_selection_service.rs`
 

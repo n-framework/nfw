@@ -5,6 +5,7 @@ use crate::features::template_management::services::artifact_generation_service:
 };
 use crate::features::template_management::services::template_engine::TemplateEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 
 use super::add_persistence_command::AddPersistenceCommand;
 
@@ -42,14 +43,13 @@ where
 
         let namespace = self.service.extract_namespace(workspace.nfw_yaml())?;
 
-        let parameters =
-            n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters::new()
-                .with_name(cmd.service_info().name())
-                .map_err(AddArtifactError::InvalidParameter)?
-                .with_namespace(namespace)
-                .map_err(AddArtifactError::InvalidParameter)?
-                .with_service(cmd.service_info().name())
-                .map_err(AddArtifactError::InvalidParameter)?;
+        let parameters = TemplateParameters::new()
+            .with_name(cmd.service_info().name())
+            .map_err(AddArtifactError::InvalidParameter)?
+            .with_namespace(namespace)
+            .map_err(AddArtifactError::InvalidParameter)?
+            .with_service(cmd.service_info().name())
+            .map_err(AddArtifactError::InvalidParameter)?;
 
         let output_root = workspace.workspace_root().join(cmd.service_info().path());
 

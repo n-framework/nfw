@@ -4,6 +4,7 @@ use n_framework_nfw_core_application::features::check::models::check_command_req
 
 use crate::cli_error::CliError;
 use crate::commands::check::check_output_formatter::CheckOutputFormatter;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 #[derive(Debug)]
 pub enum RunCheckError {
@@ -116,7 +117,7 @@ where
 impl RunCheckCliCommand<'_, n_framework_core_cli_cliclack::CliclackPromptService> {
     pub fn handle(
         _command: &dyn n_framework_core_cli_abstractions::Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+        context: &CliServiceCollection,
     ) -> Result<(), String> {
         RunCheckCliCommand::new(
             &context.check_command_handler,

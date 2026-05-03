@@ -44,30 +44,18 @@ where
         template_identifier: &str,
         context: ServiceTemplateSelectionContext<'_>,
     ) -> Result<ServiceTemplateResolution, AddServiceError> {
-        let (source, _id) = Self::parse_identifier(template_identifier);
+        let (source, _) = Self::parse_identifier(template_identifier);
 
-        let local_path = context.workspace_root.join(template_identifier);
-        let template_root = if source == "local" {
-            if local_path.is_dir() {
-                local_path.clone()
-            } else {
-                return Err(AddServiceError::TemplateNotFound(
-                    template_identifier.to_owned(),
-                ));
-            }
-        } else {
-            self.root_resolver
-                .resolve(context.nfw_yaml, template_identifier, context.workspace_root)
-                .map_err(|e| {
-                    tracing::warn!(
-                        "Failed to resolve template '{}' locally at {}, falling back to catalog search. Error: {}",
-                        template_identifier,
-                        local_path.display(),
-                        e
-                    );
-                    AddServiceError::TemplateNotFound(template_identifier.to_owned())
-                })?
-        };
+        let template_root = self.root_resolver
+            .resolve(context.nfw_yaml, template_identifier, context.workspace_root)
+            .map_err(|e| {
+                tracing::warn!(
+                    "Failed to resolve template '{}' locally, falling back to catalog search. Error: {}",
+                    template_identifier,
+                    e
+                );
+                AddServiceError::TemplateNotFound(template_identifier.to_owned())
+            })?;
 
         let template_type =
             read_template_type(&template_root).map_err(AddServiceError::TemplateReadError)?;
@@ -118,7 +106,7 @@ where
                 }
             },
             template_type,
-            template_cache_path: local_path,
+            template_cache_path: template_root,
             description: raw.description.unwrap_or_default(),
         })
     }

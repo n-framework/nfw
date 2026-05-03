@@ -1,5 +1,6 @@
 use super::*;
 use crate::features::template_management::models::errors::TemplateCatalogSourceResolverError;
+use crate::features::versioning::abstractions::version_comparator::VersionComparator;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::cmp::Ordering;
@@ -98,9 +99,7 @@ impl Validator for TestValidator {
 #[derive(Debug, Default, Clone, Copy)]
 struct TestVersionComparator;
 
-impl crate::features::versioning::abstractions::version_comparator::VersionComparator
-    for TestVersionComparator
-{
+impl VersionComparator for TestVersionComparator {
     fn parse(&self, version: &str) -> Result<(), String> {
         semver::Version::parse(version)
             .map(|_| ())

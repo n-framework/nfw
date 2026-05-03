@@ -8,6 +8,15 @@ use crate::features::check::models::{
     ValidationServices,
 };
 use crate::features::check::services::abstractions::RuleSetLoader;
+use crate::features::check::services::filesystem_project_manifest_collector::FilesystemProjectManifestCollector;
+use crate::features::check::services::filesystem_source_file_collector::FilesystemSourceFileCollector;
+use crate::features::check::services::filesystem_workspace_metadata_reader::FilesystemWorkspaceMetadataReader;
+use crate::features::check::services::finding_aggregation_service::FindingAggregationService;
+use crate::features::check::services::namespace_usage_validator::NamespaceUsageValidatorService;
+use crate::features::check::services::package_usage_validator::PackageUsageValidatorService;
+use crate::features::check::services::process_external_tool_runner::ProcessExternalToolRunner;
+use crate::features::check::services::project_reference_validator::ProjectReferenceValidatorService;
+use crate::features::check::services::remediation_hint_service::RemediationHintService;
 use crate::features::check::services::rule_set_loader::RuleSetLoaderService;
 
 const WORKSPACE_METADATA_FILE: &str = "nfw.yaml";
@@ -358,19 +367,7 @@ fn extract_cargo_direct_dependencies(content: &str) -> Vec<String> {
 
 impl Default for CheckCommandHandler {
     fn default() -> Self {
-        use crate::features::check::services::{
-            filesystem_project_manifest_collector::FilesystemProjectManifestCollector,
-            filesystem_source_file_collector::FilesystemSourceFileCollector,
-            filesystem_workspace_metadata_reader::FilesystemWorkspaceMetadataReader,
-            namespace_usage_validator::NamespaceUsageValidatorService,
-            package_usage_validator::PackageUsageValidatorService,
-            process_external_tool_runner::ProcessExternalToolRunner,
-            project_reference_validator::ProjectReferenceValidatorService,
-        };
-
-        let remediation_hint_service =
-            crate::features::check::services::remediation_hint_service::RemediationHintService::new(
-            );
+        let remediation_hint_service = RemediationHintService::new();
 
         let services = ValidationServices::builder()
             .project_reference_validator(Box::new(ProjectReferenceValidatorService::new(
@@ -388,9 +385,7 @@ impl Default for CheckCommandHandler {
             .external_tool_runner(Box::new(ProcessExternalToolRunner::new(
                 remediation_hint_service,
             )))
-            .finding_aggregation_service(
-                crate::features::check::services::finding_aggregation_service::FindingAggregationService::new(),
-            )
+            .finding_aggregation_service(FindingAggregationService::new())
             .remediation_hint_service(remediation_hint_service)
             .build();
 

@@ -1,5 +1,10 @@
 use std::fmt::{Display, Formatter};
 
+use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
+use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
+use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
+use n_framework_nfw_core_domain::features::entity_generation::errors::entity_generation_error::EntityGenerationError;
+
 /// CLI error that carries both the error message and the appropriate exit code.
 /// This replaces the fragile string protocol "[exit:N] message" with a proper type.
 #[derive(Debug, Clone)]
@@ -43,13 +48,8 @@ impl Display for CliError {
 
 impl std::error::Error for CliError {}
 
-impl From<n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError>
-    for CliError
-{
-    fn from(
-        error: n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError,
-    ) -> Self {
-        use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
+impl From<AddArtifactError> for CliError {
+    fn from(error: AddArtifactError) -> Self {
         Self::new(
             ExitCodes::from_add_artifact_error(&error) as i32,
             error.to_string(),
@@ -57,13 +57,8 @@ impl From<n_framework_nfw_core_application::features::template_management::model
     }
 }
 
-impl From<n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError>
-    for CliError
-{
-    fn from(
-        error: n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError,
-    ) -> Self {
-        use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
+impl From<AddServiceError> for CliError {
+    fn from(error: AddServiceError) -> Self {
         Self::new(
             ExitCodes::from_add_service_error(&error) as i32,
             error.to_string(),
@@ -80,5 +75,11 @@ impl From<String> for CliError {
 impl From<&str> for CliError {
     fn from(message: &str) -> Self {
         Self::internal(message.to_owned())
+    }
+}
+
+impl From<EntityGenerationError> for CliError {
+    fn from(error: EntityGenerationError) -> Self {
+        Self::new(ExitCodes::ValidationError as i32, error.to_string())
     }
 }

@@ -3,6 +3,7 @@ use n_framework_nfw_core_application::features::template_management::commands::a
 use n_framework_nfw_core_application::features::cli::configuration::abstractions::config_store::ConfigStore;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::git_repository::GitRepository;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::validator::Validator;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 /// Thin CLI presentation layer for adding a template source.
 /// Delegates all business logic to the application layer command handler.
@@ -36,7 +37,7 @@ where
 impl AddSourceCliCommand<()> {
     pub fn handle(
         command: &dyn n_framework_core_cli_abstractions::Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+        context: &CliServiceCollection,
     ) -> Result<(), String> {
         AddSourceCliCommand::new(context.add_template_source_command_handler.clone()).execute(
             command

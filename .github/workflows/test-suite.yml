@@ -77,7 +77,7 @@ jobs:
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run integration tests
-        run: cargo test --package nframework-nfw-cli --test '*'
+        run: cargo test --package n-framework-nfw-cli --test '*'
         env:
           RUSTFLAGS: ''
 
@@ -131,14 +131,14 @@ jobs:
       - name: Create nfw symlink
         run: |
           cd "${{ github.workspace }}/target/debug"
-          ln -sf nframework-nfw-cli nfw
+          ln -sf n-framework-nfw-cli nfw
           pwd
           ls -la nfw
 
       - name: Run smoke tests
         run: |
           ls -la "${{ github.workspace }}/target/debug/nfw"
-          ls -la "${{ github.workspace }}/target/debug/nframework-nfw-cli"
+          ls -la "${{ github.workspace }}/target/debug/n-framework-nfw-cli"
           bash tests/smoke/run_smoke_tests.sh
         env:
           NFW_REPO_ROOT: ${{ github.workspace }}

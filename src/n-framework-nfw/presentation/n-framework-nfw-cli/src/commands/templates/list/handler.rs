@@ -1,6 +1,9 @@
 use n_framework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query::ListTemplatesQuery;
 use n_framework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_handler::ListTemplatesQueryHandler;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_listing_service::TemplateListingService;
+use crate::startup::cli_service_collection_factory::CliServiceCollection;
+use n_framework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult;
+use n_framework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError;
 
 /// Thin CLI presentation layer for listing templates.
 /// Delegates all business logic to the application layer query handler.
@@ -47,7 +50,7 @@ where
 impl TemplatesCliCommand<()> {
     pub fn handle(
         _command: &dyn n_framework_core_cli_abstractions::Command,
-        context: &crate::startup::cli_service_collection_factory::CliServiceCollection,
+        context: &CliServiceCollection,
     ) -> Result<(), String> {
         TemplatesCliCommand::new(context.list_templates_query_handler.clone()).execute()
     }
@@ -55,24 +58,14 @@ impl TemplatesCliCommand<()> {
 
 /// Abstraction for the query handler to avoid generic type explosion in CLI.
 pub trait TemplateListingQueryHandler {
-    fn handle_list_templates(
-        &self,
-    ) -> Result<
-        n_framework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult,
-        n_framework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError,
-    >;
+    fn handle_list_templates(&self) -> Result<ListTemplatesQueryResult, TemplatesServiceError>;
 }
 
 impl<S> TemplateListingQueryHandler for ListTemplatesQueryHandler<S>
 where
     S: TemplateListingService,
 {
-    fn handle_list_templates(
-        &self,
-    ) -> Result<
-        n_framework_nfw_core_application::features::template_management::queries::list_templates::list_templates_query_result::ListTemplatesQueryResult,
-        n_framework_nfw_core_application::features::template_management::models::errors::templates_service_error::TemplatesServiceError,
-    >{
+    fn handle_list_templates(&self) -> Result<ListTemplatesQueryResult, TemplatesServiceError> {
         self.handle(ListTemplatesQuery)
     }
 }

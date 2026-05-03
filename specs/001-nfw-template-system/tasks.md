@@ -74,7 +74,7 @@ src/nfw/src/nframework-nfw/
 │           └── versioning/services/        # SemverVersionComparator adapter
 │
 └── presentation/
-    └── nframework-nfw-cli/
+    └── n-framework-nfw-cli/
         └── src/
             ├── main.rs
             ├── args.rs
@@ -121,7 +121,7 @@ Project initialization per clean architecture structure.
       `src/nfw/src/nframework-nfw/core/nframework-nfw-domain/src/features/`
       `src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/`
       `src/nfw/src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-{filesystem,git,yaml,versioning}/src/features/`
-      `src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/`
+      `src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/`
       `src/nfw/tests/unit/nframework-nfw/core/`
       `src/nfw/tests/unit/nframework-nfw/infrastructure/`
 
@@ -292,19 +292,19 @@ Blocking prerequisites. Internal nfw foundations + domain layer + application ab
 
 CLI presentation layer wiring and final integration.
 
-### Presentation Layer (nframework-nfw-cli)
+### Presentation Layer (n-framework-nfw-cli)
 
-- [x] T060 Set up CLI entry point in `src/nframework-nfw/presentation/nframework-nfw-cli/src/main.rs` with clap (parse args, route to commands)
-- [x] T061 Define CLI args in `src/nframework-nfw/presentation/nframework-nfw-cli/src/args.rs` (template subcommands: list, add, remove, refresh)
-- [x] T062 [P] Implement `TemplatesCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/list_templates.rs` (calls ListTemplatesQueryHandler)
-- [x] T063 [P] Implement `AddSourceCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/add_source.rs`
-- [x] T064 [P] Implement `RemoveSourceCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/remove_source.rs`
-- [x] T065 [P] Implement `RefreshTemplatesCliCommand` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/templates/refresh.rs`
+- [x] T060 Set up CLI entry point in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/main.rs` with clap (parse args, route to commands)
+- [x] T061 Define CLI args in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/args.rs` (template subcommands: list, add, remove, refresh)
+- [x] T062 [P] Implement `TemplatesCliCommand` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/templates/list_templates.rs` (calls ListTemplatesQueryHandler)
+- [x] T063 [P] Implement `AddSourceCliCommand` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/templates/add_source.rs`
+- [x] T064 [P] Implement `RemoveSourceCliCommand` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/templates/remove_source.rs`
+- [x] T065 [P] Implement `RefreshTemplatesCliCommand` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/templates/refresh.rs`
 
 ### Dependency Injection / Wiring
 
-- [x] T066 Create `CliServiceCollectionFactory` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs` (wire domain → application → infrastructure → presentation)
-- [x] T067 Create `CliBootstrapper` in `src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_bootstrapper.rs` (initialize config, resolve path, load sources)
+- [x] T066 Create `CliServiceCollectionFactory` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs` (wire domain → application → infrastructure → presentation)
+- [x] T067 Create `CliBootstrapper` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_bootstrapper.rs` (initialize config, resolve path, load sources)
 
 ### Integration & Benchmarks
 

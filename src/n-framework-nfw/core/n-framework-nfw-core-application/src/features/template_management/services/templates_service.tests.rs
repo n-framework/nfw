@@ -14,6 +14,7 @@ use crate::features::template_management::services::abstractions::validator::Val
 use crate::features::template_management::services::abstractions::yaml_parser::YamlParser;
 use crate::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
 use crate::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
+use crate::features::versioning::abstractions::version_comparator::VersionComparator;
 use n_framework_nfw_core_domain::features::template_management::template_source::TemplateSource;
 
 // --- Mocks ---
@@ -142,9 +143,7 @@ impl Validator for TestValidator {
 #[derive(Debug, Default, Clone, Copy)]
 struct TestVersionComparator;
 
-impl crate::features::versioning::abstractions::version_comparator::VersionComparator
-    for TestVersionComparator
-{
+impl VersionComparator for TestVersionComparator {
     fn parse(&self, version: &str) -> Result<(), String> {
         semver::Version::parse(version)
             .map(|_| ())
