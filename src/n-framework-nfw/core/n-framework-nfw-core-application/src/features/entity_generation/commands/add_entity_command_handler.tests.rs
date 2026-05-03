@@ -191,7 +191,7 @@ fn validate_persistence_module_checks_service() {
 }
 
 #[test]
-fn validate_feature_returns_error_if_not_found() {
+fn validate_feature_allows_missing_feature_directory() {
     let temp = tempfile::tempdir().unwrap();
     let service_root = temp.path().join("src/Catalog");
     std::fs::create_dir_all(&service_root).unwrap();
@@ -217,12 +217,11 @@ fn validate_feature_returns_error_if_not_found() {
     );
 
     let result = handler.validate_feature(&command, &workspace, &service);
-    assert!(result.is_err());
-    if let Err(EntityGenerationError::FeatureNotFound { feature }) = result {
-        assert_eq!(feature, "NonExistentFeature");
-    } else {
-        panic!("Expected FeatureNotFound error, got {:?}", result);
-    }
+    assert!(
+        result.is_ok(),
+        "Expected Ok for missing feature directory, but got {:?}",
+        result
+    );
 }
 
 #[test]

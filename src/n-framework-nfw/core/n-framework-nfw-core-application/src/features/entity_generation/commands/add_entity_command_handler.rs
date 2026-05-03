@@ -69,7 +69,7 @@ where
         if let Some(schema_path) = command.from_schema() {
             let schema = self.handle_from_schema(schema_path, command)?;
             if !command.is_schema_only() {
-                self.invoke_template_engine(command, workspace, service)?;
+                self.invoke_template_engine(command, &schema, workspace, service)?;
             }
 
             return Ok((schema, schema_path.clone()));
@@ -89,7 +89,6 @@ where
         }
 
         self.schema_store.write_schema(&specs_dir, &schema)?;
-
         if command.is_schema_only() {
             tracing::info!(
                 "Schema file created at {}. Skipping template invocation (--schema-only).",
@@ -98,7 +97,7 @@ where
             return Ok((schema, schema_file));
         }
 
-        self.invoke_template_engine(command, workspace, service)?;
+        self.invoke_template_engine(command, &schema, workspace, service)?;
 
         Ok((schema, schema_file))
     }
@@ -182,19 +181,12 @@ where
         }
 
         if feature_path.is_none() {
-            // Fallback to the default C#-style path if not found, to preserve original intent if namespace is involved
-            // Note: AddEntityCommandHandler doesn't have easy access to the namespace string without going through artifact_service
-            // but we can try to resolve it from the workspace if needed.
-            tracing::error!(
-                "Feature directory '{}' not found in service '{}' ({})",
+            tracing::info!(
+                "Feature directory '{}' not found in service '{}' ({}), it will be created during generation.",
                 feature_name,
                 service.name(),
                 service_root.display()
             );
-
-            return Err(EntityGenerationError::FeatureNotFound {
-                feature: feature_name.to_string(),
-            });
         }
 
         Ok(())
@@ -238,6 +230,7 @@ where
     fn invoke_template_engine(
         &self,
         command: &AddEntityCommand,
+        schema: &EntitySchema,
         _workspace: &WorkspaceContext,
         service: &ServiceInfo,
     ) -> Result<(), EntityGenerationError> {
@@ -277,7 +270,7 @@ where
             })?;
 
         let mut properties = Vec::new();
-        for prop in command.properties() {
+        for prop in schema.properties() {
             let mut prop_map = serde_json::Map::new();
             prop_map.insert(
                 "name".to_string(),

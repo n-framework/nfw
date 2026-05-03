@@ -13,6 +13,7 @@ pub enum GeneralType {
     DateTime,
     Uuid,
     Bytes,
+    Short,
 }
 
 impl GeneralType {
@@ -25,6 +26,7 @@ impl GeneralType {
             "datetime" | "datetimeoffset" => Some(Self::DateTime),
             "guid" => Some(Self::Uuid),
             "byte[]" => Some(Self::Bytes),
+            "short" => Some(Self::Short),
             _ => None,
         }
     }
@@ -38,6 +40,7 @@ impl GeneralType {
             Self::DateTime => "DateTimeOffset",
             Self::Uuid => "Guid",
             Self::Bytes => "byte[]",
+            Self::Short => "short",
         }
     }
 
@@ -50,6 +53,7 @@ impl GeneralType {
             Self::DateTime => "DateTime<Utc>",
             Self::Uuid => "Uuid",
             Self::Bytes => "Vec<u8>",
+            Self::Short => "i16",
         }
     }
 
@@ -66,6 +70,7 @@ impl GeneralType {
             "datetimeoffset",
             "guid",
             "byte[]",
+            "short",
         ]
     }
 }
@@ -80,6 +85,7 @@ impl fmt::Display for GeneralType {
             Self::DateTime => write!(f, "datetime"),
             Self::Uuid => write!(f, "uuid"),
             Self::Bytes => write!(f, "bytes"),
+            Self::Short => write!(f, "short"),
         }
     }
 }
@@ -96,6 +102,7 @@ impl FromStr for GeneralType {
             "datetime" => Ok(Self::DateTime),
             "uuid" => Ok(Self::Uuid),
             "bytes" => Ok(Self::Bytes),
+            "short" => Ok(Self::Short),
             _ => Err(format!("unknown general type: {s}")),
         }
     }

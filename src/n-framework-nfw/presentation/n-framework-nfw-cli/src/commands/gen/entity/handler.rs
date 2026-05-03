@@ -267,21 +267,6 @@ where
             return Err(CliError::internal("Feature is required for entities. Provide it using --feature or run interactively.".to_owned()));
         }
 
-        if existing_features.is_empty() {
-            let feature = self
-                .prompt
-                .text("Enter feature name (e.g. Catalog):", None)
-                .map_err(|e| CliError::internal(e.to_string()))?;
-
-            if feature.trim().is_empty() {
-                return Err(CliError::internal(
-                    "Failed to generate entity: Feature cannot be empty.".to_owned(),
-                ));
-            } else {
-                return Ok(feature.trim().to_string());
-            }
-        }
-
         let mut options: Vec<SelectOption> = existing_features
             .iter()
             .map(|f| SelectOption::new(f, f))
@@ -350,14 +335,67 @@ where
             return Err(EntityGenerationError::EmptyProperties);
         }
 
-        self.prompt
-            .text(
-                "Enter properties (e.g. Name:string,Price:decimal?,Active:bool):",
-                None,
-            )
-            .map_err(|e| EntityGenerationError::PromptError {
-                reason: e.to_string(),
-            })
+        let mut property_parts = Vec::new();
+
+        loop {
+            let name = self
+                .prompt
+                .text("Property name (e.g. Title):", None)
+                .map_err(|e| EntityGenerationError::PromptError {
+                    reason: e.to_string(),
+                })?;
+
+            if name.trim().is_empty() {
+                break;
+            }
+
+            let type_options: Vec<SelectOption> = GeneralType::supported_cli_types()
+                .iter()
+                .map(|t| SelectOption::new(*t, *t))
+                .collect();
+
+            let selected_type = self
+                .prompt
+                .select(
+                    &format!("Select type for '{}':", name),
+                    &type_options,
+                    Some(0),
+                )
+                .map_err(|e| EntityGenerationError::PromptError {
+                    reason: e.to_string(),
+                })?;
+
+            let is_nullable = self
+                .prompt
+                .confirm(&format!("Is '{}' nullable?", name), false)
+                .map_err(|e| EntityGenerationError::PromptError {
+                    reason: e.to_string(),
+                })?;
+
+            let mut part = format!("{}:{}", name.trim(), selected_type.value());
+            if is_nullable {
+                part.push('?');
+            }
+
+            property_parts.push(part);
+
+            let add_another = self
+                .prompt
+                .confirm("Add another property?", true)
+                .map_err(|e| EntityGenerationError::PromptError {
+                    reason: e.to_string(),
+                })?;
+
+            if !add_another {
+                break;
+            }
+        }
+
+        if property_parts.is_empty() {
+            return Err(EntityGenerationError::EmptyProperties);
+        }
+
+        Ok(property_parts.join(","))
     }
 
     fn resolve_id_type(input: Option<&str>) -> Result<GeneralType, EntityGenerationError> {
