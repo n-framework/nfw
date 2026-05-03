@@ -84,9 +84,9 @@ nfw CLI workspace structure:
 
 #### Presentation Layer (CLI Command)
 
-- [x] T025 [US1] Implement gen_entity CLI command with clap in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/commands/gen_entity.rs (depends on T022, T023, T024)
-- [x] T026 [US1] Register gen_entity command in CLI mod.rs in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/mod.rs
-- [x] T027 [US1] Add --props, --service, --id-type, --entity-type, --schema-only, --from-schema, --no-input flags to gen_entity command in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/commands/gen_entity.rs
+- [x] T025 [US1] Implement gen_entity CLI command with clap in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/commands/gen_entity.rs (depends on T022, T023, T024)
+- [x] T026 [US1] Register gen_entity command in CLI mod.rs in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/mod.rs
+- [x] T027 [US1] Add --props, --service, --id-type, --entity-type, --schema-only, --from-schema, --no-input flags to gen_entity command in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/commands/gen_entity.rs
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - users can run `nfw gen entity` to create schemas and invoke template engine
 
@@ -120,7 +120,7 @@ nfw CLI workspace structure:
 **Purpose**: Documentation, validation, and cross-cutting improvements
 
 - [x] T036 [P] Verify quickstart.md examples end-to-end in terminal
-- [x] T037 Refactor CLI command layer for robustness in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/commands/gen/entity_command.rs
+- [x] T037 Refactor CLI command layer for robustness in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/commands/gen/entity_command.rs
 - [x] T038 Extract common file path processing functions (if any exist) into utility modules
 - [x] T039 Add inline documentation to public APIs in core-domain and core-application features/entity_generation/
 - [x] T040 Add diagnostic error messages for all EntityGenerationError variants in src/nfw/src/nframework-nfw/core/nframework-nfw-domain/features/entity_generation/errors/entity_generation_error.rs

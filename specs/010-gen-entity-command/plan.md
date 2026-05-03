@@ -79,7 +79,7 @@ src/nfw/src/nframework-nfw/
 │       └── features/entity_generation/
 │           └── adapters/           # File system operations for schema/code generation
 └── presentation/
-    └── nframework-nfw-cli/
+    └── n-framework-nfw-cli/
         └── commands/
             └── gen_entity.rs       # CLI command adapter (clap)
 
@@ -156,5 +156,5 @@ The implementation will follow this structure:
 
 - `src/nfw/src/nframework-nfw/core/nframework-nfw-domain/features/entity_generation/`
 - `src/nfw/src/nframework-nfw/core/nframework-nfw-application/features/entity_generation/`
-- `src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/commands/gen_entity.rs`
+- `src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/commands/gen_entity.rs`
 - `src/nfw/tests/integration/entity_generation/`

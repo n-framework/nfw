@@ -87,7 +87,7 @@ src/nfw/
 │       │   ├── nframework-nfw-infrastructure-yaml/
 │       │   └── nframework-nfw-infrastructure-versioning/
 │       └── presentation/
-│           └── nframework-nfw-cli/
+│           └── n-framework-nfw-cli/
 ├── tests/
 │   ├── unit/
 │   └── integration/

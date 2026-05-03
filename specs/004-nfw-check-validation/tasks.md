@@ -14,7 +14,7 @@
 - [X] T001 Create architecture validation feature module folders in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/
 - [X] T002 [P] Create integration fixture folder for check command in src/nfw/tests/integration/nframework-nfw/features/architecture_check/
 - [X] T003 [P] Create unit test folder for architecture validation services in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/
-- [X] T004 [P] Create CLI runtime test folder for check command routing in src/nfw/tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/
+- [X] T004 [P] Create CLI runtime test folder for check command routing in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/
 
 ---
 
@@ -30,7 +30,7 @@
 - [X] T008 [P] Add check command request/result models in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/models/check_command_request.rs
 - [X] T009 Implement check command handler skeleton in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/commands/check/check_command_handler.rs
 - [X] T010 Register architecture validation feature exports in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs
-- [X] T011 Wire concrete check command handler dependency in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_types.rs
+- [X] T011 Wire concrete check command handler dependency in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_types.rs
 
 **Checkpoint**: Foundational contracts and feature wiring are ready.
 
@@ -72,19 +72,19 @@
 
 ### Tests for User Story 2
 
-- [X] T024 [P] [US2] Add runtime routing and execution test for check command in src/nfw/tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_routing.tests.rs
+- [X] T024 [P] [US2] Add runtime routing and execution test for check command in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_routing.tests.rs
 - [X] T025 [P] [US2] Add exit code mapping tests for check command results in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes.tests.rs
 - [X] T026 [P] [US2] Add unreadable artifact failure integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/unreadable_artifact_test.rs
 - [X] T027 [P] [US2] Add deterministic repeat-run integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/deterministic_repeatability_test.rs
-- [X] T028 [P] [US2] Add stdout vs stderr contract test for check command in src/nfw/tests/unit/nframework-nfw/presentation/nframework-nfw-cli/runtime/check_command_stdio.tests.rs
+- [X] T028 [P] [US2] Add stdout vs stderr contract test for check command in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_stdio.tests.rs
 
 ### Implementation for User Story 2
 
-- [X] T029 [US2] Add `check` command spec and options in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/runtime/nfw_cli_runtime.rs
-- [X] T030 [US2] Implement check CLI command executor in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/check/run_check.rs
-- [X] T031 [US2] Register check command module export in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/mod.rs
-- [X] T032 [US2] Wire check command handler into service collection in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_collection_factory.rs
-- [X] T033 [US2] Add check command handler type to service collection in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/startup/cli_service_types.rs
+- [X] T029 [US2] Add `check` command spec and options in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs
+- [X] T030 [US2] Implement check CLI command executor in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/run_check.rs
+- [X] T031 [US2] Register check command module export in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/mod.rs
+- [X] T032 [US2] Wire check command handler into service collection in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs
+- [X] T033 [US2] Add check command handler type to service collection in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_types.rs
 - [X] T034 [US2] Extend exit-code mapping for check command failures and interruptions in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs
 
 **Checkpoint**: User Story 2 provides CI-safe deterministic command outcomes.
@@ -105,10 +105,10 @@
 
 ### Implementation for User Story 3
 
-- [X] T038 [US3] Implement finding-to-message formatter with location and remediation fields in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/check/check_output_formatter.rs
-- [X] T039 [US3] Integrate formatted output into check CLI command execution in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/check/run_check.rs
+- [X] T038 [US3] Implement finding-to-message formatter with location and remediation fields in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/check_output_formatter.rs
+- [X] T039 [US3] Integrate formatted output into check CLI command execution in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/run_check.rs
 - [X] T040 [US3] Implement remediation hint policy mapping by rule type in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/remediation_hint_service.rs
-- [X] T041 [US3] Add success summary output path for zero-finding runs in src/nfw/src/nframework-nfw/presentation/nframework-nfw-cli/src/commands/check/check_output_formatter.rs
+- [X] T041 [US3] Add success summary output path for zero-finding runs in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/check_output_formatter.rs
 
 **Checkpoint**: User Story 3 provides actionable and human-friendly diagnostics.
 

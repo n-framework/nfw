@@ -82,7 +82,7 @@ cd src/nfw
 cargo test -p nframework-nfw-domain --test workspace_blueprint_tests
 cargo test -p nframework-nfw-application --test input_resolution_service_tests
 cargo test -p nframework-nfw-infrastructure-filesystem --test workspace_layout_test --test reproducible_generation_test
-cargo test -p nframework-nfw-cli --test new_command_routing_tests --test no_input_validation_test --test cli_routing_errors_test
+cargo test -p n-framework-nfw-cli --test new_command_routing_tests --test no_input_validation_test --test cli_routing_errors_test
 make format
 make lint
 ```

@@ -21,7 +21,7 @@ Define the template metadata schema (YAML-based), template repository structure,
 - **Domain Layer** (`nframework-nfw-domain`): Pure Rust entities and value objects. ZERO external dependencies. No serde, no external crates.
 - **Application Layer** (`nframework-nfw-application`): Use cases, services, trait abstractions. Depends on domain + core-\* packages. No direct external library calls.
 - **Infrastructure Layer** (`nframework-nfw-infrastructure-*`): External adapter implementations. Each adapter is a separate crate (filesystem, git, yaml, versioning). Isolated external dependencies.
-- **Presentation Layer** (`nframework-nfw-cli`): CLI entry point, argument parsing (clap), command routing. Depends on application layer.
+- **Presentation Layer** (`n-framework-nfw-cli`): CLI entry point, argument parsing (clap), command routing. Depends on application layer.
 - **External Core Packages**: Shared libraries still separate from nfw (`core-cli-rust`, `core-template-rust`).
 - **NFW Internal Modules**: Git and versioning are implemented inside nfw clean-architecture crates (application abstractions + infrastructure adapters).
 
@@ -182,7 +182,7 @@ src/nfw/
 │   │   └── nframework-nfw-infrastructure-versioning/  # Semver adapter
 │   │
 │   └── presentation/
-│       └── nframework-nfw-cli/                 # CLI entry point, commands, args
+│       └── n-framework-nfw-cli/                 # CLI entry point, commands, args
 │
 ├── tests/
 │   ├── unit/nframework-nfw/                    # Unit tests (mirrors source structure)
