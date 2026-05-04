@@ -78,7 +78,9 @@ fn yaml_matches_expected_format() {
     );
 
     let yaml = serde_yaml::to_string(&schema).expect("serialize");
+    println!("YAML output:\n{}", yaml);
 
+    assert!(yaml.contains("$schema: https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/entity.schema.json"));
     assert!(yaml.contains("entity: Product"));
     assert!(yaml.contains("id_type: uuid"));
     assert!(yaml.contains("entity_type: entity"));

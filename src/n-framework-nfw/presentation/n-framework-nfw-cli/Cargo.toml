@@ -151,6 +151,11 @@ name = "persistence_add_test"
 path = "../../../../tests/integration/n-framework-nfw/features/artifact/persistence_add_test.rs"
 
 [[test]]
+name = "gen_repository_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_management/commands/gen_repository/gen_repository_test.rs"
+
+
+[[test]]
 name = "entity_generation_success_test"
 path = "../../../../tests/integration/n-framework-nfw/features/entity_generation/success_tests.rs"
 

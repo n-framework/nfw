@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NFW Entity Specification",
+  "description": "Schema for NFW entity generation specifications (YAML)",
+  "type": "object",
+  "required": ["entity", "id_type", "entity_type", "properties"],
+  "properties": {
+    "entity": {
+      "type": "string",
+      "description": "The name of the entity in PascalCase."
+    },
+    "id_type": {
+      "type": "string",
+      "enum": ["string", "integer", "decimal", "boolean", "datetime", "uuid", "bytes"],
+      "description": "The primitive type of the entity identifier."
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": ["entity", "auditable_entity", "soft_deletable_entity"],
+      "description": "The base architecture pattern for the entity."
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "nullable"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Property name in PascalCase."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "integer", "decimal", "boolean", "datetime", "uuid", "bytes"],
+            "description": "Property data type."
+          },
+          "nullable": {
+            "type": "boolean",
+            "description": "Whether the property is nullable."
+          }
+        }
+      }
+    }
+  }
+}

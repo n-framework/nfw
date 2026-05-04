@@ -24,6 +24,10 @@ pub enum AddArtifactError {
     NfwYamlParseError(String),
     /// Failed to write nfw.yaml.
     NfwYamlWriteError(String),
+    /// The artifact to be generated already exists.
+    ArtifactAlreadyExists(String),
+    /// Failed to read a file or directory.
+    FileReadError(String),
 }
 
 impl fmt::Display for AddArtifactError {
@@ -39,6 +43,8 @@ impl fmt::Display for AddArtifactError {
             Self::NfwYamlReadError(msg) => write!(f, "{}", msg),
             Self::NfwYamlParseError(msg) => write!(f, "{}", msg),
             Self::NfwYamlWriteError(msg) => write!(f, "{}", msg),
+            Self::ArtifactAlreadyExists(msg) => write!(f, "artifact already exists: {}", msg),
+            Self::FileReadError(msg) => write!(f, "file read error: {}", msg),
         }
     }
 }

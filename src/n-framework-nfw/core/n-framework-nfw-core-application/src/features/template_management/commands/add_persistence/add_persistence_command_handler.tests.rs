@@ -73,8 +73,7 @@ generators:
             PathBuf::from("/mock/workspace"),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        )
-        .unwrap(),
+        ),
     )
     .unwrap();
 

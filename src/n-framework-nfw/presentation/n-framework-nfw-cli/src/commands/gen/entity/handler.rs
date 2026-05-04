@@ -79,6 +79,21 @@ where
 
         let modules =
             self.extract_modules_from_art_service(&art_workspace, &selected_art_service)?;
+
+        // Check for persistence module immediately after service selection
+        if !modules.iter().any(|m| m == "persistence") {
+            let error_msg = format!(
+                "service '{}' does not have the persistence module. Add it with: nfw add persistence --service {}",
+                selected_art_service.name(),
+                selected_art_service.name()
+            );
+            let _ = self.prompt.log_error(&error_msg);
+            return Err(CliError::silent(
+                ExitCodes::ValidationError as i32,
+                error_msg,
+            ));
+        }
+
         let service_path = PathBuf::from(selected_art_service.path());
 
         let service = ServiceInfo::new(
@@ -88,7 +103,7 @@ where
         );
 
         let workspace = WorkspaceContext::new(
-            art_workspace.workspace_root().clone(),
+            art_workspace.workspace_root().to_path_buf(),
             vec![service.clone()],
         );
 
@@ -175,6 +190,7 @@ where
     where
         ArtServiceInfo: Clone,
     {
+        // 1. Check if passed via arguments
         if let Some(service_name) = request.service {
             return services
                 .iter()
@@ -188,12 +204,13 @@ where
                 });
         }
 
-        if (request.no_input || !request.is_interactive_terminal) && services.len() == 1 {
-            return Ok(services[0].clone());
-        }
-
+        // 2. Auto-select if there is only one option (intentional bypass)
         if services.len() == 1 {
-            return Ok(services[0].clone());
+            let service = services[0].clone();
+            let _ = self
+                .prompt
+                .log_step(&format!("Auto-selected service: {}", service.name()));
+            return Ok(service);
         }
 
         let options: Vec<SelectOption> = services

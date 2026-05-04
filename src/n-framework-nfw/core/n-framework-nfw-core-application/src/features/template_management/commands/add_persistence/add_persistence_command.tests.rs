@@ -5,8 +5,7 @@ use std::path::PathBuf;
 #[test]
 fn validates_empty_service_name() {
     let nfw_yaml = serde_yaml::from_str("workspace: {}").unwrap();
-    let _ctx =
-        WorkspaceContext::new(PathBuf::from("/"), nfw_yaml, PreservedComments::default()).unwrap();
+    let _ctx = WorkspaceContext::new(PathBuf::from("/"), nfw_yaml, PreservedComments::default());
     let svc = ServiceInfo::new("".to_string(), "path".to_string(), "t1".to_string());
     assert!(svc.is_err());
 }
@@ -14,8 +13,7 @@ fn validates_empty_service_name() {
 #[test]
 fn can_create_valid_command() {
     let nfw_yaml = serde_yaml::from_str("workspace: {}").unwrap();
-    let ctx =
-        WorkspaceContext::new(PathBuf::from("/"), nfw_yaml, PreservedComments::default()).unwrap();
+    let ctx = WorkspaceContext::new(PathBuf::from("/"), nfw_yaml, PreservedComments::default());
     let svc = ServiceInfo::new("Svc".to_string(), "path".to_string(), "t1".to_string()).unwrap();
 
     let cmd = AddPersistenceCommand::new(svc.clone(), ctx.clone()).unwrap();
@@ -25,8 +23,7 @@ fn can_create_valid_command() {
 #[test]
 fn add_persistence_command_enforces_rules() {
     let nfw_yaml = serde_yaml::from_str("workspace: {}").unwrap();
-    let _ctx =
-        WorkspaceContext::new(PathBuf::from("."), nfw_yaml, PreservedComments::default()).unwrap();
+    let _ctx = WorkspaceContext::new(PathBuf::from("."), nfw_yaml, PreservedComments::default());
     let svc = ServiceInfo::new("Svc".to_string(), "path".to_string(), "t1".to_string()).unwrap();
     let cmd = AddPersistenceCommand::new(svc, _ctx).unwrap();
 

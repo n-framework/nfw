@@ -371,5 +371,11 @@ fn map_add_artifact_error(e: AddArtifactError) -> EntityGenerationError {
         AddArtifactError::NfwYamlWriteError(reason) => EntityGenerationError::ConfigError {
             reason: format!("Failed to write nfw.yaml: {reason}"),
         },
+        AddArtifactError::ArtifactAlreadyExists(reason) => {
+            EntityGenerationError::TemplateExecutionError {
+                reason: format!("Artifact already exists: {reason}"),
+            }
+        }
+        AddArtifactError::FileReadError(reason) => EntityGenerationError::ConfigError { reason },
     }
 }

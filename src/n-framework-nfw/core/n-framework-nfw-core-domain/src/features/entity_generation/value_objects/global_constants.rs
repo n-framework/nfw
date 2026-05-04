@@ -13,4 +13,6 @@ impl GlobalConstants {
     pub const ENTITY_LABEL: &'static str = "entity";
     pub const SERVICE_LABEL: &'static str = "service";
     pub const PROPERTY_LABEL: &'static str = "property";
+    pub const ENTITY_SCHEMA_PATH: &'static str =
+        "https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/entity.schema.json";
 }

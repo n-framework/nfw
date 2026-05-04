@@ -12,6 +12,7 @@ use crate::commands::r#gen::command::GenMediatorCommandCliCommand;
 use crate::commands::r#gen::entity::GenEntityCliCommand;
 use crate::commands::r#gen::query::GenMediatorQueryCliCommand;
 use crate::commands::r#gen::registration::register as gen_registration;
+use crate::commands::r#gen::repository::handler::GenRepositoryCliCommand;
 use crate::commands::new::NewWorkspaceCliCommand;
 use crate::commands::new::registration::register as new_registration;
 use crate::commands::templates::add::AddSourceCliCommand;
@@ -53,6 +54,7 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("gen/command", GenMediatorCommandCliCommand::handle)
         .register_handler("gen/entity", GenEntityCliCommand::handle)
         .register_handler("gen/query", GenMediatorQueryCliCommand::handle)
+        .register_handler("gen/repository", GenRepositoryCliCommand::handle)
         .register_handler("templates/list", TemplatesCliCommand::handle)
         .register_handler("templates/add", AddSourceCliCommand::handle)
         .register_handler("templates/remove", RemoveSourceCliCommand::handle)

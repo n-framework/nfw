@@ -67,7 +67,9 @@ impl ExitCodes {
             AddArtifactError::ExecutionFailed(_)
             | AddArtifactError::NfwYamlReadError(_)
             | AddArtifactError::NfwYamlWriteError(_) => Self::ExternalDependencyFailure,
+            AddArtifactError::ArtifactAlreadyExists(_) => Self::Conflict,
             AddArtifactError::WorkspaceError(_) => Self::InternalError,
+            AddArtifactError::FileReadError(_) => Self::ExternalDependencyFailure,
         }
     }
 
