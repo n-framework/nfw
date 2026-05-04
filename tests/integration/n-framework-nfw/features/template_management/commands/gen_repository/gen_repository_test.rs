@@ -100,13 +100,17 @@ steps:
 
     // Create the entity if needed
     if with_entity {
-        let entities_dir = sandbox.join(format!(
-            "src/TestService/src/core/TestService.Core.Domain/Features/{}/Entities",
-            feature
-        ));
+        let features_root = sandbox.join("src/TestService/src/core/TestApp.Core.Domain/Features");
+        fs::create_dir_all(&features_root).expect("failed to create features root");
+
+        let entities_dir = features_root.join(feature).join("Entities");
         fs::create_dir_all(&entities_dir).expect("failed to create entities dir");
         fs::write(entities_dir.join("User.cs"), "public class User {}")
             .expect("failed to write entity file");
+    } else {
+        // Even if no entity, we might need the Features directory to exist for some checks
+        let features_root = sandbox.join("src/TestService/src/core/TestApp.Core.Domain/Features");
+        fs::create_dir_all(&features_root).expect("failed to create features root");
     }
 
     // Create ServiceRegistration.cs for injection target
@@ -127,201 +131,233 @@ public static class ServiceRegistration {
     .unwrap();
 }
 
-#[test]
-fn generates_repository_successfully_when_valid() {
-    let sandbox = support::create_sandbox_directory("gen-repository-integration");
-    setup_repository_workspace(&sandbox, true, true, "identity");
+fn run_test_in_sandbox<F>(sandbox_name: &str, setup_args: (bool, bool, &str), test_fn: F)
+where
+    F: FnOnce(&Path, Instant) -> Result<(), String>,
+{
+    let sandbox = support::create_sandbox_directory(sandbox_name);
+    setup_repository_workspace(&sandbox, setup_args.0, setup_args.1, setup_args.2);
 
     let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let original_dir = std::env::current_dir().unwrap();
     std::env::set_current_dir(&sandbox).unwrap();
 
     let start = Instant::now();
+    let test_result = test_fn(&sandbox, start);
 
-    // With auto-detection (feature arg is empty string, which command_handler handles or we pass feature explicitly)
-    let result = gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "");
-
-    let duration = start.elapsed();
     std::env::set_current_dir(&original_dir).unwrap();
 
-    assert!(result.is_ok(), "gen repository failed: {:?}", result.err());
-
-    // Performance assertion (T028, T030)
-    assert!(
-        duration.as_secs_f64() < 2.0,
-        "Command execution took too long: {} seconds (must be < 2s)",
-        duration.as_secs_f64()
-    );
-
-    // Check files
-    let service_dir = sandbox.join("src/TestService");
-
-    // Interface
-    let interface_path = service_dir.join(
-        "src/core/TestService.Core.Application/Features/identity/Repositories/IUserRepository.cs",
-    );
-    assert!(
-        interface_path.exists(),
-        "Interface IUserRepository.cs was not generated"
-    );
-    let interface_content = fs::read_to_string(interface_path).unwrap();
-    assert!(interface_content.contains(
-        "public interface IUserRepository : IReadRepository<User>, IWriteRepository<User>"
-    ));
-
-    // Implementation
-    let impl_path = service_dir.join("src/infrastructure/TestService.Infrastructure.Persistence/Features/identity/Repositories/UserRepository.cs");
-    assert!(
-        impl_path.exists(),
-        "Implementation UserRepository.cs was not generated"
-    );
-    let impl_content = fs::read_to_string(impl_path).unwrap();
-    assert!(
-        impl_content
-            .contains("public class UserRepository : EFCoreRepository<User>, IUserRepository")
-    );
-
-    // DI Registration
-    let di_path = service_dir
-        .join("src/infrastructure/TestService.Infrastructure.Persistence/ServiceRegistration.cs");
-    assert!(di_path.exists(), "DI Registration file was not generated");
-    let di_content = fs::read_to_string(di_path).unwrap();
-    assert!(di_content.contains("services.AddScoped<IUserRepository, UserRepository>();"));
+    if let Err(e) = test_result {
+        panic!("Test failed in sandbox {}: {}", sandbox_name, e);
+    }
 
     support::cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn generates_repository_successfully_when_valid() {
+    run_test_in_sandbox(
+        "gen-repository-integration",
+        (true, true, "identity"),
+        |sandbox, start| {
+            // With auto-detection (feature arg is empty string)
+            let result = gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "");
+            let duration = start.elapsed();
+
+            if let Err(e) = result {
+                return Err(format!("gen repository failed: {:?}", e));
+            }
+
+            // Performance assertion (T028, T030)
+            if duration.as_secs_f64() >= 2.0 {
+                return Err(format!(
+                    "Command execution took too long: {} seconds (must be < 2s)",
+                    duration.as_secs_f64()
+                ));
+            }
+
+            // Check files
+            let service_dir = sandbox.join("src/TestService");
+
+            // Interface
+            let interface_path = service_dir.join(
+            "src/core/TestService.Core.Application/Features/identity/Repositories/IUserRepository.cs",
+        );
+            if !interface_path.exists() {
+                return Err("Interface IUserRepository.cs was not generated".to_string());
+            }
+            let interface_content = fs::read_to_string(interface_path).unwrap();
+            if !interface_content.contains(
+                "public interface IUserRepository : IReadRepository<User>, IWriteRepository<User>",
+            ) {
+                return Err("Interface content mismatch".to_string());
+            }
+
+            // Implementation
+            let impl_path = service_dir.join("src/infrastructure/TestService.Infrastructure.Persistence/Features/identity/Repositories/UserRepository.cs");
+            if !impl_path.exists() {
+                return Err("Implementation UserRepository.cs was not generated".to_string());
+            }
+            let impl_content = fs::read_to_string(impl_path).unwrap();
+            if !impl_content
+                .contains("public class UserRepository : EFCoreRepository<User>, IUserRepository")
+            {
+                return Err("Implementation content mismatch".to_string());
+            }
+
+            // DI Registration
+            let di_path = service_dir.join(
+                "src/infrastructure/TestService.Infrastructure.Persistence/ServiceRegistration.cs",
+            );
+            if !di_path.exists() {
+                return Err("DI Registration file was not generated".to_string());
+            }
+            let di_content = fs::read_to_string(di_path).unwrap();
+            if !di_content.contains("services.AddScoped<IUserRepository, UserRepository>();") {
+                return Err("DI Registration content mismatch".to_string());
+            }
+
+            Ok(())
+        },
+    );
 }
 
 #[test]
 fn generates_repository_successfully_with_feature_flag() {
-    let sandbox = support::create_sandbox_directory("gen-repository-feature-flag");
-    setup_repository_workspace(&sandbox, true, true, "payments");
+    run_test_in_sandbox(
+        "gen-repository-feature-flag",
+        (true, true, "payments"),
+        |sandbox, start| {
+            let result =
+                gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "payments");
+            let duration = start.elapsed();
 
-    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&sandbox).unwrap();
+            if let Err(e) = result {
+                return Err(format!("gen repository failed: {:?}", e));
+            }
 
-    let start = Instant::now();
-    let result = gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "payments");
-    let duration = start.elapsed();
+            // Performance assertion (T028, T030)
+            if duration.as_secs_f64() >= 2.0 {
+                return Err(format!(
+                    "Command execution took too long: {} seconds (must be < 2s)",
+                    duration.as_secs_f64()
+                ));
+            }
 
-    std::env::set_current_dir(&original_dir).unwrap();
+            let service_dir = sandbox.join("src/TestService");
 
-    assert!(result.is_ok(), "gen repository failed: {:?}", result.err());
+            // Interface should be in payments feature folder
+            let interface_path = service_dir.join(
+            "src/core/TestService.Core.Application/Features/payments/Repositories/IUserRepository.cs",
+        );
+            if !interface_path.exists() {
+                return Err(
+                    "Interface IUserRepository.cs was not generated in payments folder".to_string(),
+                );
+            }
 
-    // Performance assertion (T028, T030)
-    assert!(
-        duration.as_secs_f64() < 2.0,
-        "Command execution took too long: {} seconds (must be < 2s)",
-        duration.as_secs_f64()
+            Ok(())
+        },
     );
-
-    let service_dir = sandbox.join("src/TestService");
-
-    // Interface should be in payments feature folder
-    let interface_path = service_dir.join(
-        "src/core/TestService.Core.Application/Features/payments/Repositories/IUserRepository.cs",
-    );
-    assert!(
-        interface_path.exists(),
-        "Interface IUserRepository.cs was not generated in payments folder"
-    );
-
-    support::cleanup_sandbox_directory(&sandbox);
 }
 
 #[test]
 fn gen_repository_fails_if_entity_not_found() {
-    let sandbox = support::create_sandbox_directory("gen-repository-no-entity");
-    setup_repository_workspace(&sandbox, true, false, "identity"); // No entity
+    run_test_in_sandbox(
+        "gen-repository-no-entity",
+        (true, false, "identity"),
+        |sandbox, start| {
+            let result =
+                gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "identity");
+            let duration = start.elapsed();
 
-    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&sandbox).unwrap();
+            if result.is_ok() {
+                return Err("Expected error, but got success".to_string());
+            }
 
-    let start = Instant::now();
-    let result = gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "identity");
-    let duration = start.elapsed();
+            // Performance assertion (T029, T030)
+            if duration.as_secs_f64() >= 1.0 {
+                return Err(format!(
+                    "Error validation took too long: {} seconds (must be < 1s)",
+                    duration.as_secs_f64()
+                ));
+            }
 
-    std::env::set_current_dir(&original_dir).unwrap();
+            let err_str = format!("{:?}", result.err().unwrap());
+            if !err_str.contains("not found in feature")
+                && !err_str.contains("does not contain an Entities folder")
+            {
+                return Err(format!("Unexpected error message: {}", err_str));
+            }
 
-    assert!(result.is_err());
-
-    // Performance assertion (T029, T030)
-    assert!(
-        duration.as_secs_f64() < 1.0,
-        "Error validation took too long: {} seconds (must be < 1s)",
-        duration.as_secs_f64()
+            Ok(())
+        },
     );
-
-    let err_str = format!("{:?}", result.err().unwrap());
-    assert!(
-        err_str.contains("not found in feature")
-            || err_str.contains("does not contain an Entities folder")
-    );
-
-    support::cleanup_sandbox_directory(&sandbox);
 }
 
 #[test]
 fn gen_repository_fails_if_invalid_feature_folder() {
-    let sandbox = support::create_sandbox_directory("gen-repository-invalid-feature");
-    setup_repository_workspace(&sandbox, true, true, "identity");
+    run_test_in_sandbox(
+        "gen-repository-invalid-feature",
+        (true, true, "identity"),
+        |sandbox, start| {
+            let result = gen_support::execute_non_interactive_gen_repository(
+                &sandbox,
+                "User",
+                "non_existent_feature",
+            );
+            let duration = start.elapsed();
 
-    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&sandbox).unwrap();
+            if result.is_ok() {
+                return Err("Expected error, but got success".to_string());
+            }
 
-    let start = Instant::now();
-    let result = gen_support::execute_non_interactive_gen_repository(
-        &sandbox,
-        "User",
-        "non_existent_feature",
+            // Performance assertion (T029, T030)
+            if duration.as_secs_f64() >= 1.0 {
+                return Err(format!(
+                    "Error validation took too long: {} seconds (must be < 1s)",
+                    duration.as_secs_f64()
+                ));
+            }
+
+            let err_str = format!("{:?}", result.err().unwrap());
+            if !err_str.contains("does not contain an Entities folder") {
+                return Err(format!("Unexpected error message: {}", err_str));
+            }
+
+            Ok(())
+        },
     );
-    let duration = start.elapsed();
-
-    std::env::set_current_dir(&original_dir).unwrap();
-
-    assert!(result.is_err());
-
-    // Performance assertion (T029, T030)
-    assert!(
-        duration.as_secs_f64() < 1.0,
-        "Error validation took too long: {} seconds (must be < 1s)",
-        duration.as_secs_f64()
-    );
-
-    let err_str = format!("{:?}", result.err().unwrap());
-    assert!(err_str.contains("does not contain an Entities folder"));
-
-    support::cleanup_sandbox_directory(&sandbox);
 }
 
 #[test]
 fn gen_repository_fails_if_persistence_not_configured() {
-    let sandbox = support::create_sandbox_directory("gen-repository-no-persistence");
-    setup_repository_workspace(&sandbox, false, true, "identity"); // No persistence
+    run_test_in_sandbox(
+        "gen-repository-no-persistence",
+        (false, true, "identity"),
+        |sandbox, start| {
+            let result =
+                gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "identity");
+            let duration = start.elapsed();
 
-    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&sandbox).unwrap();
+            if result.is_ok() {
+                return Err("Expected error, but got success".to_string());
+            }
 
-    let start = Instant::now();
-    let result = gen_support::execute_non_interactive_gen_repository(&sandbox, "User", "identity");
-    let duration = start.elapsed();
+            // Performance assertion (T029, T030)
+            if duration.as_secs_f64() >= 1.0 {
+                return Err(format!(
+                    "Error validation took too long: {} seconds (must be < 1s)",
+                    duration.as_secs_f64()
+                ));
+            }
 
-    std::env::set_current_dir(&original_dir).unwrap();
+            let err_str = format!("{:?}", result.err().unwrap());
+            if !err_str.contains("does not have 'persistence' module configured") {
+                return Err(format!("Unexpected error message: {}", err_str));
+            }
 
-    assert!(result.is_err());
-
-    // Performance assertion (T029, T030)
-    assert!(
-        duration.as_secs_f64() < 1.0,
-        "Error validation took too long: {} seconds (must be < 1s)",
-        duration.as_secs_f64()
+            Ok(())
+        },
     );
-
-    let err_str = format!("{:?}", result.err().unwrap());
-    assert!(err_str.contains("does not have 'persistence' module configured"));
-
-    support::cleanup_sandbox_directory(&sandbox);
 }

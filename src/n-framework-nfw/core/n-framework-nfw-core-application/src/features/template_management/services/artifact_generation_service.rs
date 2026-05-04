@@ -95,6 +95,7 @@ pub struct AddArtifactContext {
     pub service_path: PathBuf,
 }
 
+/// Service for generating artifacts from templates.
 #[derive(Debug, Clone)]
 pub struct ArtifactGenerationService<W, R, E> {
     working_dir_provider: W,
@@ -108,6 +109,7 @@ where
     R: TemplateRootResolver,
     E: TemplateEngine,
 {
+    /// Creates a new instance of `ArtifactGenerationService`.
     pub fn new(working_dir_provider: W, root_resolver: R, engine: E) -> Self {
         Self {
             working_dir_provider,
@@ -120,6 +122,7 @@ where
         &self.engine
     }
 
+    /// Executes the artifact generation process.
     pub fn execute_generation(
         &self,
         command_name: &str,
@@ -151,6 +154,7 @@ where
         Ok(())
     }
 
+    /// Validates that the required modules are installed.
     pub fn validate_required_modules(
         &self,
         config: &TemplateConfig,
@@ -220,6 +224,7 @@ where
         Ok(Vec::new())
     }
 
+    /// Retrieves the workspace context for the current directory.
     pub fn get_workspace_context(&self) -> Result<WorkspaceContext, AddArtifactError> {
         let current_dir = self.working_dir_provider.current_dir().map_err(|e| {
             AddArtifactError::WorkspaceError(format!("failed to get current directory: {e}"))
@@ -239,6 +244,7 @@ where
         })
     }
 
+    /// Extracts all services defined in the workspace.
     pub fn extract_services(
         &self,
         workspace: &WorkspaceContext,
@@ -294,6 +300,10 @@ where
         Ok(result)
     }
 
+    /// Lists all features available in the workspace.
+    ///
+    /// This method searches for the `Features` directory in the service's src folder,
+    /// traversing the logical namespace path if necessary.
     pub fn list_features(
         &self,
         workspace: &WorkspaceContext,
@@ -342,21 +352,35 @@ where
         };
 
         let mut features = Vec::new();
-        if let Ok(entries) = fs::read_dir(features_root) {
-            for entry in entries.flatten() {
-                if let Ok(file_type) = entry.file_type()
-                    && file_type.is_dir()
-                    && let Some(name) = entry.file_name().to_str()
-                {
-                    features.push(name.to_string());
+        match fs::read_dir(&features_root) {
+            Ok(entries) => {
+                for entry in entries.flatten() {
+                    let _path = entry.path();
+                    if let Ok(file_type) = entry.file_type()
+                        && file_type.is_dir()
+                        && let Some(name) = entry.file_name().to_str()
+                    {
+                        features.push(name.to_string());
+                    }
                 }
             }
+            Err(e) => {
+                tracing::error!(
+                    "Failed to read directory {}: {}",
+                    features_root.display(),
+                    e
+                );
+                return Err(AddArtifactError::WorkspaceError(format!(
+                    "failed to read features directory {}: {}",
+                    features_root.display(),
+                    e
+                )));
+            }
         }
-
-        features.sort();
         Ok(features)
     }
 
+    /// Extracts the namespace from the workspace configuration.
     pub fn extract_namespace(&self, nfw_yaml: &YamlValue) -> Result<String, AddArtifactError> {
         nfw_yaml
             .get("workspace")
@@ -427,6 +451,7 @@ where
         })
     }
 
+    /// Validates the identifiers provided for artifact generation.
     pub fn validate_identifiers(
         &self,
         name: &str,
@@ -468,6 +493,11 @@ where
     ) -> Result<(serde_yaml::Value, PreservedComments), AddArtifactError> {
         let nfw_yaml_path = workspace_root.join("nfw.yaml");
         let content = fs::read_to_string(&nfw_yaml_path).map_err(|e| {
+            tracing::error!(
+                "Failed to read workspace config at {}: {}",
+                nfw_yaml_path.display(),
+                e
+            );
             AddArtifactError::NfwYamlReadError(format!(
                 "failed to read workspace config at {}: {e}",
                 nfw_yaml_path.display()
@@ -475,6 +505,11 @@ where
         })?;
         let preserved_comments = extract_preserved_comments(&content);
         let value = serde_yaml::from_str(&content).map_err(|e| {
+            tracing::error!(
+                "Failed to parse workspace config at {}: {}",
+                nfw_yaml_path.display(),
+                e
+            );
             AddArtifactError::NfwYamlParseError(format!(
                 "failed to parse workspace config at {}: {e}",
                 nfw_yaml_path.display()
@@ -491,6 +526,11 @@ where
     ) -> Result<(), AddArtifactError> {
         let nfw_yaml_path = workspace_root.join("nfw.yaml");
         let serialized = serde_yaml::to_string(yaml).map_err(|e| {
+            tracing::error!(
+                "Failed to serialize workspace config for {}: {}",
+                nfw_yaml_path.display(),
+                e
+            );
             AddArtifactError::NfwYamlWriteError(format!(
                 "failed to serialize workspace config for {}: {e}",
                 nfw_yaml_path.display()
@@ -500,6 +540,11 @@ where
         let output = format_nfw_yaml_document(&serialized, preserved_comments);
 
         fs::write(&nfw_yaml_path, output).map_err(|e| {
+            tracing::error!(
+                "Failed to write workspace config at {}: {}",
+                nfw_yaml_path.display(),
+                e
+            );
             AddArtifactError::NfwYamlWriteError(format!(
                 "failed to write workspace config at {}: {e}",
                 nfw_yaml_path.display()
@@ -515,6 +560,11 @@ where
     ) -> Result<TemplateConfig, AddArtifactError> {
         let path = template_root.join("template.yaml");
         let content = fs::read_to_string(&path).map_err(|e| {
+            tracing::error!(
+                "Failed to read template config at {}: {}",
+                path.display(),
+                e
+            );
             AddArtifactError::ConfigError(format!(
                 "failed to read template config at {}: {e}",
                 path.display()
@@ -587,6 +637,7 @@ where
         }
     }
 
+    /// Adds a module to the service in the workspace configuration.
     pub fn add_service_module(
         &self,
         workspace_root: &Path,

@@ -40,25 +40,6 @@ where
         // 1. Prompt for Service Selection (if not provided and multiple exist)
         let service = self.resolve_service(&request, services)?;
 
-        // Check if persistence module is configured before prompting further
-        let mut has_persistence = false;
-        if let Some(services_map) = workspace.nfw_yaml().get("services")
-            && let Some(service_info) = services_map.get(service.name())
-            && let Some(modules) = service_info.get("modules")
-            && let Some(modules_seq) = modules.as_sequence()
-        {
-            has_persistence = modules_seq
-                .iter()
-                .any(|m| m.as_str() == Some("persistence"));
-        }
-
-        if !has_persistence {
-            return Err(CliError::internal(format!(
-                "Service '{}' does not have 'persistence' module configured. Run 'nfw add persistence' first.",
-                service.name()
-            )));
-        }
-
         // Get existing features to populate our prompt options
         let existing_features = command
             .list_features(&workspace, &service)

@@ -31,6 +31,7 @@ pub struct SchemaProperty {
 
 impl SchemaProperty {
     pub fn new(name: String, general_type: GeneralType, nullable: bool) -> Self {
+        assert!(!name.is_empty(), "property name cannot be empty");
         Self {
             name,
             general_type,
@@ -67,6 +68,7 @@ impl EntitySchema {
         entity_type: EntityType,
         properties: Vec<SchemaProperty>,
     ) -> Self {
+        assert!(!entity_name.is_empty(), "entity name cannot be empty");
         Self {
             schema: GlobalConstants::ENTITY_SCHEMA_PATH.to_string(),
             entity: entity_name,

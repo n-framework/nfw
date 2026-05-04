@@ -213,15 +213,6 @@ where
             return Ok(service);
         }
 
-        // 3. CORRECT LOGIC: Error out if multiple options exist but no input is possible
-        if (request.no_input || !request.is_interactive_terminal) && services.len() == 1 {
-            return Ok(services[0].clone());
-        }
-
-        if services.len() == 1 {
-            return Ok(services[0].clone());
-        }
-
         let options: Vec<SelectOption> = services
             .iter()
             .map(|s| SelectOption::new(s.name(), s.name()))
