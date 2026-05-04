@@ -94,6 +94,13 @@ pub type CliGenMediatorQueryCommandHandler = GenMediatorQueryCommandHandler<
     FileSystemTemplateEngine,
 >;
 
+use n_framework_nfw_core_application::features::template_management::commands::gen_repository::gen_repository_command_handler::GenRepositoryCommandHandler;
+pub type CliGenRepositoryCommandHandler = GenRepositoryCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+>;
+
 use n_framework_nfw_core_application::features::check::commands::check::check_command_handler::CheckCommandHandler;
 pub type CliCheckCommandHandler = CheckCommandHandler;
 
@@ -122,6 +129,7 @@ pub struct CliServiceCollection {
     pub add_persistence_command_handler: CliAddPersistenceCommandHandler,
     pub gen_mediator_command_command_handler: CliGenMediatorCommandCommandHandler,
     pub gen_mediator_query_command_handler: CliGenMediatorQueryCommandHandler,
+    pub gen_repository_command_handler: CliGenRepositoryCommandHandler,
     pub gen_entity_command_handler: CliAddEntityCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
 }

@@ -16,6 +16,7 @@ use n_framework_nfw_core_application::features::template_management::commands::a
 use n_framework_nfw_core_application::features::template_management::commands::add_persistence::add_persistence_command_handler::AddPersistenceCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command_handler::GenMediatorCommandCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_query::gen_mediator_query_command_handler::GenMediatorQueryCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::gen_repository::gen_repository_command_handler::GenRepositoryCommandHandler;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
 use n_framework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command_handler::NewWorkspaceCommandHandler;
 use n_framework_nfw_core_application::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
@@ -73,6 +74,11 @@ impl CliServiceCollectionFactory {
                 n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
             ),
             gen_mediator_query_command_handler: GenMediatorQueryCommandHandler::new(
+                StandardWorkingDirectoryProvider::new(),
+                FileSystemTemplateRootResolver::new(),
+                n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
+            ),
+            gen_repository_command_handler: GenRepositoryCommandHandler::new(
                 StandardWorkingDirectoryProvider::new(),
                 FileSystemTemplateRootResolver::new(),
                 n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),

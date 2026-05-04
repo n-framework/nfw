@@ -98,3 +98,19 @@ fn creates_nested_directories() {
 
     assert!(nested.join("Product.yaml").is_file());
 }
+
+#[test]
+fn writes_yaml_language_server_hint() {
+    let temp = TempDir::new().unwrap();
+    let specs_dir = temp.path().join("specs");
+    let store = FileSystemEntitySchemaStore::new();
+
+    store
+        .write_schema(&specs_dir, &sample_schema())
+        .expect("write should succeed");
+
+    let schema_path = specs_dir.join("Product.yaml");
+    let content = fs::read_to_string(schema_path).unwrap();
+
+    assert!(content.starts_with("# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/entity.schema.json"));
+}

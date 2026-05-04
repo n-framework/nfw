@@ -25,18 +25,15 @@ impl WorkspaceContext {
         workspace_root: PathBuf,
         nfw_yaml: YamlValue,
         preserved_comments: PreservedComments,
-    ) -> Result<Self, String> {
-        if workspace_root.as_os_str().is_empty() {
-            return Err("workspace root path cannot be empty".to_string());
-        }
-        Ok(Self {
+    ) -> Self {
+        Self {
             workspace_root,
             nfw_yaml,
             preserved_comments,
-        })
+        }
     }
 
-    pub fn workspace_root(&self) -> &PathBuf {
+    pub fn workspace_root(&self) -> &Path {
         &self.workspace_root
     }
 
@@ -313,10 +310,16 @@ where
                 .join("Features"),
             service_root
                 .join("src")
+                .join("core")
+                .join(format!("{}.Core.Domain", namespace))
+                .join("Features"),
+            service_root
+                .join("src")
                 .join("Application")
                 .join("Features"),
             service_root.join("src").join("Features"),
             service_root.join("Features"),
+            service_root.join("specs").join("features"),
         ];
 
         let mut features_root = None;

@@ -12,6 +12,8 @@ use super::add_entity_command::{AddEntityCommand, EntityType};
 /// and serves as the source of truth for code generation when using `--from-schema`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntitySchema {
+    #[serde(rename = "$schema")]
+    schema: String,
     entity: String,
     id_type: GeneralType,
     entity_type: EntityType,
@@ -66,6 +68,7 @@ impl EntitySchema {
         properties: Vec<SchemaProperty>,
     ) -> Self {
         Self {
+            schema: GlobalConstants::ENTITY_SCHEMA_PATH.to_string(),
             entity: entity_name,
             id_type,
             entity_type,
