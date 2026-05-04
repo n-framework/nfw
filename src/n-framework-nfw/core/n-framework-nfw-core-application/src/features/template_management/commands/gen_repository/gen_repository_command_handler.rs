@@ -82,7 +82,8 @@ where
         let target_feature = if let Some(f) = command.feature() {
             f.to_string()
         } else {
-            let features_containing_entity = self.auto_detect_features(&features_dir, entity_name);
+            let features_containing_entity =
+                self.auto_detect_features(&features_dir, entity_name)?;
 
             if features_containing_entity.is_empty() {
                 return Err(AddArtifactError::InvalidIdentifier(format!(
@@ -110,39 +111,30 @@ where
         }
 
         let mut entity_found = false;
-        match std::fs::read_dir(&entities_dir) {
-            Ok(entries) => {
-                for entry_result in entries {
-                    match entry_result {
-                        Ok(entry) => {
-                            if let Some(file_name) = entry.file_name().to_str() {
-                                if file_name.starts_with(entity_name) && file_name.ends_with(".cs")
-                                {
-                                    entity_found = true;
-                                    break;
-                                }
-                            } else {
-                                tracing::warn!(
-                                    "Failed to convert file name to string in {:?}",
-                                    entities_dir
-                                );
-                            }
-                        }
-                        Err(e) => {
-                            tracing::warn!(
-                                "Error reading directory entry in {:?}: {}",
-                                entities_dir,
-                                e
-                            );
-                        }
-                    }
+        let entries = std::fs::read_dir(&entities_dir).map_err(|e| {
+            AddArtifactError::FileReadError(format!(
+                "Failed to read entities directory {:?}: {}",
+                entities_dir, e
+            ))
+        })?;
+
+        for entry_result in entries {
+            let entry = entry_result.map_err(|e| {
+                AddArtifactError::FileReadError(format!(
+                    "Error reading directory entry in {:?}: {}",
+                    entities_dir, e
+                ))
+            })?;
+
+            if let Some(file_name) = entry.file_name().to_str() {
+                if file_name.starts_with(entity_name) && file_name.ends_with(".cs") {
+                    entity_found = true;
+                    break;
                 }
-            }
-            Err(e) => {
+            } else {
                 tracing::warn!(
-                    "Failed to read entities directory {:?}: {}",
-                    entities_dir,
-                    e
+                    "Failed to convert file name to string in {:?}",
+                    entities_dir
                 );
             }
         }
@@ -258,85 +250,71 @@ where
         &self,
         features_dir: &std::path::Path,
         entity_name: &str,
-    ) -> Vec<String> {
+    ) -> Result<Vec<String>, AddArtifactError> {
         let mut features_containing_entity = vec![];
         if !features_dir.exists() {
             tracing::warn!(
                 "Features directory does not exist: {}",
                 features_dir.display()
             );
-            return features_containing_entity;
+            return Ok(features_containing_entity);
         }
 
-        match std::fs::read_dir(features_dir) {
-            Ok(entries) => {
-                for entry_result in entries {
-                    match entry_result {
-                        Ok(entry) => {
-                            if !entry.path().is_dir() {
-                                continue;
-                            }
+        let entries = std::fs::read_dir(features_dir).map_err(|e| {
+            AddArtifactError::FileReadError(format!(
+                "Failed to read features directory {}: {}",
+                features_dir.display(),
+                e
+            ))
+        })?;
 
-                            if let Some(feature_name) = entry.file_name().to_str() {
-                                let entities_dir = entry.path().join("Entities");
-                                if !entities_dir.exists() {
-                                    continue;
-                                }
+        for entry_result in entries {
+            let entry = entry_result.map_err(|e| {
+                AddArtifactError::FileReadError(format!(
+                    "Failed to read features directory entry in {}: {}",
+                    features_dir.display(),
+                    e
+                ))
+            })?;
 
-                                match std::fs::read_dir(&entities_dir) {
-                                    Ok(entity_entries) => {
-                                        for entity_entry_result in entity_entries {
-                                            match entity_entry_result {
-                                                Ok(entity_entry) => {
-                                                    if let Some(file_name) =
-                                                        entity_entry.file_name().to_str()
-                                                        && file_name.starts_with(entity_name)
-                                                        && file_name.ends_with(".cs")
-                                                    {
-                                                        features_containing_entity
-                                                            .push(feature_name.to_string());
-                                                    }
-                                                }
-                                                Err(e) => {
-                                                    tracing::error!(
-                                                        "Failed to read entities entry in {}: {}",
-                                                        entities_dir.display(),
-                                                        e
-                                                    );
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Err(e) => {
-                                        tracing::error!(
-                                            "Failed to read entities directory {}: {}",
-                                            entities_dir.display(),
-                                            e
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            tracing::error!(
-                                "Failed to read features directory entry in {}: {}",
-                                features_dir.display(),
-                                e
-                            );
-                        }
+            if !entry.path().is_dir() {
+                continue;
+            }
+
+            if let Some(feature_name) = entry.file_name().to_str() {
+                let entities_dir = entry.path().join("Entities");
+                if !entities_dir.exists() {
+                    continue;
+                }
+
+                let entity_entries = std::fs::read_dir(&entities_dir).map_err(|e| {
+                    AddArtifactError::FileReadError(format!(
+                        "Failed to read entities directory {}: {}",
+                        entities_dir.display(),
+                        e
+                    ))
+                })?;
+
+                for entity_entry_result in entity_entries {
+                    let entity_entry = entity_entry_result.map_err(|e| {
+                        AddArtifactError::FileReadError(format!(
+                            "Failed to read entities entry in {}: {}",
+                            entities_dir.display(),
+                            e
+                        ))
+                    })?;
+
+                    if let Some(file_name) = entity_entry.file_name().to_str()
+                        && file_name.starts_with(entity_name)
+                        && file_name.ends_with(".cs")
+                    {
+                        features_containing_entity.push(feature_name.to_string());
                     }
                 }
             }
-            Err(e) => {
-                tracing::error!(
-                    "Failed to read features directory {}: {}",
-                    features_dir.display(),
-                    e
-                );
-            }
         }
 
-        features_containing_entity
+        Ok(features_containing_entity)
     }
 
     pub fn get_workspace_context(&self) -> Result<WorkspaceContext, AddArtifactError> {

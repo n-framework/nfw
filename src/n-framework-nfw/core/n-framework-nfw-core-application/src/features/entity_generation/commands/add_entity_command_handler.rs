@@ -376,5 +376,6 @@ fn map_add_artifact_error(e: AddArtifactError) -> EntityGenerationError {
                 reason: format!("Artifact already exists: {reason}"),
             }
         }
+        AddArtifactError::FileReadError(reason) => EntityGenerationError::ConfigError { reason },
     }
 }
