@@ -6,6 +6,7 @@ use crate::commands::add::mediator::AddMediatorCliCommand;
 use crate::commands::add::persistence::AddPersistenceCliCommand;
 use crate::commands::add::registration::register as add_registration;
 use crate::commands::add::service::AddServiceCliCommand;
+use crate::commands::add::webapi::handler::AddWebApiCliCommand;
 use crate::commands::check::RunCheckCliCommand;
 use crate::commands::check::registration::register as check_registration;
 use crate::commands::r#gen::command::GenMediatorCommandCliCommand;
@@ -51,6 +52,7 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("add/service", AddServiceCliCommand::handle)
         .register_handler("add/mediator", AddMediatorCliCommand::handle)
         .register_handler("add/persistence", AddPersistenceCliCommand::handle)
+        .register_handler("add/webapi", AddWebApiCliCommand::handle)
         .register_handler("gen/command", GenMediatorCommandCliCommand::handle)
         .register_handler("gen/entity", GenEntityCliCommand::handle)
         .register_handler("gen/query", GenMediatorQueryCliCommand::handle)

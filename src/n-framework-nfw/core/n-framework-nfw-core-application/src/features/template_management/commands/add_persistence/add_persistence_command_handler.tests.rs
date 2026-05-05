@@ -74,6 +74,7 @@ generators:
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
         ),
+        "WebApi".to_string(),
     )
     .unwrap();
 

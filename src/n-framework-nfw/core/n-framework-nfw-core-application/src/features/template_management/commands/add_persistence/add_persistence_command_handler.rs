@@ -51,6 +51,14 @@ where
             .with_service(cmd.service_info().name())
             .map_err(AddArtifactError::InvalidParameter)?;
 
+        let mut parameters = parameters;
+        parameters
+            .insert_value(
+                "PresentationLayer".to_string(),
+                serde_json::Value::String(cmd.presentation_layer().to_string()),
+            )
+            .map_err(AddArtifactError::InvalidParameter)?;
+
         let output_root = workspace.workspace_root().join(cmd.service_info().path());
 
         self.service
