@@ -77,7 +77,7 @@ steps:
 }
 
 #[test]
-fn add_webapi_updates_nfw_yaml_and_renders_template() {
+fn given_valid_service_when_add_webapi_then_updates_yaml_and_renders_template() {
     let sandbox = support::create_sandbox_directory("add-webapi-integration");
     setup_webapi_workspace(&sandbox);
 
@@ -120,7 +120,7 @@ fn add_webapi_updates_nfw_yaml_and_renders_template() {
 }
 
 #[test]
-fn add_webapi_rolls_back_yaml_if_template_execution_fails() {
+fn given_template_execution_fails_when_add_webapi_then_rolls_back_yaml() {
     let sandbox = support::create_sandbox_directory("add-webapi-rollback");
     setup_webapi_workspace(&sandbox);
 
@@ -175,7 +175,7 @@ steps:
 }
 
 #[test]
-fn add_webapi_fails_if_service_not_found() {
+fn given_invalid_service_name_when_add_webapi_then_returns_not_found_error() {
     let sandbox = support::create_sandbox_directory("add-webapi-fail");
     setup_webapi_workspace(&sandbox);
 
@@ -198,7 +198,7 @@ fn add_webapi_fails_if_service_not_found() {
 }
 
 #[test]
-fn add_webapi_preserves_comments_in_nfw_yaml() {
+fn given_yaml_with_comments_when_add_webapi_then_preserves_comments() {
     let sandbox = support::create_sandbox_directory("add-webapi-comments");
     fs::write(
         sandbox.join("nfw.yaml"),
@@ -276,7 +276,7 @@ template_sources:
 }
 
 #[test]
-fn add_webapi_detects_existing_webapi_module() {
+fn given_webapi_exists_when_add_webapi_then_returns_duplicate_error() {
     let sandbox = support::create_sandbox_directory("add-webapi-duplicate");
     fs::write(
         sandbox.join("nfw.yaml"),
@@ -356,6 +356,64 @@ steps:
         webapi_count <= 1,
         "webapi module should not be duplicated, found {} entries",
         webapi_count
+    );
+
+    support::cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn given_no_nfw_yaml_when_add_webapi_then_returns_workspace_error() {
+    let sandbox = support::create_sandbox_directory("add-webapi-missing-yaml");
+
+    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let services = CliServiceCollectionFactory::create();
+    let original_dir = std::env::current_dir().unwrap();
+    std::env::set_current_dir(&sandbox).unwrap();
+
+    let mut opts = HashMap::new();
+    opts.insert("service".to_string(), "TestService".to_string());
+    opts.insert("no-input".to_string(), "true".to_string());
+
+    let result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
+    std::env::set_current_dir(&original_dir).unwrap();
+
+    assert!(result.is_err());
+    let err_msg = result.unwrap_err().to_string();
+    assert!(
+        err_msg.to_lowercase().contains("nfw.yaml") || err_msg.to_lowercase().contains("workspace"),
+        "Error should mention nfw.yaml or workspace configuration"
+    );
+
+    support::cleanup_sandbox_directory(&sandbox);
+}
+
+#[test]
+fn given_malformed_yaml_when_add_webapi_then_returns_parse_error() {
+    let sandbox = support::create_sandbox_directory("add-webapi-malformed-yaml");
+
+    fs::write(
+        sandbox.join("nfw.yaml"),
+        "workspace:\n  namespace: Test\n  services:\n    BadYaml [[[",
+    )
+    .unwrap();
+
+    let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let services = CliServiceCollectionFactory::create();
+    let original_dir = std::env::current_dir().unwrap();
+    std::env::set_current_dir(&sandbox).unwrap();
+
+    let mut opts = HashMap::new();
+    opts.insert("service".to_string(), "TestService".to_string());
+    opts.insert("no-input".to_string(), "true".to_string());
+
+    let result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
+    std::env::set_current_dir(&original_dir).unwrap();
+
+    assert!(result.is_err());
+    let err_msg = result.unwrap_err().to_string();
+    assert!(
+        err_msg.to_lowercase().contains("yaml") || err_msg.to_lowercase().contains("parse"),
+        "Error should mention YAML parsing issue"
     );
 
     support::cleanup_sandbox_directory(&sandbox);

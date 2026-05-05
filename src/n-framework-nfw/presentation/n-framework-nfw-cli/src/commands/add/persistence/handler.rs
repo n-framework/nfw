@@ -1,5 +1,6 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use crate::cli_error::CliError;
+use crate::commands::add::utils::find_presentation_layers;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::template_management::commands::add_persistence::add_persistence_command::AddPersistenceCommand;
@@ -82,27 +83,11 @@ where
                 })?
         };
 
-        let presentation_dir = workspace_context
-            .workspace_root()
-            .join(selected_service.path())
-            .join("src/presentation");
-        let mut layers = Vec::new();
-        if presentation_dir.exists()
-            && let Ok(entries) = std::fs::read_dir(&presentation_dir)
-        {
-            for entry in entries.flatten() {
-                if let Ok(file_type) = entry.file_type()
-                    && file_type.is_dir()
-                {
-                    let name = entry.file_name().to_string_lossy().to_string();
-                    let prefix = format!("{}.Presentation.", selected_service.name());
-                    if name.starts_with(&prefix) {
-                        let layer = name.replace(&prefix, "");
-                        layers.push(layer);
-                    }
-                }
-            }
-        }
+        let layers = find_presentation_layers(
+            workspace_context.workspace_root(),
+            selected_service.path(),
+            selected_service.name(),
+        )?;
 
         if layers.is_empty() {
             return Err(CliError::internal(

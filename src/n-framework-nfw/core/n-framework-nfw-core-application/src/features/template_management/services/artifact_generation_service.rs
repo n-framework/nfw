@@ -672,19 +672,40 @@ where
         let module_value = YamlValue::String(module_name.to_string());
         if let Some(seq) = modules.as_sequence_mut() {
             if seq.contains(&module_value) {
-                tracing::info!(
-                    "Module '{}' is already registered for service '{}', skipping.",
-                    module_name,
-                    service_name
-                );
-            } else {
-                seq.push(module_value);
+                return Err(AddArtifactError::WorkspaceError(format!(
+                    "Module '{}' is already registered for service '{}'. No changes were made.",
+                    module_name, service_name
+                )));
             }
+            seq.push(module_value);
         }
 
         self.write_nfw_yaml(workspace_root, &yaml, &preserved_comments)?;
 
         Ok(())
+    }
+
+    pub fn has_service_module(
+        &self,
+        workspace_root: &Path,
+        service_name: &str,
+        module_name: &str,
+    ) -> Result<bool, AddArtifactError> {
+        let (yaml, _) = self.read_nfw_yaml(workspace_root)?;
+
+        let modules = yaml
+            .get("services")
+            .and_then(|s| s.get(service_name))
+            .and_then(|details| details.get("modules"));
+
+        if let Some(modules_value) = modules
+            && let Some(seq) = modules_value.as_sequence()
+        {
+            let module_value = serde_yaml::Value::String(module_name.to_string());
+            return Ok(seq.contains(&module_value));
+        }
+
+        Ok(false)
     }
 }
 

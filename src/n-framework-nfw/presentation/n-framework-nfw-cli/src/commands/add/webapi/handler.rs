@@ -2,12 +2,31 @@ use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption}
 use crate::cli_error::CliError;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::template_management::commands::add_webapi::add_webapi_command::AddWebApiCommand;
+use n_framework_nfw_core_application::features::template_management::commands::add_webapi::add_webapi_command::{AddWebApiCommand, WebApiConfig};
 use n_framework_nfw_core_application::features::template_management::commands::add_webapi::add_webapi_command_handler::AddWebApiCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+
+/// Controls whether the command runs interactively or in headless mode.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InteractivityMode {
+    /// User will be prompted for missing information
+    Interactive,
+    /// All prompts are disabled; automation-friendly
+    NonInteractive,
+}
+
+impl InteractivityMode {
+    pub fn is_interactive(self) -> bool {
+        matches!(self, Self::Interactive)
+    }
+
+    pub fn is_non_interactive(self) -> bool {
+        matches!(self, Self::NonInteractive)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct AddWebApiCliCommand<W, R, E, P> {
@@ -16,8 +35,7 @@ pub struct AddWebApiCliCommand<W, R, E, P> {
 }
 
 pub struct AddWebApiRequest<'a> {
-    pub no_input: bool,
-    pub is_interactive_terminal: bool,
+    pub mode: InteractivityMode,
     pub service_name: Option<&'a str>,
 }
 
@@ -33,6 +51,12 @@ where
     }
 
     pub fn execute(&self, request: AddWebApiRequest) -> Result<(), CliError> {
+        if request.mode.is_non_interactive() && request.service_name.is_none() {
+            return Err(CliError::internal(
+                "Service name is required when --no-input is set. Use the --service option or run in interactive mode.",
+            ));
+        }
+
         self.prompt
             .intro("Add WebAPI Module")
             .map_err(|e| CliError::internal(e.to_string()))?;
@@ -57,7 +81,7 @@ where
                         name
                     ))
                 })?
-        } else if (request.no_input || !request.is_interactive_terminal) && services.len() == 1 {
+        } else if request.mode.is_non_interactive() && services.len() == 1 {
             services.into_iter().next().ok_or_else(|| {
                 AddArtifactError::WorkspaceError("No service found in workspace.".to_string())
             })?
@@ -90,15 +114,24 @@ where
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let command = AddWebApiCommand::new(selected_service.clone(), workspace_context)
-            .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
+        let command = AddWebApiCommand::new(
+            selected_service.clone(),
+            workspace_context,
+            WebApiConfig::default(),
+        );
 
         if let Err(e) = self.handler.handle(&command) {
+            // Error ID Strategy:
+            // - Hexadecimal microseconds since UNIX_EPOCH
+            // - Provides: 1) collision resistance across concurrent runs
+            // - 2) Human-readable format for log searches
+            // - 3) Timestamp correlation for debugging
+            // - Fallback to 0 (rare) if system clock misbehaves
             let error_id = format!(
                 "{:x}",
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
+                    .unwrap_or_else(|_| std::time::Duration::from_secs(0))
                     .as_micros()
             );
             spinner.error(&format!(
@@ -133,18 +166,22 @@ impl AddWebApiCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackProm
         command: &dyn n_framework_core_cli_abstractions::Command,
         context: &CliServiceCollection,
     ) -> Result<(), String> {
-        use std::io::{self, IsTerminal};
-        let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
-
         AddWebApiCliCommand::new(
             context.add_webapi_command_handler.clone(),
             n_framework_core_cli_cliclack::CliclackPromptService::new(),
         )
         .execute(AddWebApiRequest {
-            no_input: command.option("no-input").is_some(),
-            is_interactive_terminal,
+            mode: if command.option("no-input").is_some() {
+                InteractivityMode::NonInteractive
+            } else {
+                InteractivityMode::Interactive
+            },
             service_name: command.option("service"),
         })
         .map_err(|error| error.to_string())
     }
 }
+
+#[cfg(test)]
+#[path = "handler.tests.rs"]
+mod tests;
