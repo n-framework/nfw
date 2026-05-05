@@ -3,27 +3,21 @@ use crate::features::template_management::services::artifact_generation_service:
 };
 
 #[derive(Debug, Clone)]
-pub struct AddMediatorCommand {
+pub struct AddWebApiCommand {
     service_info: ServiceInfo,
     workspace_context: WorkspaceContext,
-    presentation_layer: String,
 }
 
-impl AddMediatorCommand {
-    pub const GENERATOR_TYPE: &'static str = "mediator";
+impl AddWebApiCommand {
+    pub const GENERATOR_TYPE: &'static str = "webapi";
 
     pub fn new(
         service_info: ServiceInfo,
         workspace_context: WorkspaceContext,
-        presentation_layer: String,
     ) -> Result<Self, String> {
-        if presentation_layer.is_empty() {
-            return Err("Presentation layer cannot be empty".to_string());
-        }
         Ok(Self {
             service_info,
             workspace_context,
-            presentation_layer,
         })
     }
 
@@ -33,9 +27,5 @@ impl AddMediatorCommand {
 
     pub fn workspace_context(&self) -> &WorkspaceContext {
         &self.workspace_context
-    }
-
-    pub fn presentation_layer(&self) -> &str {
-        &self.presentation_layer
     }
 }

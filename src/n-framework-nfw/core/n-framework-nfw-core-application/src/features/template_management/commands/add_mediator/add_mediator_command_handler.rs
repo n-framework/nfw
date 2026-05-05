@@ -27,24 +27,34 @@ where
     }
 
     pub fn handle(&self, command: &AddMediatorCommand) -> Result<(), AddArtifactError> {
-        let workspace = &command.workspace_context;
+        let workspace = command.workspace_context();
         let context = self.service.load_template_context(
             workspace.clone(),
-            &command.service_info,
-            "mediator",
+            command.service_info(),
+            AddMediatorCommand::GENERATOR_TYPE,
         )?;
 
         let namespace = self.service.extract_namespace(workspace.nfw_yaml())?;
 
         let parameters = TemplateParameters::new()
-            .with_name(command.service_info.name())
+            .with_name(command.service_info().name())
             .map_err(AddArtifactError::InvalidParameter)?
             .with_namespace(namespace)
             .map_err(AddArtifactError::InvalidParameter)?
-            .with_service(command.service_info.name())
+            .with_service(command.service_info().name())
             .map_err(AddArtifactError::InvalidParameter)?;
 
-        let output_root = workspace.workspace_root().join(command.service_info.path());
+        let mut parameters = parameters;
+        parameters
+            .insert_value(
+                "PresentationLayer".to_string(),
+                serde_json::Value::String(command.presentation_layer().to_string()),
+            )
+            .map_err(AddArtifactError::InvalidParameter)?;
+
+        let output_root = workspace
+            .workspace_root()
+            .join(command.service_info().path());
 
         self.service
             .engine()
@@ -58,8 +68,8 @@ where
 
         self.service.add_service_module(
             workspace.workspace_root(),
-            command.service_info.name(),
-            "mediator",
+            command.service_info().name(),
+            AddMediatorCommand::GENERATOR_TYPE,
         )?;
 
         Ok(())

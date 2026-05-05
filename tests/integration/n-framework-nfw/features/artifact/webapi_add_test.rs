@@ -7,7 +7,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use n_framework_core_cli_abstractions::Command;
-use n_framework_nfw_cli::commands::add::persistence::AddPersistenceCliCommand;
+use n_framework_nfw_cli::commands::add::webapi::AddWebApiCliCommand;
 use n_framework_nfw_cli::startup::cli_service_collection_factory::CliServiceCollectionFactory;
 
 static DIR_LOCK: Mutex<()> = Mutex::new(());
@@ -18,7 +18,7 @@ struct TestCommand {
 
 impl Command for TestCommand {
     fn name(&self) -> &str {
-        "persistence"
+        "webapi"
     }
     fn args(&self) -> &[String] {
         &[]
@@ -28,7 +28,7 @@ impl Command for TestCommand {
     }
 }
 
-fn setup_persistence_workspace(sandbox: &Path) {
+fn setup_webapi_workspace(sandbox: &Path) {
     fs::write(
         sandbox.join("nfw.yaml"),
         r#"
@@ -50,39 +50,36 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  webapi: webapi\n",
     )
     .expect("failed to write root template.yaml");
 
-    let tpl_dir = root_tpl_dir.join("persistence");
+    let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).expect("failed to create sub-template dir");
     fs::write(
         tpl_dir.join("template.yaml"),
         r#"
-id: dotnet-service/persistence
+id: dotnet-service/webapi
 steps:
   - action: render
-    source: DbContext.cs.tera
-    destination: "{{ Name }}DbContext.cs"
+    source: Program.cs.tera
+    destination: "Program.cs"
 "#,
     )
     .expect("failed to write sub-template template.yaml");
     fs::write(
-        tpl_dir.join("DbContext.cs.tera"),
-        "// DbContext for {{ Name }}",
+        tpl_dir.join("Program.cs.tera"),
+        "// Program.cs for {{ Name }}",
     )
     .expect("failed to write tera");
 
-    fs::create_dir_all(
-        sandbox.join("src/TestService/src/presentation/TestService.Presentation.WebApi"),
-    )
-    .unwrap();
+    fs::create_dir_all(sandbox.join("src/TestService")).unwrap();
 }
 
 #[test]
-fn add_persistence_updates_nfw_yaml_and_renders_template() {
-    let sandbox = support::create_sandbox_directory("add-persistence-integration");
-    setup_persistence_workspace(&sandbox);
+fn add_webapi_updates_nfw_yaml_and_renders_template() {
+    let sandbox = support::create_sandbox_directory("add-webapi-integration");
+    setup_webapi_workspace(&sandbox);
 
     let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let services = CliServiceCollectionFactory::create();
@@ -93,10 +90,10 @@ fn add_persistence_updates_nfw_yaml_and_renders_template() {
     opts.insert("service".to_string(), "TestService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let result = AddPersistenceCliCommand::handle(&TestCommand { opts }, &services);
+    let result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
-    assert!(result.is_ok(), "add persistence failed: {:?}", result.err());
+    assert!(result.is_ok(), "add webapi failed: {:?}", result.err());
 
     let nfw_yaml_content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
     let yaml: serde_yaml::Value = serde_yaml::from_str(&nfw_yaml_content).unwrap();
@@ -109,13 +106,13 @@ fn add_persistence_updates_nfw_yaml_and_renders_template() {
         .expect("nfw.yaml should have modules sequence for TestService");
 
     assert!(
-        modules.iter().any(|m| m.as_str() == Some("persistence")),
-        "nfw.yaml modules should contain 'persistence'"
+        modules.iter().any(|m| m.as_str() == Some("webapi")),
+        "nfw.yaml modules should contain 'webapi'"
     );
 
     assert!(
         sandbox
-            .join("src/TestService/TestServiceDbContext.cs")
+            .join("src/TestService/Program.cs")
             .exists()
     );
 
@@ -123,15 +120,15 @@ fn add_persistence_updates_nfw_yaml_and_renders_template() {
 }
 
 #[test]
-fn add_persistence_rolls_back_yaml_if_template_execution_fails() {
-    let sandbox = support::create_sandbox_directory("add-persistence-rollback");
-    setup_persistence_workspace(&sandbox);
+fn add_webapi_rolls_back_yaml_if_template_execution_fails() {
+    let sandbox = support::create_sandbox_directory("add-webapi-rollback");
+    setup_webapi_workspace(&sandbox);
 
-    let tpl_yaml_path = sandbox.join("templates/dotnet-service/persistence/template.yaml");
+    let tpl_yaml_path = sandbox.join("templates/dotnet-service/webapi/template.yaml");
     fs::write(
         tpl_yaml_path,
         r#"
-id: dotnet-service/persistence
+id: dotnet-service/webapi
 steps:
   - action: render
     source: missing.tera
@@ -149,7 +146,7 @@ steps:
     opts.insert("service".to_string(), "TestService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let result = AddPersistenceCliCommand::handle(&TestCommand { opts }, &services);
+    let result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
     assert!(
@@ -171,16 +168,16 @@ steps:
                 .unwrap()
                 .as_sequence()
                 .map_or(true, |s| s.is_empty())),
-        "nfw.yaml should NOT have been updated with persistence module on failure"
+        "nfw.yaml should NOT have been updated with webapi module on failure"
     );
 
     support::cleanup_sandbox_directory(&sandbox);
 }
 
 #[test]
-fn add_persistence_fails_if_service_not_found() {
-    let sandbox = support::create_sandbox_directory("add-persistence-fail");
-    setup_persistence_workspace(&sandbox);
+fn add_webapi_fails_if_service_not_found() {
+    let sandbox = support::create_sandbox_directory("add-webapi-fail");
+    setup_webapi_workspace(&sandbox);
 
     let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let services = CliServiceCollectionFactory::create();
@@ -191,7 +188,7 @@ fn add_persistence_fails_if_service_not_found() {
     opts.insert("service".to_string(), "UnknownService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let result = AddPersistenceCliCommand::handle(&TestCommand { opts }, &services);
+    let result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
     assert!(result.is_err());
@@ -201,8 +198,8 @@ fn add_persistence_fails_if_service_not_found() {
 }
 
 #[test]
-fn add_persistence_preserves_comments_in_nfw_yaml() {
-    let sandbox = support::create_sandbox_directory("add-persistence-comments");
+fn add_webapi_preserves_comments_in_nfw_yaml() {
+    let sandbox = support::create_sandbox_directory("add-webapi-comments");
     fs::write(
         sandbox.join("nfw.yaml"),
         r#"# Top level comment
@@ -227,21 +224,18 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  webapi: webapi\n",
     )
     .unwrap();
 
-    let tpl_dir = root_tpl_dir.join("persistence");
+    let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
         tpl_dir.join("template.yaml"),
-        "id: dotnet-service/persistence\nsteps: []",
+        "id: dotnet-service/webapi\nsteps: []",
     )
     .unwrap();
-    fs::create_dir_all(
-        sandbox.join("src/TestService/src/presentation/TestService.Presentation.WebApi"),
-    )
-    .unwrap();
+    fs::create_dir_all(sandbox.join("src/TestService")).unwrap();
 
     let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let services = CliServiceCollectionFactory::create();
@@ -252,16 +246,16 @@ template_sources:
     opts.insert("service".to_string(), "TestService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let result = AddPersistenceCliCommand::handle(&TestCommand { opts }, &services);
+    let result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
-    assert!(result.is_ok(), "add persistence failed: {:?}", result.err());
+    assert!(result.is_ok(), "add webapi failed: {:?}", result.err());
 
     let content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
 
     assert!(
-        content.contains("- persistence"),
-        "persistence module not added"
+        content.contains("- webapi"),
+        "webapi module not added"
     );
 
     assert!(
@@ -282,8 +276,8 @@ template_sources:
 }
 
 #[test]
-fn add_persistence_detects_existing_persistence_module() {
-    let sandbox = support::create_sandbox_directory("add-persistence-duplicate");
+fn add_webapi_detects_existing_webapi_module() {
+    let sandbox = support::create_sandbox_directory("add-webapi-duplicate");
     fs::write(
         sandbox.join("nfw.yaml"),
         r#"
@@ -296,7 +290,7 @@ services:
     template:
       id: dotnet-service
     modules:
-      - persistence
+      - webapi
 template_sources:
   local: "templates"
 "#,
@@ -307,32 +301,29 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  webapi: webapi\n",
     )
     .unwrap();
 
-    let tpl_dir = root_tpl_dir.join("persistence");
+    let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
         tpl_dir.join("template.yaml"),
         r#"
-id: dotnet-service/persistence
+id: dotnet-service/webapi
 steps:
   - action: render
-    source: DbContext.cs.tera
-    destination: "{{ Name }}DbContext.cs"
+    source: Program.cs.tera
+    destination: "Program.cs"
 "#,
     )
     .unwrap();
     fs::write(
-        tpl_dir.join("DbContext.cs.tera"),
-        "// DbContext for {{ Name }}",
+        tpl_dir.join("Program.cs.tera"),
+        "// Program.cs for {{ Name }}",
     )
     .expect("failed to write tera");
-    fs::create_dir_all(
-        sandbox.join("src/TestService/src/presentation/TestService.Presentation.WebApi"),
-    )
-    .unwrap();
+    fs::create_dir_all(sandbox.join("src/TestService")).unwrap();
 
     let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let services = CliServiceCollectionFactory::create();
@@ -343,13 +334,9 @@ steps:
     opts.insert("service".to_string(), "TestService".to_string());
     opts.insert("no-input".to_string(), "true".to_string());
 
-    let _result = AddPersistenceCliCommand::handle(&TestCommand { opts }, &services);
+    let _result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
-    // The command should succeed (or at least not crash) even when module already exists.
-    // The ArtifactGenerationService.add_service_module handles duplicate detection internally.
-    // Whether it reports success or an info message depends on the existing implementation.
-    // Either way it should not panic or produce a corrupt state.
     let nfw_yaml_content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
     let yaml: serde_yaml::Value = serde_yaml::from_str(&nfw_yaml_content).unwrap();
 
@@ -360,15 +347,15 @@ steps:
         .and_then(|m| m.as_sequence())
         .expect("modules should exist");
 
-    let persistence_count = modules
+    let webapi_count = modules
         .iter()
-        .filter(|m| m.as_str() == Some("persistence"))
+        .filter(|m| m.as_str() == Some("webapi"))
         .count();
 
     assert!(
-        persistence_count <= 1,
-        "persistence module should not be duplicated, found {} entries",
-        persistence_count
+        webapi_count <= 1,
+        "webapi module should not be duplicated, found {} entries",
+        webapi_count
     );
 
     support::cleanup_sandbox_directory(&sandbox);

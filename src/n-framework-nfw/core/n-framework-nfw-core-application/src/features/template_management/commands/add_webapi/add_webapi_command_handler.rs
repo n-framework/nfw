@@ -7,14 +7,14 @@ use crate::features::template_management::services::template_engine::TemplateEng
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 
-use super::add_persistence_command::AddPersistenceCommand;
+use super::add_webapi_command::AddWebApiCommand;
 
 #[derive(Debug, Clone)]
-pub struct AddPersistenceCommandHandler<W, R, E> {
+pub struct AddWebApiCommandHandler<W, R, E> {
     service: ArtifactGenerationService<W, R, E>,
 }
 
-impl<W, R, E> AddPersistenceCommandHandler<W, R, E>
+impl<W, R, E> AddWebApiCommandHandler<W, R, E>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
@@ -26,19 +26,13 @@ where
         }
     }
 
-    /// Handles the `add persistence` command workflow.
-    ///
-    /// ## Workflow Context
-    /// 1. Extracts variables required for rendering template content and names, including identifying target service properties.
-    /// 2. Performs a robust template resolution algorithm to locate the appropriate templates on disk or fallback paths.
-    /// 3. Validates naming rules matching NFramework identifiers against CLI payload properties.
-    /// 4. Executes code generation using the templating engine.
-    pub fn handle(&self, cmd: &AddPersistenceCommand) -> Result<(), AddArtifactError> {
+    /// Handles the `add webapi` command workflow.
+    pub fn handle(&self, cmd: &AddWebApiCommand) -> Result<(), AddArtifactError> {
         let workspace = cmd.workspace_context();
         let context = self.service.load_template_context(
             workspace.clone(),
             cmd.service_info(),
-            AddPersistenceCommand::GENERATOR_TYPE,
+            AddWebApiCommand::GENERATOR_TYPE,
         )?;
 
         let namespace = self.service.extract_namespace(workspace.nfw_yaml())?;
@@ -49,14 +43,6 @@ where
             .with_namespace(namespace)
             .map_err(AddArtifactError::InvalidParameter)?
             .with_service(cmd.service_info().name())
-            .map_err(AddArtifactError::InvalidParameter)?;
-
-        let mut parameters = parameters;
-        parameters
-            .insert_value(
-                "PresentationLayer".to_string(),
-                serde_json::Value::String(cmd.presentation_layer().to_string()),
-            )
             .map_err(AddArtifactError::InvalidParameter)?;
 
         let output_root = workspace.workspace_root().join(cmd.service_info().path());
@@ -74,7 +60,7 @@ where
         self.service.add_service_module(
             workspace.workspace_root(),
             cmd.service_info().name(),
-            AddPersistenceCommand::GENERATOR_TYPE,
+            AddWebApiCommand::GENERATOR_TYPE,
         )?;
 
         Ok(())
@@ -93,5 +79,5 @@ where
 }
 
 #[cfg(test)]
-#[path = "add_persistence_command_handler.tests.rs"]
+#[path = "add_webapi_command_handler.tests.rs"]
 mod tests;

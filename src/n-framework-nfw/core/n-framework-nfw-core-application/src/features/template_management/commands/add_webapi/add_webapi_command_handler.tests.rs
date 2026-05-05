@@ -35,13 +35,13 @@ impl TemplateEngine for MockEngine {
 fn handle_returns_error_when_engine_fails() {
     let sandbox = tempfile::tempdir().unwrap();
     let template_dir = sandbox.path().join("my-template");
-    let sub_template_dir = template_dir.join("persistence");
+    let sub_template_dir = template_dir.join("webapi");
     std::fs::create_dir_all(&sub_template_dir).unwrap();
 
     let template_yaml = r#"
 id: my-template
 generators:
-  persistence: "persistence"
+  webapi: "webapi"
 "#;
     std::fs::write(template_dir.join("template.yaml"), template_yaml).unwrap();
     std::fs::write(sub_template_dir.join("template.yaml"), template_yaml).unwrap();
@@ -58,7 +58,7 @@ generators:
         }
     }
 
-    let handler = AddPersistenceCommandHandler::new(
+    let handler = AddWebApiCommandHandler::new(
         MockWorkingDir,
         LocalMockResolver(template_dir),
         MockEngine {
@@ -67,14 +67,13 @@ generators:
     );
 
     let nfw_yaml = serde_yaml::from_str("workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1").unwrap();
-    let cmd = AddPersistenceCommand::new(
+    let cmd = AddWebApiCommand::new(
         ServiceInfo::new("Svc1".to_string(), "src/Svc1".to_string(), "t1".to_string()).unwrap(),
         WorkspaceContext::new(
             PathBuf::from("/mock/workspace"),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
         ),
-        "WebApi".to_string(),
     )
     .unwrap();
 

@@ -1,7 +1,6 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use crate::cli_error::CliError;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
-use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command::AddMediatorCommand;
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
@@ -82,6 +81,50 @@ where
                 })?
         };
 
+        let presentation_dir = workspace_context
+            .workspace_root()
+            .join(selected_service.path())
+            .join("src/presentation");
+        let mut layers = Vec::new();
+        if presentation_dir.exists()
+            && let Ok(entries) = std::fs::read_dir(&presentation_dir)
+        {
+            for entry in entries.flatten() {
+                if let Ok(file_type) = entry.file_type()
+                    && file_type.is_dir()
+                {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    let prefix = format!("{}.Presentation.", selected_service.name());
+                    if name.starts_with(&prefix) {
+                        let layer = name.replace(&prefix, "");
+                        layers.push(layer);
+                    }
+                }
+            }
+        }
+
+        if layers.is_empty() {
+            return Err(CliError::internal(
+                "No presentation layer found. Please run `nfw add webapi` first.",
+            ));
+        }
+
+        let selected_layer = if layers.len() == 1 {
+            layers[0].clone()
+        } else if request.no_input || !request.is_interactive_terminal {
+            return Err(CliError::internal(
+                "Multiple presentation layers found. Please run in interactive mode to select one.",
+            ));
+        } else {
+            let options: Vec<SelectOption> =
+                layers.iter().map(|l| SelectOption::new(l, l)).collect();
+            let selected = self
+                .prompt
+                .select("Select presentation layer:", &options, Some(0))
+                .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
+            selected.value().to_string()
+        };
+
         let spinner = self
             .prompt
             .spinner(&format!(
@@ -90,21 +133,13 @@ where
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let command = AddMediatorCommand {
-            service_info: selected_service.clone(),
-            workspace_context,
-        };
+        let command =
+            AddMediatorCommand::new(selected_service.clone(), workspace_context, selected_layer)
+                .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let res = self.handler.handle(&command).map_err(|e| {
-            spinner.error(&format!("Failed to add mediator: {}", e));
-            e
-        });
-
-        if let Err(e) = res {
-            return Err(CliError::silent(
-                ExitCodes::from_add_artifact_error(&e) as i32,
-                e.to_string(),
-            ));
+        if let Err(e) = self.handler.handle(&command) {
+            let error_id = format!("Failed to add mediator: {}", e);
+            return Err(CliError::internal(error_id));
         }
 
         spinner.success(&format!(

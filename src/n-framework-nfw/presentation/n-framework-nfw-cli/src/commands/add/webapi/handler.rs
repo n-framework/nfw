@@ -2,39 +2,39 @@ use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption}
 use crate::cli_error::CliError;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::template_management::commands::add_persistence::add_persistence_command::AddPersistenceCommand;
-use n_framework_nfw_core_application::features::template_management::commands::add_persistence::add_persistence_command_handler::AddPersistenceCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::add_webapi::add_webapi_command::AddWebApiCommand;
+use n_framework_nfw_core_application::features::template_management::commands::add_webapi::add_webapi_command_handler::AddWebApiCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 
 #[derive(Debug, Clone)]
-pub struct AddPersistenceCliCommand<W, R, E, P> {
-    handler: AddPersistenceCommandHandler<W, R, E>,
+pub struct AddWebApiCliCommand<W, R, E, P> {
+    handler: AddWebApiCommandHandler<W, R, E>,
     prompt: P,
 }
 
-pub struct AddPersistenceRequest<'a> {
+pub struct AddWebApiRequest<'a> {
     pub no_input: bool,
     pub is_interactive_terminal: bool,
     pub service_name: Option<&'a str>,
 }
 
-impl<W, R, E, P> AddPersistenceCliCommand<W, R, E, P>
+impl<W, R, E, P> AddWebApiCliCommand<W, R, E, P>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
     E: TemplateEngine,
     P: InteractivePrompt + Logger,
 {
-    pub fn new(handler: AddPersistenceCommandHandler<W, R, E>, prompt: P) -> Self {
+    pub fn new(handler: AddWebApiCommandHandler<W, R, E>, prompt: P) -> Self {
         Self { handler, prompt }
     }
 
-    pub fn execute(&self, request: AddPersistenceRequest) -> Result<(), CliError> {
+    pub fn execute(&self, request: AddWebApiRequest) -> Result<(), CliError> {
         self.prompt
-            .intro("Add Persistence Module")
+            .intro("Add WebAPI Module")
             .map_err(|e| CliError::internal(e.to_string()))?;
 
         let workspace_context = self.handler.get_workspace_context()?;
@@ -68,7 +68,7 @@ where
                 .collect();
             let selected = self
                 .prompt
-                .select("Select a service to add persistence to:", &options, Some(0))
+                .select("Select a service to add WebAPI to:", &options, Some(0))
                 .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
             services
@@ -82,61 +82,16 @@ where
                 })?
         };
 
-        let presentation_dir = workspace_context
-            .workspace_root()
-            .join(selected_service.path())
-            .join("src/presentation");
-        let mut layers = Vec::new();
-        if presentation_dir.exists()
-            && let Ok(entries) = std::fs::read_dir(&presentation_dir)
-        {
-            for entry in entries.flatten() {
-                if let Ok(file_type) = entry.file_type()
-                    && file_type.is_dir()
-                {
-                    let name = entry.file_name().to_string_lossy().to_string();
-                    let prefix = format!("{}.Presentation.", selected_service.name());
-                    if name.starts_with(&prefix) {
-                        let layer = name.replace(&prefix, "");
-                        layers.push(layer);
-                    }
-                }
-            }
-        }
-
-        if layers.is_empty() {
-            return Err(CliError::internal(
-                "No presentation layer found. Please run `nfw add webapi` first.",
-            ));
-        }
-
-        let selected_layer = if layers.len() == 1 {
-            layers[0].clone()
-        } else if request.no_input || !request.is_interactive_terminal {
-            return Err(CliError::internal(
-                "Multiple presentation layers found. Please run in interactive mode to select one.",
-            ));
-        } else {
-            let options: Vec<SelectOption> =
-                layers.iter().map(|l| SelectOption::new(l, l)).collect();
-            let selected = self
-                .prompt
-                .select("Select presentation layer:", &options, Some(0))
-                .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
-            selected.value().to_string()
-        };
-
         let spinner = self
             .prompt
             .spinner(&format!(
-                "Adding persistence module to '{}'...",
+                "Adding WebAPI module to '{}'...",
                 selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        let command =
-            AddPersistenceCommand::new(selected_service.clone(), workspace_context, selected_layer)
-                .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
+        let command = AddWebApiCommand::new(selected_service.clone(), workspace_context)
+            .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
         if let Err(e) = self.handler.handle(&command) {
             let error_id = format!(
@@ -147,10 +102,10 @@ where
                     .as_micros()
             );
             spinner.error(&format!(
-                "Failed to add persistence (Log ID: {}): {}",
+                "Failed to add WebAPI (Log ID: {}): {}",
                 error_id, e
             ));
-            tracing::error!("[{}] Failed to add persistence: {:?}", error_id, e);
+            tracing::error!("[{}] Failed to add WebAPI: {:?}", error_id, e);
             return Err(CliError::silent(
                 ExitCodes::from_add_artifact_error(&e) as i32,
                 e.to_string(),
@@ -158,13 +113,13 @@ where
         }
 
         spinner.success(&format!(
-            "Persistence module added to '{}'",
+            "WebAPI module added to '{}'",
             selected_service.name()
         ));
 
         self.prompt
             .outro(&format!(
-                "Successfully added Persistence module to '{}'.",
+                "Successfully added WebAPI module to '{}'.",
                 selected_service.name()
             ))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
@@ -173,7 +128,7 @@ where
     }
 }
 
-impl AddPersistenceCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
+impl AddWebApiCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
     pub fn handle(
         command: &dyn n_framework_core_cli_abstractions::Command,
         context: &CliServiceCollection,
@@ -181,11 +136,11 @@ impl AddPersistenceCliCommand<(), (), (), n_framework_core_cli_cliclack::Cliclac
         use std::io::{self, IsTerminal};
         let is_interactive_terminal = io::stdin().is_terminal() && io::stdout().is_terminal();
 
-        AddPersistenceCliCommand::new(
-            context.add_persistence_command_handler.clone(),
+        AddWebApiCliCommand::new(
+            context.add_webapi_command_handler.clone(),
             n_framework_core_cli_cliclack::CliclackPromptService::new(),
         )
-        .execute(AddPersistenceRequest {
+        .execute(AddWebApiRequest {
             no_input: command.option("no-input").is_some(),
             is_interactive_terminal,
             service_name: command.option("service"),
