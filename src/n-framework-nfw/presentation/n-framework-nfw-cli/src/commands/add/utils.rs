@@ -33,7 +33,9 @@ pub fn find_presentation_layers(
             })?;
 
             if file_type.is_dir() {
-                let name = entry.file_name().to_string_lossy().to_string();
+                let name = entry.file_name().into_string().map_err(|os_str| {
+                    CliError::internal(format!("Invalid UTF-8 in directory name: {:?}", os_str))
+                })?;
                 let prefix = format!("{}.Presentation.", service_name);
                 if name.starts_with(&prefix) {
                     let layer = name.replace(&prefix, "");

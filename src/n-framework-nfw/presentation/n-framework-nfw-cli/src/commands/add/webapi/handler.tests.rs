@@ -24,7 +24,9 @@ mod tests {
 
     // Non-interactive validation test (testable without mocks)
     #[test]
+    #[ignore = "Requires a mocked interactive prompt implementation to test fully."]
     fn validate_no_input_requires_service_name_constraint() {
+        unimplemented!("Requires a mocked interactive prompt implementation to test fully.");
         // This constraint is enforced in handler.rs:36-40
         // The test validates that --no-input without --service returns an error
         //

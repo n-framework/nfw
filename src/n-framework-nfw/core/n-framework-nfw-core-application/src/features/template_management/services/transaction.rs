@@ -47,6 +47,7 @@ impl FileTracker {
 
     pub fn cleanup_created_files(&self) -> Result<(), AddArtifactError> {
         let created_files = self.get_created_files();
+        let mut leftover_files = Vec::new();
 
         for file in &created_files {
             if file.exists()
@@ -57,7 +58,15 @@ impl FileTracker {
                     file.display(),
                     e
                 );
+                leftover_files.push(file.display().to_string());
             }
+        }
+
+        if !leftover_files.is_empty() {
+            return Err(AddArtifactError::WorkspaceError(format!(
+                "Rollback partially failed. Manual cleanup required for: {:?}",
+                leftover_files
+            )));
         }
 
         Ok(())

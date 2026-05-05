@@ -9,6 +9,7 @@ pub use n_framework_nfw_core_application::features::template_management::models:
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use crate::utils::generate_error_id;
 
 #[derive(Debug, Clone)]
 pub struct AddMediatorCliCommand<W, R, E, P> {
@@ -124,15 +125,9 @@ where
                 .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
         if let Err(e) = self.handler.handle(&command) {
-            let error_id = format!(
-                "{:x}",
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_else(|_| std::time::Duration::from_secs(0))
-                    .as_micros()
-            );
+            let error_id = generate_error_id();
             spinner.error(&format!(
-                "Failed to add mediator (Log ID: {}): {}",
+                "Failed to add Mediator (Log ID: {}): {}",
                 error_id, e
             ));
             tracing::error!("[{}] Failed to add mediator: {:?}", error_id, e);

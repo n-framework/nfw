@@ -25,8 +25,38 @@ impl TemplateEngine for MockEngine {
     }
 }
 
-#[test]
-fn given_mock_engine_fails_when_handle_then_returns_execution_failed_error() {
+struct LocalMockResolver(PathBuf);
+impl TemplateRootResolver for LocalMockResolver {
+    fn resolve(
+        &self,
+        _yaml: &serde_yaml::Value,
+        _id: &str,
+        _root: &Path,
+    ) -> Result<PathBuf, String> {
+        Ok(self.0.clone())
+    }
+}
+
+struct FailingResolver;
+impl TemplateRootResolver for FailingResolver {
+    fn resolve(
+        &self,
+        _yaml: &serde_yaml::Value,
+        _id: &str,
+        _root: &Path,
+    ) -> Result<PathBuf, String> {
+        Err("Template not found".to_string())
+    }
+}
+
+struct SandboxWorkingDir(PathBuf);
+impl WorkingDirectoryProvider for SandboxWorkingDir {
+    fn current_dir(&self) -> Result<PathBuf, String> {
+        Ok(self.0.clone())
+    }
+}
+
+fn setup_test_env() -> (tempfile::TempDir, PathBuf) {
     let sandbox = tempfile::tempdir().unwrap();
     let template_dir = sandbox.path().join("my-template");
     let sub_template_dir = template_dir.join("webapi");
@@ -40,24 +70,12 @@ generators:
     std::fs::write(template_dir.join("template.yaml"), template_yaml).unwrap();
     std::fs::write(sub_template_dir.join("template.yaml"), template_yaml).unwrap();
 
-    struct LocalMockResolver(PathBuf);
-    impl TemplateRootResolver for LocalMockResolver {
-        fn resolve(
-            &self,
-            _yaml: &serde_yaml::Value,
-            _id: &str,
-            _root: &Path,
-        ) -> Result<PathBuf, String> {
-            Ok(self.0.clone())
-        }
-    }
+    (sandbox, template_dir)
+}
 
-    struct SandboxWorkingDir(PathBuf);
-    impl WorkingDirectoryProvider for SandboxWorkingDir {
-        fn current_dir(&self) -> Result<PathBuf, String> {
-            Ok(self.0.clone())
-        }
-    }
+#[test]
+fn given_mock_engine_fails_when_handle_then_returns_execution_failed_error() {
+    let (sandbox, template_dir) = setup_test_env();
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(
@@ -91,37 +109,7 @@ generators:
 
 #[test]
 fn given_namespace_missing_in_yaml_when_handle_then_returns_config_error() {
-    let sandbox = tempfile::tempdir().unwrap();
-    let template_dir = sandbox.path().join("my-template");
-    let sub_template_dir = template_dir.join("webapi");
-    std::fs::create_dir_all(&sub_template_dir).unwrap();
-
-    let template_yaml = r#"
-id: my-template
-generators:
-  webapi: "webapi"
-"#;
-    std::fs::write(template_dir.join("template.yaml"), template_yaml).unwrap();
-    std::fs::write(sub_template_dir.join("template.yaml"), template_yaml).unwrap();
-
-    struct LocalMockResolver(PathBuf);
-    impl TemplateRootResolver for LocalMockResolver {
-        fn resolve(
-            &self,
-            _yaml: &serde_yaml::Value,
-            _id: &str,
-            _root: &Path,
-        ) -> Result<PathBuf, String> {
-            Ok(self.0.clone())
-        }
-    }
-
-    struct SandboxWorkingDir(PathBuf);
-    impl WorkingDirectoryProvider for SandboxWorkingDir {
-        fn current_dir(&self) -> Result<PathBuf, String> {
-            Ok(self.0.clone())
-        }
-    }
+    let (sandbox, template_dir) = setup_test_env();
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(
@@ -162,37 +150,7 @@ generators:
 
 #[test]
 fn given_webapi_module_exists_when_handle_then_returns_workspace_error() {
-    let sandbox = tempfile::tempdir().unwrap();
-    let template_dir = sandbox.path().join("my-template");
-    let sub_template_dir = template_dir.join("webapi");
-    std::fs::create_dir_all(&sub_template_dir).unwrap();
-
-    let template_yaml = r#"
-id: my-template
-generators:
-  webapi: "webapi"
-"#;
-    std::fs::write(template_dir.join("template.yaml"), template_yaml).unwrap();
-    std::fs::write(sub_template_dir.join("template.yaml"), template_yaml).unwrap();
-
-    struct LocalMockResolver(PathBuf);
-    impl TemplateRootResolver for LocalMockResolver {
-        fn resolve(
-            &self,
-            _yaml: &serde_yaml::Value,
-            _id: &str,
-            _root: &Path,
-        ) -> Result<PathBuf, String> {
-            Ok(self.0.clone())
-        }
-    }
-
-    struct SandboxWorkingDir(PathBuf);
-    impl WorkingDirectoryProvider for SandboxWorkingDir {
-        fn current_dir(&self) -> Result<PathBuf, String> {
-            Ok(self.0.clone())
-        }
-    }
+    let (sandbox, template_dir) = setup_test_env();
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(
@@ -240,38 +198,7 @@ generators:
 
 #[test]
 fn given_template_resolver_fails_when_handle_then_returns_template_not_found_error() {
-    let sandbox = tempfile::tempdir().unwrap();
-    let template_dir = sandbox.path().join("my-template");
-    let sub_template_dir = template_dir.join("webapi");
-    std::fs::create_dir_all(&sub_template_dir).unwrap();
-
-    let template_yaml = r#"
-id: my-template
-generators:
-  webapi: "webapi"
-"#;
-    std::fs::write(template_dir.join("template.yaml"), template_yaml).unwrap();
-    std::fs::write(sub_template_dir.join("template.yaml"), template_yaml).unwrap();
-
-    #[allow(dead_code)]
-    struct FailingResolver(PathBuf);
-    impl TemplateRootResolver for FailingResolver {
-        fn resolve(
-            &self,
-            _yaml: &serde_yaml::Value,
-            _id: &str,
-            _root: &Path,
-        ) -> Result<PathBuf, String> {
-            Err("Template not found".to_string())
-        }
-    }
-
-    struct SandboxWorkingDir(PathBuf);
-    impl WorkingDirectoryProvider for SandboxWorkingDir {
-        fn current_dir(&self) -> Result<PathBuf, String> {
-            Ok(self.0.clone())
-        }
-    }
+    let (sandbox, _) = setup_test_env();
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(
@@ -283,7 +210,7 @@ generators:
 
     let handler = AddWebApiCommandHandler::new(
         SandboxWorkingDir(sandbox.path().to_path_buf()),
-        FailingResolver(template_dir),
+        FailingResolver,
         MockEngine {
             fail_execution: false,
         },

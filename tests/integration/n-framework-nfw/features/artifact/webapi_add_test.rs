@@ -337,6 +337,8 @@ steps:
     let _result = AddWebApiCliCommand::handle(&TestCommand { opts }, &services);
     std::env::set_current_dir(&original_dir).unwrap();
 
+    assert!(_result.is_err(), "Expected error when adding duplicate webapi module");
+
     let nfw_yaml_content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
     let yaml: serde_yaml::Value = serde_yaml::from_str(&nfw_yaml_content).unwrap();
 

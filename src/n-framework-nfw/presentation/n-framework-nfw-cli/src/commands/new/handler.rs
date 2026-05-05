@@ -23,10 +23,12 @@ impl NewWorkspaceCliCommand {
             .new_workspace_command_handler
             .handle(&cmd)
             .map(|result| {
-                let _ = context.prompt_service.log_success(&format!(
+                if let Err(e) = context.prompt_service.log_success(&format!(
                     "Workspace '{}' created successfully using template '{}'",
                     result.workspace_name, result.template_id
-                ));
+                )) {
+                    tracing::warn!("Failed to display success message: {}", e);
+                }
 
                 let outro_message = format!(
                     "Your new workspace is ready at: {}\n\nNext steps:\n  cd {}\n  nfw check",
@@ -34,7 +36,9 @@ impl NewWorkspaceCliCommand {
                     result.workspace_name
                 );
 
-                let _ = context.prompt_service.outro(&outro_message);
+                if let Err(e) = context.prompt_service.outro(&outro_message) {
+                    tracing::warn!("Failed to display outro message: {}", e);
+                }
             })
             .map_err(|e| e.to_string())
     }

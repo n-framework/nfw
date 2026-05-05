@@ -22,22 +22,6 @@ impl Default for WebApiConfig {
     }
 }
 
-impl WebApiConfig {
-    pub fn new(
-        use_openapi: bool,
-        use_health_checks: bool,
-        use_cors: bool,
-        use_problem_details: bool,
-    ) -> Self {
-        Self {
-            use_openapi,
-            use_health_checks,
-            use_cors,
-            use_problem_details,
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct AddWebApiCommand {
     service_info: ServiceInfo,

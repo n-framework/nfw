@@ -8,6 +8,7 @@ pub use n_framework_nfw_core_application::features::template_management::models:
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
+use crate::utils::generate_error_id;
 
 /// Controls whether the command runs interactively or in headless mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -121,19 +122,7 @@ where
         );
 
         if let Err(e) = self.handler.handle(&command) {
-            // Error ID Strategy:
-            // - Hexadecimal microseconds since UNIX_EPOCH
-            // - Provides: 1) collision resistance across concurrent runs
-            // - 2) Human-readable format for log searches
-            // - 3) Timestamp correlation for debugging
-            // - Fallback to 0 (rare) if system clock misbehaves
-            let error_id = format!(
-                "{:x}",
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_else(|_| std::time::Duration::from_secs(0))
-                    .as_micros()
-            );
+            let error_id = generate_error_id();
             spinner.error(&format!(
                 "Failed to add WebAPI (Log ID: {}): {}",
                 error_id, e
