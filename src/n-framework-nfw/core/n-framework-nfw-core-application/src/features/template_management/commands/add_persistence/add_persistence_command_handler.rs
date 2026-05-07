@@ -11,9 +11,9 @@ use n_framework_nfw_core_domain::features::template_management::template_paramet
 use super::add_persistence_command::AddPersistenceCommand;
 
 use crate::features::template_management::constants::generation::PRESENTATION_LAYER;
-const ERR_INIT_TRACKER: &str = "Failed to initialize file tracking";
-const ERR_YAML_BACKUP: &str = "Secondary failure during rollback (yaml restore)";
-const ERR_FILE_CLEANUP: &str = "Secondary failure during rollback (cleanup)";
+use crate::features::template_management::constants::generation::errors::{
+    ERR_FILE_CLEANUP, ERR_INIT_TRACKER, ERR_YAML_BACKUP,
+};
 
 #[derive(Debug, Clone)]
 pub struct AddPersistenceCommandHandler<W, R, E> {

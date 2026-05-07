@@ -38,6 +38,9 @@ fn handle_returns_error_when_engine_fails() {
     let sub_template_dir = template_dir.join("persistence");
     std::fs::create_dir_all(&sub_template_dir).unwrap();
 
+    // ensure output root exists for FileTracker
+    std::fs::create_dir_all(sandbox.path().join("src/Svc1")).unwrap();
+
     let template_yaml = r#"
 id: my-template
 generators:

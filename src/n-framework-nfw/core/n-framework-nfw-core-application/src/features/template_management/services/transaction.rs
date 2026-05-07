@@ -18,6 +18,12 @@ pub struct FileTracker {
 
 impl FileTracker {
     pub fn new(output_root: &Path) -> Result<Self, std::io::Error> {
+        if !output_root.exists() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("Output root does not exist: {}", output_root.display()),
+            ));
+        }
         let baseline_files = Self::scan_directory(output_root)?;
         Ok(Self {
             baseline_files,
@@ -29,7 +35,8 @@ impl FileTracker {
         let mut files = Vec::new();
         if dir.exists() {
             let entries = fs::read_dir(dir)?;
-            for entry in entries.flatten() {
+            for entry in entries {
+                let entry = entry?;
                 let path = entry.path();
                 if path.is_file() {
                     files.push(path);
@@ -60,25 +67,25 @@ impl FileTracker {
                 )));
             }
         };
-        let mut leftover_files = Vec::new();
+        let mut errors = Vec::new();
 
         for file in &created_files {
             if file.exists()
                 && let Err(e) = fs::remove_file(file)
             {
-                tracing::warn!(
+                tracing::error!(
                     "Failed to remove file during rollback: {}: {}",
                     file.display(),
                     e
                 );
-                leftover_files.push(file.display().to_string());
+                errors.push(format!("{}: {}", file.display(), e));
             }
         }
 
-        if !leftover_files.is_empty() {
+        if !errors.is_empty() {
             return Err(AddArtifactError::WorkspaceError(format!(
                 "Rollback partially failed. Manual cleanup required for: {:?}",
-                leftover_files
+                errors
             )));
         }
 

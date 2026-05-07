@@ -123,9 +123,26 @@ where
 
         if let Err(e) = self.handler.handle(&command) {
             let error_id = generate_error_id();
+            let actionable_msg = match &e {
+                AddArtifactError::MissingRequiredModule(_) => format!(
+                    "{}. Hint: run the recommended 'nfw add' command to install the missing dependency.",
+                    e
+                ),
+                AddArtifactError::WorkspaceError(msg) if msg.contains("already registered") => {
+                    format!(
+                        "{}. Hint: If you want to force regenerate, delete the module folder first.",
+                        e
+                    )
+                }
+                AddArtifactError::ExecutionFailed(err) => format!(
+                    "Template execution failed: {}. Check template logs for details.",
+                    err
+                ),
+                _ => e.to_string(),
+            };
             spinner.error(&format!(
                 "Failed to add WebAPI (Log ID: {}): {}",
-                error_id, e
+                error_id, actionable_msg
             ));
             tracing::error!("[{}] Failed to add WebAPI: {:?}", error_id, e);
             return Err(CliError::silent(

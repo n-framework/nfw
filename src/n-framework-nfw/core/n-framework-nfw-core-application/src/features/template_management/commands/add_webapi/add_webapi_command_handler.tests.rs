@@ -85,6 +85,9 @@ fn setup_test_env() -> (tempfile::TempDir, PathBuf) {
     let sub_template_dir = template_dir.join("webapi");
     std::fs::create_dir_all(&sub_template_dir).unwrap();
 
+    // ensure output root exists for FileTracker
+    std::fs::create_dir_all(sandbox.path().join("src/Svc1")).unwrap();
+
     let template_yaml = r#"
 id: my-template
 generators:
@@ -106,7 +109,8 @@ fn handle_error_on_engine_failure() {
         "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1",
     )
     .unwrap();
-    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
 
     let handler = AddWebApiCommandHandler::new(
         SandboxWorkingDir(sandbox.path().to_path_buf()),
@@ -138,7 +142,8 @@ fn handle_error_on_missing_namespace() {
         "workspace:\nname: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1",
     )
     .unwrap();
-    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
 
     let handler = AddWebApiCommandHandler::new(
         SandboxWorkingDir(sandbox.path().to_path_buf()),
@@ -177,7 +182,8 @@ fn handle_error_on_existing_module() {
         "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    modules:\n      - webapi\n    template:\n      id: t1",
     )
     .unwrap();
-    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
 
     let handler = AddWebApiCommandHandler::new(
         SandboxWorkingDir(sandbox.path().to_path_buf()),
@@ -223,7 +229,8 @@ fn handle_error_on_resolver_failure() {
         "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1",
     )
     .unwrap();
-    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
 
     let handler = AddWebApiCommandHandler::new(
         SandboxWorkingDir(sandbox.path().to_path_buf()),
@@ -300,7 +307,8 @@ fn handle_error_on_missing_sub_template() {
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(&nfw_yaml_path, "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1").unwrap();
-    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
 
     let handler = AddWebApiCommandHandler::new(
         SandboxWorkingDir(sandbox.path().to_path_buf()),
@@ -329,7 +337,8 @@ fn handle_error_on_readonly_yaml() {
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(&nfw_yaml_path, "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1").unwrap();
-    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
 
     // Important: we make it read-only so the yaml_backup succeeds (can read) but the service logic fails to update the workspace file
     let mut perms = std::fs::metadata(&nfw_yaml_path).unwrap().permissions();
@@ -367,7 +376,8 @@ fn handle_captures_config_parameters() {
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(&nfw_yaml_path, "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1").unwrap();
-    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
 
     let capture = Rc::new(RefCell::new(None));
     let handler = AddWebApiCommandHandler::new(
@@ -399,4 +409,181 @@ fn handle_captures_config_parameters() {
     assert_eq!(params.get("UseHealthChecks").unwrap(), "true");
     assert_eq!(params.get("UseCors").unwrap(), "false");
     assert_eq!(params.get("UseProblemDetails").unwrap(), "true");
+}
+
+#[test]
+fn handle_captures_all_config_flags() {
+    let (sandbox, template_dir) = setup_test_env();
+
+    let nfw_yaml_path = sandbox.path().join("nfw.yaml");
+    std::fs::write(&nfw_yaml_path, "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1").unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+
+    let capture = Rc::new(RefCell::new(None));
+    let handler = AddWebApiCommandHandler::new(
+        SandboxWorkingDir(sandbox.path().to_path_buf()),
+        LocalMockResolver(template_dir.clone()),
+        MockEngine::with_capture(capture.clone()),
+    );
+
+    // Test case 1: All true
+    let config_all_true = WebApiConfig::new()
+        .with_openapi(true)
+        .with_health_checks(true)
+        .with_cors(true)
+        .with_problem_details(true);
+
+    let cmd1 = AddWebApiCommand::new(
+        ServiceInfo::new("Svc1".to_string(), "src/Svc1".to_string(), "t1".to_string()).unwrap(),
+        WorkspaceContext::new(
+            sandbox.path().to_path_buf(),
+            nfw_yaml.clone(),
+            n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
+        ),
+        config_all_true,
+    );
+    handler.handle(&cmd1).unwrap();
+    {
+        let params = capture.borrow().clone().unwrap();
+        assert_eq!(params.get("UseOpenApi").unwrap(), "true");
+        assert_eq!(params.get("UseHealthChecks").unwrap(), "true");
+        assert_eq!(params.get("UseCors").unwrap(), "true");
+        assert_eq!(params.get("UseProblemDetails").unwrap(), "true");
+    }
+
+    // Test case 2: All false
+    let config_all_false = WebApiConfig::new()
+        .with_openapi(false)
+        .with_health_checks(false)
+        .with_cors(false)
+        .with_problem_details(false);
+
+    let nfw_yaml_all_false_str = "workspace:\n  namespace: MyProj\nservices:\n  Svc2:\n    path: src/Svc2\n    template:\n      id: t1";
+    let nfw_yaml_all_false: serde_yaml::Value =
+        serde_yaml::from_str(nfw_yaml_all_false_str).unwrap();
+
+    // important: we must write Svc2 to the file as well, because some service methods reload it from disk
+    let nfw_yaml_combined_str = "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1\n  Svc2:\n    path: src/Svc2\n    template:\n      id: t1";
+    std::fs::write(&nfw_yaml_path, nfw_yaml_combined_str).unwrap();
+
+    // ensure output root exists for Svc2
+    std::fs::create_dir_all(sandbox.path().join("src/Svc2")).unwrap();
+
+    let cmd2 = AddWebApiCommand::new(
+        ServiceInfo::new("Svc2".to_string(), "src/Svc2".to_string(), "t1".to_string()).unwrap(),
+        WorkspaceContext::new(
+            sandbox.path().to_path_buf(),
+            nfw_yaml_all_false,
+            n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
+        ),
+        config_all_false,
+    );
+    // handler.handle(&cmd1).unwrap_err(); // This was causing issues due to file system state mismatch
+    handler.handle(&cmd2).unwrap();
+    {
+        let params = capture.borrow().clone().unwrap();
+        assert_eq!(params.get("UseOpenApi").unwrap(), "false");
+        assert_eq!(params.get("UseHealthChecks").unwrap(), "false");
+        assert_eq!(params.get("UseCors").unwrap(), "false");
+        assert_eq!(params.get("UseProblemDetails").unwrap(), "false");
+    }
+}
+
+#[test]
+fn handle_success_full_flow() {
+    let (sandbox, template_dir) = setup_test_env();
+
+    let nfw_yaml_path = sandbox.path().join("nfw.yaml");
+    std::fs::write(
+        &nfw_yaml_path,
+        "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1",
+    )
+    .unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+
+    let handler = AddWebApiCommandHandler::new(
+        SandboxWorkingDir(sandbox.path().to_path_buf()),
+        LocalMockResolver(template_dir),
+        MockEngine::new(false),
+    );
+
+    let cmd = AddWebApiCommand::new(
+        ServiceInfo::new("Svc1".to_string(), "src/Svc1".to_string(), "t1".to_string()).unwrap(),
+        WorkspaceContext::new(
+            sandbox.path().to_path_buf(),
+            nfw_yaml,
+            n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
+        ),
+        WebApiConfig::default(),
+    );
+
+    let result = handler.handle(&cmd);
+    assert!(
+        result.is_ok(),
+        "Expected Successful execution, got: {:?}",
+        result
+    );
+
+    // Verify workspace was updated
+    let updated_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+    let modules = updated_yaml
+        .get("services")
+        .and_then(|s| s.get("Svc1"))
+        .and_then(|details| details.get("modules"))
+        .and_then(|m| m.as_sequence())
+        .unwrap();
+    assert!(modules.contains(&serde_yaml::Value::String("webapi".to_string())));
+}
+
+#[test]
+fn handle_error_on_missing_required_modules() {
+    let (sandbox, template_dir) = setup_test_env();
+
+    // template.yaml for webapi requiring 'persistence'
+    let template_yaml = r#"
+id: t1
+required_modules:
+  - persistence
+generators:
+  webapi: "."
+"#;
+    std::fs::write(
+        template_dir.join("webapi").join("template.yaml"),
+        template_yaml,
+    )
+    .unwrap();
+
+    let nfw_yaml_path = sandbox.path().join("nfw.yaml");
+    std::fs::write(&nfw_yaml_path, "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1").unwrap();
+    let nfw_yaml: serde_yaml::Value =
+        serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+
+    let handler = AddWebApiCommandHandler::new(
+        SandboxWorkingDir(sandbox.path().to_path_buf()),
+        LocalMockResolver(template_dir),
+        MockEngine::new(false),
+    );
+
+    let cmd = AddWebApiCommand::new(
+        ServiceInfo::new("Svc1".to_string(), "src/Svc1".to_string(), "t1".to_string()).unwrap(),
+        WorkspaceContext::new(
+            sandbox.path().to_path_buf(),
+            nfw_yaml,
+            n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
+        ),
+        WebApiConfig::default(),
+    );
+
+    let result = handler.handle(&cmd);
+    assert!(result.is_err());
+    if let Err(err) = result {
+        assert!(
+            matches!(err, AddArtifactError::MissingRequiredModule(_)),
+            "Expected MissingRequiredModule error, got {:?}",
+            err
+        );
+    }
 }

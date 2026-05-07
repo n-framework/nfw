@@ -26,4 +26,12 @@ pub mod source {
 pub mod generation {
     /// Identifier for the PresentationLayer feature
     pub const PRESENTATION_LAYER: &str = "PresentationLayer";
+
+    /// Standard error messages for transactional generation
+    pub mod errors {
+        pub const ERR_INIT_TRACKER: &str = "Failed to initialize file tracking";
+        pub const ERR_YAML_BACKUP: &str = "Secondary failure during rollback (yaml restore)";
+        pub const ERR_FILE_CLEANUP: &str = "Secondary failure during rollback (cleanup)";
+        pub const ERR_MODULE_EXISTS: &str = "module already exists for service";
+    }
 }

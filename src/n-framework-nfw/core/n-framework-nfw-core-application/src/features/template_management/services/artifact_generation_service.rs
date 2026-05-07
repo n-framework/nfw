@@ -95,7 +95,6 @@ pub struct AddArtifactContext {
     pub service_path: PathBuf,
 }
 
-/// Service for generating artifacts from templates.
 #[derive(Debug, Clone)]
 pub struct ArtifactGenerationService<W, R, E> {
     working_dir_provider: W,
@@ -109,7 +108,6 @@ where
     R: TemplateRootResolver,
     E: TemplateEngine,
 {
-    /// Creates a new instance of `ArtifactGenerationService`.
     pub fn new(working_dir_provider: W, root_resolver: R, engine: E) -> Self {
         Self {
             working_dir_provider,
@@ -154,7 +152,6 @@ where
         Ok(())
     }
 
-    /// Validates that the required modules are installed.
     pub fn validate_required_modules(
         &self,
         config: &TemplateConfig,

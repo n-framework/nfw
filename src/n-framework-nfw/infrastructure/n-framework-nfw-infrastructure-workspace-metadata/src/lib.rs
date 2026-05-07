@@ -130,7 +130,7 @@ pub fn remove_workspace_project_guid(root_mapping: &mut serde_yaml::Mapping) -> 
 
 pub fn reorder_root_keys(root_mapping: &mut serde_yaml::Mapping) {
     let mut reordered = serde_yaml::Mapping::new();
-    
+
     // 1. Keep $schema at the very top if it exists
     move_key_if_exists(root_mapping, &mut reordered, "$schema");
 

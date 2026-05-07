@@ -7,13 +7,12 @@ use crate::features::template_management::services::template_engine::TemplateEng
 use crate::features::template_management::services::transaction::{FileTracker, YamlBackup};
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
+use std::path::Path;
 
 use super::add_webapi_command::AddWebApiCommand;
-
-const ERR_MODULE_EXISTS: &str = "WebAPI module already exists for service";
-const ERR_INIT_TRACKER: &str = "Failed to initialize file tracking";
-const ERR_YAML_BACKUP: &str = "Secondary failure during rollback (yaml restore)";
-const ERR_FILE_CLEANUP: &str = "Secondary failure during rollback (cleanup)";
+use crate::features::template_management::constants::generation::errors::{
+    ERR_FILE_CLEANUP, ERR_INIT_TRACKER, ERR_MODULE_EXISTS, ERR_YAML_BACKUP,
+};
 
 #[derive(Debug, Clone)]
 pub struct AddWebApiCommandHandler<W, R, E> {
@@ -36,25 +35,31 @@ where
     pub fn handle(&self, cmd: &AddWebApiCommand) -> Result<(), AddArtifactError> {
         let workspace = cmd.workspace_context();
 
+        let context = self.service.load_template_context(
+            workspace.clone(),
+            cmd.service_info(),
+            AddWebApiCommand::GENERATOR_TYPE,
+        )?;
+
+        self.service.validate_required_modules(
+            &context.config,
+            workspace.nfw_yaml(),
+            Path::new(cmd.service_info().path()),
+        )?;
+
         if self.service.has_service_module(
             workspace.workspace_root(),
             cmd.service_info().name(),
             AddWebApiCommand::GENERATOR_TYPE,
         )? {
             return Err(AddArtifactError::WorkspaceError(format!(
-                "{} '{}'. No changes were made.",
+                "WebAPI {} '{}'. No changes were made.",
                 ERR_MODULE_EXISTS,
                 cmd.service_info().name()
             )));
         }
 
         let output_root = workspace.workspace_root().join(cmd.service_info().path());
-
-        let context = self.service.load_template_context(
-            workspace.clone(),
-            cmd.service_info(),
-            AddWebApiCommand::GENERATOR_TYPE,
-        )?;
 
         let namespace = self.service.extract_namespace(workspace.nfw_yaml())?;
 
@@ -102,8 +107,13 @@ where
                     "Template execution failed for service '{}', rolling back",
                     cmd.service_info().name()
                 );
-                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                let rollback_err = file_tracker.cleanup_created_files().err();
+                if let Some(cleanup_err) = rollback_err {
                     tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                    return AddArtifactError::WorkspaceError(format!(
+                        "Template execution failed AND rollback failed. Original error: {}. Rollback error: {}",
+                        e, cleanup_err
+                    ));
                 }
                 AddArtifactError::ExecutionFailed(Box::new(e))
             })?;
@@ -121,11 +131,22 @@ where
                     "Failed to add service module for '{}', rolling back",
                     cmd.service_info().name()
                 );
-                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                let cleanup_res = file_tracker.cleanup_created_files();
+                let restore_res = yaml_backup.restore();
+
+                if let Err(cleanup_err) = cleanup_res {
                     tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                    return AddArtifactError::WorkspaceError(format!(
+                        "Rollback failed during cleanup after module update error. Original error: {}. Cleanup error: {}",
+                        e, cleanup_err
+                    ));
                 }
-                if let Err(restore_err) = yaml_backup.restore() {
+                if let Err(restore_err) = restore_res {
                     tracing::error!("{}: {:?}", ERR_YAML_BACKUP, restore_err);
+                    return AddArtifactError::WorkspaceError(format!(
+                        "Rollback failed during YAML restore after module update error. Original error: {}. Restore error: {}",
+                        e, restore_err
+                    ));
                 }
                 e
             })?;
