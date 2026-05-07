@@ -1,3 +1,11 @@
+//! Transaction safety abstractions for template generation.
+//!
+//! Provides the `FileTracker` and `YamlBackup` patterns used to ensure workspace
+//! consistency. `FileTracker` monitors the file system and removes newly created
+//! files if template generation fails. `YamlBackup` saves the original state of
+//! `nfw.yaml` and restores it in case of modification failures. By composing these
+//! structs, service generation achieves two-phase commit-like characteristics.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -33,20 +41,25 @@ impl FileTracker {
         Ok(files)
     }
 
-    pub fn get_created_files(&self) -> Vec<PathBuf> {
-        let current_files = match Self::scan_directory(&self.output_root) {
-            Ok(files) => files,
-            Err(_) => return Vec::new(),
-        };
+    pub fn get_created_files(&self) -> Result<Vec<PathBuf>, std::io::Error> {
+        let current_files = Self::scan_directory(&self.output_root)?;
 
-        current_files
+        Ok(current_files
             .into_iter()
             .filter(|path| !self.baseline_files.contains(path))
-            .collect()
+            .collect())
     }
 
     pub fn cleanup_created_files(&self) -> Result<(), AddArtifactError> {
-        let created_files = self.get_created_files();
+        let created_files = match self.get_created_files() {
+            Ok(files) => files,
+            Err(e) => {
+                return Err(AddArtifactError::WorkspaceError(format!(
+                    "Failed to retrieve created files during rollback: {}",
+                    e
+                )));
+            }
+        };
         let mut leftover_files = Vec::new();
 
         for file in &created_files {

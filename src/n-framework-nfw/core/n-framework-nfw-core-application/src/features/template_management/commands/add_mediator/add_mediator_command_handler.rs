@@ -4,10 +4,16 @@ use crate::features::template_management::services::artifact_generation_service:
     ArtifactGenerationService, ServiceInfo, WorkspaceContext,
 };
 use crate::features::template_management::services::template_engine::TemplateEngine;
+use crate::features::template_management::services::transaction::{FileTracker, YamlBackup};
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 
 use super::add_mediator_command::AddMediatorCommand;
+
+use crate::features::template_management::constants::generation::PRESENTATION_LAYER;
+const ERR_INIT_TRACKER: &str = "Failed to initialize file tracking";
+const ERR_YAML_BACKUP: &str = "Secondary failure during rollback (yaml restore)";
+const ERR_FILE_CLEANUP: &str = "Secondary failure during rollback (cleanup)";
 
 #[derive(Debug, Clone)]
 pub struct AddMediatorCommandHandler<W, R, E> {
@@ -47,7 +53,7 @@ where
         let mut parameters = parameters;
         parameters
             .insert_value(
-                "PresentationLayer".to_string(),
+                PRESENTATION_LAYER.to_string(),
                 serde_json::Value::String(command.presentation_layer().to_string()),
             )
             .map_err(AddArtifactError::InvalidParameter)?;
@@ -55,6 +61,13 @@ where
         let output_root = workspace
             .workspace_root()
             .join(command.service_info().path());
+
+        let yaml_path = workspace.workspace_root().join("nfw.yaml");
+        let yaml_backup = YamlBackup::create(&yaml_path)?;
+
+        let file_tracker = FileTracker::new(&output_root).map_err(|e| {
+            AddArtifactError::WorkspaceError(format!("{}: {}", ERR_INIT_TRACKER, e))
+        })?;
 
         self.service
             .engine()
@@ -64,13 +77,40 @@ where
                 &output_root,
                 &parameters,
             )
-            .map_err(|e| AddArtifactError::ExecutionFailed(Box::new(e)))?;
+            .map_err(|e| {
+                tracing::error!(
+                    service = %command.service_info().name(),
+                    error = ?e,
+                    "Template execution failed for service '{}', rolling back",
+                    command.service_info().name()
+                );
+                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                    tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                }
+                AddArtifactError::ExecutionFailed(Box::new(e))
+            })?;
 
-        self.service.add_service_module(
-            workspace.workspace_root(),
-            command.service_info().name(),
-            AddMediatorCommand::GENERATOR_TYPE,
-        )?;
+        self.service
+            .add_service_module(
+                workspace.workspace_root(),
+                command.service_info().name(),
+                AddMediatorCommand::GENERATOR_TYPE,
+            )
+            .map_err(|e| {
+                tracing::error!(
+                    service = %command.service_info().name(),
+                    error = ?e,
+                    "Failed to add service module for '{}', rolling back",
+                    command.service_info().name()
+                );
+                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                    tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                }
+                if let Err(restore_err) = yaml_backup.restore() {
+                    tracing::error!("{}: {:?}", ERR_YAML_BACKUP, restore_err);
+                }
+                e
+            })?;
 
         Ok(())
     }

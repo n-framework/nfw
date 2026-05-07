@@ -10,6 +10,11 @@ use n_framework_nfw_core_domain::features::template_management::template_paramet
 
 use super::add_webapi_command::AddWebApiCommand;
 
+const ERR_MODULE_EXISTS: &str = "WebAPI module already exists for service";
+const ERR_INIT_TRACKER: &str = "Failed to initialize file tracking";
+const ERR_YAML_BACKUP: &str = "Secondary failure during rollback (yaml restore)";
+const ERR_FILE_CLEANUP: &str = "Secondary failure during rollback (cleanup)";
+
 #[derive(Debug, Clone)]
 pub struct AddWebApiCommandHandler<W, R, E> {
     service: ArtifactGenerationService<W, R, E>,
@@ -37,7 +42,8 @@ where
             AddWebApiCommand::GENERATOR_TYPE,
         )? {
             return Err(AddArtifactError::WorkspaceError(format!(
-                "WebAPI module already exists for service '{}'. No changes were made.",
+                "{} '{}'. No changes were made.",
+                ERR_MODULE_EXISTS,
                 cmd.service_info().name()
             )));
         }
@@ -78,7 +84,7 @@ where
         let yaml_backup = YamlBackup::create(&yaml_path)?;
 
         let file_tracker = FileTracker::new(&output_root).map_err(|e| {
-            AddArtifactError::WorkspaceError(format!("Failed to initialize file tracking: {}", e))
+            AddArtifactError::WorkspaceError(format!("{}: {}", ERR_INIT_TRACKER, e))
         })?;
 
         self.service
@@ -96,7 +102,9 @@ where
                     "Template execution failed for service '{}', rolling back",
                     cmd.service_info().name()
                 );
-                let _ = file_tracker.cleanup_created_files();
+                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                    tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                }
                 AddArtifactError::ExecutionFailed(Box::new(e))
             })?;
 
@@ -113,8 +121,12 @@ where
                     "Failed to add service module for '{}', rolling back",
                     cmd.service_info().name()
                 );
-                let _ = file_tracker.cleanup_created_files();
-                let _ = yaml_backup.restore();
+                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                    tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                }
+                if let Err(restore_err) = yaml_backup.restore() {
+                    tracing::error!("{}: {:?}", ERR_YAML_BACKUP, restore_err);
+                }
                 e
             })?;
 

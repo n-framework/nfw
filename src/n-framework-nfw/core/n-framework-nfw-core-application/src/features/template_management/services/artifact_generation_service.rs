@@ -177,6 +177,8 @@ where
             }
         }
 
+        // Return successfully if all required modules are present or if no modules are required.
+        // This covers the case where the service list might be empty but no specific modules are enforced.
         Ok(())
     }
 

@@ -22,6 +22,32 @@ impl Default for WebApiConfig {
     }
 }
 
+impl WebApiConfig {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_openapi(mut self, enabled: bool) -> Self {
+        self.use_openapi = enabled;
+        self
+    }
+
+    pub fn with_health_checks(mut self, enabled: bool) -> Self {
+        self.use_health_checks = enabled;
+        self
+    }
+
+    pub fn with_cors(mut self, enabled: bool) -> Self {
+        self.use_cors = enabled;
+        self
+    }
+
+    pub fn with_problem_details(mut self, enabled: bool) -> Self {
+        self.use_problem_details = enabled;
+        self
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AddWebApiCommand {
     service_info: ServiceInfo,

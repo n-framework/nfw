@@ -21,3 +21,9 @@ pub mod source {
     /// Directory under the source root where templates are primarily stored
     pub const TEMPLATES_ROOT_DIR: &str = "src";
 }
+
+/// Constants related to generation features
+pub mod generation {
+    /// Identifier for the PresentationLayer feature
+    pub const PRESENTATION_LAYER: &str = "PresentationLayer";
+}

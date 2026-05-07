@@ -349,3 +349,30 @@ fn extract_namespace_fails_on_missing() {
         panic!("Expected ConfigError, got {:?}", result);
     }
 }
+#[test]
+fn has_service_module_checks_registration_correctly() {
+    let (sandbox, service) = setup_workspace();
+    let nfw_yaml = r#"
+services:
+  MySvc:
+    path: src/MySvc
+    modules: ["webapi"]
+"#;
+    fs::write(sandbox.path().join("nfw.yaml"), nfw_yaml).unwrap();
+
+    assert!(
+        service
+            .has_service_module(sandbox.path(), "MySvc", "webapi")
+            .unwrap()
+    );
+    assert!(
+        !service
+            .has_service_module(sandbox.path(), "MySvc", "mediator")
+            .unwrap()
+    );
+    assert!(
+        !service
+            .has_service_module(sandbox.path(), "OtherSvc", "webapi")
+            .unwrap()
+    );
+}
