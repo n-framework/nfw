@@ -8,3 +8,4 @@ pub mod template_selection_result;
 pub mod template_selection_service;
 pub mod template_type_resolver;
 pub mod templates_service;
+pub mod transaction;

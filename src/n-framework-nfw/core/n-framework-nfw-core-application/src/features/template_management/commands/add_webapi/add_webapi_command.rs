@@ -1,0 +1,84 @@
+use crate::features::template_management::services::artifact_generation_service::{
+    ServiceInfo, WorkspaceContext,
+};
+
+/// Configuration options for WebAPI generation features.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WebApiConfig {
+    pub use_openapi: bool,
+    pub use_health_checks: bool,
+    pub use_cors: bool,
+    pub use_problem_details: bool,
+}
+
+impl Default for WebApiConfig {
+    fn default() -> Self {
+        Self {
+            use_openapi: true,
+            use_health_checks: true,
+            use_cors: true,
+            use_problem_details: true,
+        }
+    }
+}
+
+impl WebApiConfig {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_openapi(mut self, enabled: bool) -> Self {
+        self.use_openapi = enabled;
+        self
+    }
+
+    pub fn with_health_checks(mut self, enabled: bool) -> Self {
+        self.use_health_checks = enabled;
+        self
+    }
+
+    pub fn with_cors(mut self, enabled: bool) -> Self {
+        self.use_cors = enabled;
+        self
+    }
+
+    pub fn with_problem_details(mut self, enabled: bool) -> Self {
+        self.use_problem_details = enabled;
+        self
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct AddWebApiCommand {
+    service_info: ServiceInfo,
+    workspace_context: WorkspaceContext,
+    config: WebApiConfig,
+}
+
+impl AddWebApiCommand {
+    pub const GENERATOR_TYPE: &'static str = "webapi";
+
+    pub fn new(
+        service_info: ServiceInfo,
+        workspace_context: WorkspaceContext,
+        config: WebApiConfig,
+    ) -> Self {
+        Self {
+            service_info,
+            workspace_context,
+            config,
+        }
+    }
+
+    pub fn service_info(&self) -> &ServiceInfo {
+        &self.service_info
+    }
+
+    pub fn workspace_context(&self) -> &WorkspaceContext {
+        &self.workspace_context
+    }
+
+    pub fn config(&self) -> WebApiConfig {
+        self.config
+    }
+}

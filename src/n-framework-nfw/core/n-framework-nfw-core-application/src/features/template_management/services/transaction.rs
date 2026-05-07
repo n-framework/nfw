@@ -1,0 +1,125 @@
+//! Transaction safety abstractions for template generation.
+//!
+//! Provides the `FileTracker` and `YamlBackup` patterns used to ensure workspace
+//! consistency. `FileTracker` monitors the file system and removes newly created
+//! files if template generation fails. `YamlBackup` saves the original state of
+//! `nfw.yaml` and restores it in case of modification failures. By composing these
+//! structs, service generation achieves two-phase commit-like characteristics.
+
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
+
+pub struct FileTracker {
+    baseline_files: Vec<PathBuf>,
+    output_root: PathBuf,
+}
+
+impl FileTracker {
+    pub fn new(output_root: &Path) -> Result<Self, std::io::Error> {
+        if !output_root.exists() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("Output root does not exist: {}", output_root.display()),
+            ));
+        }
+        let baseline_files = Self::scan_directory(output_root)?;
+        Ok(Self {
+            baseline_files,
+            output_root: output_root.to_path_buf(),
+        })
+    }
+
+    fn scan_directory(dir: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
+        let mut files = Vec::new();
+        if dir.exists() {
+            let entries = fs::read_dir(dir)?;
+            for entry in entries {
+                let entry = entry?;
+                let path = entry.path();
+                if path.is_file() {
+                    files.push(path);
+                } else if path.is_dir() {
+                    files.extend(Self::scan_directory(&path)?);
+                }
+            }
+        }
+        Ok(files)
+    }
+
+    pub fn get_created_files(&self) -> Result<Vec<PathBuf>, std::io::Error> {
+        let current_files = Self::scan_directory(&self.output_root)?;
+
+        Ok(current_files
+            .into_iter()
+            .filter(|path| !self.baseline_files.contains(path))
+            .collect())
+    }
+
+    pub fn cleanup_created_files(&self) -> Result<(), AddArtifactError> {
+        let created_files = match self.get_created_files() {
+            Ok(files) => files,
+            Err(e) => {
+                return Err(AddArtifactError::WorkspaceError(format!(
+                    "Failed to retrieve created files during rollback: {}",
+                    e
+                )));
+            }
+        };
+        let mut errors = Vec::new();
+
+        for file in &created_files {
+            if file.exists()
+                && let Err(e) = fs::remove_file(file)
+            {
+                tracing::error!(
+                    "Failed to remove file during rollback: {}: {}",
+                    file.display(),
+                    e
+                );
+                errors.push(format!("{}: {}", file.display(), e));
+            }
+        }
+
+        if !errors.is_empty() {
+            return Err(AddArtifactError::WorkspaceError(format!(
+                "Rollback partially failed. Manual cleanup required for: {:?}",
+                errors
+            )));
+        }
+
+        Ok(())
+    }
+}
+
+pub struct YamlBackup {
+    original_content: String,
+    yaml_path: PathBuf,
+}
+
+impl YamlBackup {
+    pub fn create(yaml_path: &Path) -> Result<Self, AddArtifactError> {
+        let original_content = fs::read_to_string(yaml_path).map_err(|e| {
+            AddArtifactError::WorkspaceError(format!("Failed to backup nfw.yaml: {}", e))
+        })?;
+
+        Ok(Self {
+            original_content,
+            yaml_path: yaml_path.to_path_buf(),
+        })
+    }
+
+    pub fn restore(&self) -> Result<(), AddArtifactError> {
+        fs::write(&self.yaml_path, &self.original_content).map_err(|e| {
+            AddArtifactError::WorkspaceError(format!("Failed to restore nfw.yaml backup: {}", e))
+        })?;
+
+        tracing::debug!("Restored nfw.yaml from backup");
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+#[path = "transaction.tests.rs"]
+mod tests;

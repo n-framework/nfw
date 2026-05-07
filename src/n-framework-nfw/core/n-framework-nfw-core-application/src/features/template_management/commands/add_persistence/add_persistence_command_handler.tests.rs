@@ -5,10 +5,10 @@ use n_framework_nfw_core_domain::features::template_management::template_paramet
 use std::path::{Path, PathBuf};
 use tempfile;
 
-struct MockWorkingDir;
-impl WorkingDirectoryProvider for MockWorkingDir {
+struct SandboxWorkingDir(PathBuf);
+impl WorkingDirectoryProvider for SandboxWorkingDir {
     fn current_dir(&self) -> Result<PathBuf, String> {
-        Ok(PathBuf::from("/mock/workspace"))
+        Ok(self.0.clone())
     }
 }
 
@@ -38,6 +38,9 @@ fn handle_returns_error_when_engine_fails() {
     let sub_template_dir = template_dir.join("persistence");
     std::fs::create_dir_all(&sub_template_dir).unwrap();
 
+    // ensure output root exists for FileTracker
+    std::fs::create_dir_all(sandbox.path().join("src/Svc1")).unwrap();
+
     let template_yaml = r#"
 id: my-template
 generators:
@@ -59,21 +62,29 @@ generators:
     }
 
     let handler = AddPersistenceCommandHandler::new(
-        MockWorkingDir,
+        SandboxWorkingDir(sandbox.path().to_path_buf()),
         LocalMockResolver(template_dir),
         MockEngine {
             fail_execution: true,
         },
     );
 
-    let nfw_yaml = serde_yaml::from_str("workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1").unwrap();
+    let nfw_yaml_path = sandbox.path().join("nfw.yaml");
+    std::fs::write(
+        &nfw_yaml_path,
+        "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    template:\n      id: t1",
+    )
+    .unwrap();
+    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+
     let cmd = AddPersistenceCommand::new(
         ServiceInfo::new("Svc1".to_string(), "src/Svc1".to_string(), "t1".to_string()).unwrap(),
         WorkspaceContext::new(
-            PathBuf::from("/mock/workspace"),
+            sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
         ),
+        "WebApi".to_string(),
     )
     .unwrap();
 

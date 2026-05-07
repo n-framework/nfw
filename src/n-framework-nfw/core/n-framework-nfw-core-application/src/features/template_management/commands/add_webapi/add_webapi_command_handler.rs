@@ -7,20 +7,19 @@ use crate::features::template_management::services::template_engine::TemplateEng
 use crate::features::template_management::services::transaction::{FileTracker, YamlBackup};
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
+use std::path::Path;
 
-use super::add_mediator_command::AddMediatorCommand;
-
-use crate::features::template_management::constants::generation::PRESENTATION_LAYER;
+use super::add_webapi_command::AddWebApiCommand;
 use crate::features::template_management::constants::generation::errors::{
-    ERR_FILE_CLEANUP, ERR_INIT_TRACKER, ERR_YAML_BACKUP,
+    ERR_FILE_CLEANUP, ERR_INIT_TRACKER, ERR_MODULE_EXISTS, ERR_YAML_BACKUP,
 };
 
 #[derive(Debug, Clone)]
-pub struct AddMediatorCommandHandler<W, R, E> {
+pub struct AddWebApiCommandHandler<W, R, E> {
     service: ArtifactGenerationService<W, R, E>,
 }
 
-impl<W, R, E> AddMediatorCommandHandler<W, R, E>
+impl<W, R, E> AddWebApiCommandHandler<W, R, E>
 where
     W: WorkingDirectoryProvider,
     R: TemplateRootResolver,
@@ -32,35 +31,59 @@ where
         }
     }
 
-    pub fn handle(&self, command: &AddMediatorCommand) -> Result<(), AddArtifactError> {
-        let workspace = command.workspace_context();
+    /// Handles the `add webapi` command workflow.
+    pub fn handle(&self, cmd: &AddWebApiCommand) -> Result<(), AddArtifactError> {
+        let workspace = cmd.workspace_context();
+
         let context = self.service.load_template_context(
             workspace.clone(),
-            command.service_info(),
-            AddMediatorCommand::GENERATOR_TYPE,
+            cmd.service_info(),
+            AddWebApiCommand::GENERATOR_TYPE,
         )?;
+
+        self.service.validate_required_modules(
+            &context.config,
+            workspace.nfw_yaml(),
+            Path::new(cmd.service_info().path()),
+        )?;
+
+        if self.service.has_service_module(
+            workspace.workspace_root(),
+            cmd.service_info().name(),
+            AddWebApiCommand::GENERATOR_TYPE,
+        )? {
+            return Err(AddArtifactError::WorkspaceError(format!(
+                "WebAPI {} '{}'. No changes were made.",
+                ERR_MODULE_EXISTS,
+                cmd.service_info().name()
+            )));
+        }
+
+        let output_root = workspace.workspace_root().join(cmd.service_info().path());
 
         let namespace = self.service.extract_namespace(workspace.nfw_yaml())?;
 
-        let parameters = TemplateParameters::new()
-            .with_name(command.service_info().name())
+        let config = cmd.config();
+        let mut parameters = TemplateParameters::new()
+            .with_name(cmd.service_info().name())
             .map_err(AddArtifactError::InvalidParameter)?
             .with_namespace(namespace)
             .map_err(AddArtifactError::InvalidParameter)?
-            .with_service(command.service_info().name())
+            .with_service(cmd.service_info().name())
             .map_err(AddArtifactError::InvalidParameter)?;
 
-        let mut parameters = parameters;
         parameters
-            .insert_value(
-                PRESENTATION_LAYER.to_string(),
-                serde_json::Value::String(command.presentation_layer().to_string()),
-            )
+            .insert("UseOpenApi", config.use_openapi.to_string())
             .map_err(AddArtifactError::InvalidParameter)?;
-
-        let output_root = workspace
-            .workspace_root()
-            .join(command.service_info().path());
+        parameters
+            .insert("UseHealthChecks", config.use_health_checks.to_string())
+            .map_err(AddArtifactError::InvalidParameter)?;
+        parameters
+            .insert("UseCors", config.use_cors.to_string())
+            .map_err(AddArtifactError::InvalidParameter)?;
+        parameters
+            .insert("UseProblemDetails", config.use_problem_details.to_string())
+            .map_err(AddArtifactError::InvalidParameter)?;
 
         let yaml_path = workspace.workspace_root().join("nfw.yaml");
         let yaml_backup = YamlBackup::create(&yaml_path)?;
@@ -79,13 +102,18 @@ where
             )
             .map_err(|e| {
                 tracing::error!(
-                    service = %command.service_info().name(),
+                    service = %cmd.service_info().name(),
                     error = ?e,
                     "Template execution failed for service '{}', rolling back",
-                    command.service_info().name()
+                    cmd.service_info().name()
                 );
-                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                let rollback_err = file_tracker.cleanup_created_files().err();
+                if let Some(cleanup_err) = rollback_err {
                     tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                    return AddArtifactError::WorkspaceError(format!(
+                        "Template execution failed AND rollback failed. Original error: {}. Rollback error: {}",
+                        e, cleanup_err
+                    ));
                 }
                 AddArtifactError::ExecutionFailed(Box::new(e))
             })?;
@@ -93,21 +121,32 @@ where
         self.service
             .add_service_module(
                 workspace.workspace_root(),
-                command.service_info().name(),
-                AddMediatorCommand::GENERATOR_TYPE,
+                cmd.service_info().name(),
+                AddWebApiCommand::GENERATOR_TYPE,
             )
             .map_err(|e| {
                 tracing::error!(
-                    service = %command.service_info().name(),
+                    service = %cmd.service_info().name(),
                     error = ?e,
                     "Failed to add service module for '{}', rolling back",
-                    command.service_info().name()
+                    cmd.service_info().name()
                 );
-                if let Err(cleanup_err) = file_tracker.cleanup_created_files() {
+                let cleanup_res = file_tracker.cleanup_created_files();
+                let restore_res = yaml_backup.restore();
+
+                if let Err(cleanup_err) = cleanup_res {
                     tracing::error!("{}: {:?}", ERR_FILE_CLEANUP, cleanup_err);
+                    return AddArtifactError::WorkspaceError(format!(
+                        "Rollback failed during cleanup after module update error. Original error: {}. Cleanup error: {}",
+                        e, cleanup_err
+                    ));
                 }
-                if let Err(restore_err) = yaml_backup.restore() {
+                if let Err(restore_err) = restore_res {
                     tracing::error!("{}: {:?}", ERR_YAML_BACKUP, restore_err);
+                    return AddArtifactError::WorkspaceError(format!(
+                        "Rollback failed during YAML restore after module update error. Original error: {}. Restore error: {}",
+                        e, restore_err
+                    ));
                 }
                 e
             })?;
@@ -126,3 +165,7 @@ where
         self.service.extract_services(workspace)
     }
 }
+
+#[cfg(test)]
+#[path = "add_webapi_command_handler.tests.rs"]
+mod tests;

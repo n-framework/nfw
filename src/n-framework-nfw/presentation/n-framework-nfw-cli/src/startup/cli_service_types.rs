@@ -80,6 +80,13 @@ pub type CliAddPersistenceCommandHandler = AddPersistenceCommandHandler<
     FileSystemTemplateEngine,
 >;
 
+use n_framework_nfw_core_application::features::template_management::commands::add_webapi::add_webapi_command_handler::AddWebApiCommandHandler;
+pub type CliAddWebApiCommandHandler = AddWebApiCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+>;
+
 use n_framework_nfw_core_application::features::template_management::commands::gen_mediator_command::gen_mediator_command_command_handler::GenMediatorCommandCommandHandler;
 pub type CliGenMediatorCommandCommandHandler = GenMediatorCommandCommandHandler<
     CliWorkingDirectoryProvider,
@@ -117,6 +124,7 @@ pub type ArtServiceInfo = n_framework_nfw_core_application::features::template_m
 pub type ArtWorkspaceContext = n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::WorkspaceContext;
 
 pub struct CliServiceCollection {
+    pub prompt_service: CliclackPromptService,
     pub new_workspace_command_handler: CliNewWorkspaceCommandHandler,
     pub add_service_command_handler: CliAddServiceCommandHandler,
     pub check_command_handler: CliCheckCommandHandler,
@@ -127,6 +135,7 @@ pub struct CliServiceCollection {
     pub ensure_default_source_command_handler: CliEnsureDefaultSourceCommandHandler,
     pub add_mediator_command_handler: CliAddMediatorCommandHandler,
     pub add_persistence_command_handler: CliAddPersistenceCommandHandler,
+    pub add_webapi_command_handler: CliAddWebApiCommandHandler,
     pub gen_mediator_command_command_handler: CliGenMediatorCommandCommandHandler,
     pub gen_mediator_query_command_handler: CliGenMediatorQueryCommandHandler,
     pub gen_repository_command_handler: CliGenRepositoryCommandHandler,

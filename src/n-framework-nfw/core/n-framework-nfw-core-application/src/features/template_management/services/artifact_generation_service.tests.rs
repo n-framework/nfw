@@ -59,7 +59,7 @@ fn setup_workspace() -> (
 }
 
 #[test]
-fn add_service_module_is_idempotent() {
+fn add_service_module_returns_error_when_module_exists() {
     let (sandbox, service) = setup_workspace();
     let nfw_yaml = r#"
 workspace:
@@ -81,12 +81,20 @@ services:
     let content = fs::read_to_string(sandbox.path().join("nfw.yaml")).unwrap();
     assert!(content.contains("- mediator"));
 
-    // Add again
-    service
-        .add_service_module(sandbox.path(), "MyService", "mediator")
-        .unwrap();
+    // Add again - should fail with clear error
+    let result = service.add_service_module(sandbox.path(), "MyService", "mediator");
+    assert!(result.is_err());
+    if let Err(AddArtifactError::WorkspaceError(msg)) = result {
+        assert!(
+            msg.contains("already registered") || msg.contains("already exists"),
+            "Error should mention module already exists: {}",
+            msg
+        );
+    } else {
+        panic!("Expected WorkspaceError, got {:?}", result);
+    }
 
-    // Verify still only one entry
+    // Verify still only one entry (no duplicate)
     let content = fs::read_to_string(sandbox.path().join("nfw.yaml")).unwrap();
     let occurrences = content.matches("- mediator").count();
     assert_eq!(occurrences, 1, "Module should only be added once");
@@ -340,4 +348,31 @@ fn extract_namespace_fails_on_missing() {
     } else {
         panic!("Expected ConfigError, got {:?}", result);
     }
+}
+#[test]
+fn has_service_module_checks_registration_correctly() {
+    let (sandbox, service) = setup_workspace();
+    let nfw_yaml = r#"
+services:
+  MySvc:
+    path: src/MySvc
+    modules: ["webapi"]
+"#;
+    fs::write(sandbox.path().join("nfw.yaml"), nfw_yaml).unwrap();
+
+    assert!(
+        service
+            .has_service_module(sandbox.path(), "MySvc", "webapi")
+            .unwrap()
+    );
+    assert!(
+        !service
+            .has_service_module(sandbox.path(), "MySvc", "mediator")
+            .unwrap()
+    );
+    assert!(
+        !service
+            .has_service_module(sandbox.path(), "OtherSvc", "webapi")
+            .unwrap()
+    );
 }

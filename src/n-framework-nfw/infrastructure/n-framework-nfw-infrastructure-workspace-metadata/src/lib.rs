@@ -130,13 +130,23 @@ pub fn remove_workspace_project_guid(root_mapping: &mut serde_yaml::Mapping) -> 
 
 pub fn reorder_root_keys(root_mapping: &mut serde_yaml::Mapping) {
     let mut reordered = serde_yaml::Mapping::new();
-    move_key_if_exists(root_mapping, &mut reordered, "$schema");
-    move_key_if_exists(root_mapping, &mut reordered, "workspace");
-    move_key_if_exists(root_mapping, &mut reordered, "services");
 
+    // 1. Keep $schema at the very top if it exists
+    move_key_if_exists(root_mapping, &mut reordered, "$schema");
+
+    // 2. Extract services if it exists to move it to the bottom later
+    let services_key = serde_yaml::Value::String("services".to_owned());
+    let services_value = root_mapping.remove(&services_key);
+
+    // 3. Move all other existing keys in their original order
     let remaining = std::mem::take(root_mapping);
     for (key, value) in remaining {
         reordered.insert(key, value);
+    }
+
+    // 4. Finally, add services at the absolute bottom
+    if let Some(value) = services_value {
+        reordered.insert(services_key, value);
     }
 
     *root_mapping = reordered;
@@ -147,7 +157,10 @@ pub fn add_top_level_section_spacing(content: &str) -> String {
     let mut previous_was_empty = false;
 
     for line in content.lines() {
-        let requires_leading_empty_line = line == "workspace:" || line == "services:";
+        let is_top_level_key = line.ends_with(':') && !line.starts_with(' ');
+        let is_schema = line.starts_with("$schema:");
+        let requires_leading_empty_line = is_top_level_key && !is_schema;
+
         if requires_leading_empty_line && !formatted.is_empty() && !previous_was_empty {
             formatted.push('\n');
         }

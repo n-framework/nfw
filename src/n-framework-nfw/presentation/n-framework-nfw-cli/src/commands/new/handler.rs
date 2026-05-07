@@ -1,6 +1,6 @@
 use std::io::{self, IsTerminal};
 use n_framework_nfw_core_application::features::workspace_management::commands::new_workspace::new_workspace_command::NewWorkspaceCommand;
-use n_framework_core_cli_abstractions::Command;
+use n_framework_core_cli_abstractions::{Command, Logger};
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 pub struct NewWorkspaceCliCommand {}
@@ -22,7 +22,24 @@ impl NewWorkspaceCliCommand {
         context
             .new_workspace_command_handler
             .handle(&cmd)
-            .map(|_| ())
+            .map(|result| {
+                if let Err(e) = context.prompt_service.log_success(&format!(
+                    "Workspace '{}' created successfully using template '{}'",
+                    result.workspace_name, result.template_id
+                )) {
+                    tracing::warn!("Failed to display success message: {}", e);
+                }
+
+                let outro_message = format!(
+                    "Your new workspace is ready at: {}\n\nNext steps:\n  cd {}\n  nfw check",
+                    result.output_path.display(),
+                    result.workspace_name
+                );
+
+                if let Err(e) = context.prompt_service.outro(&outro_message) {
+                    tracing::warn!("Failed to display outro message: {}", e);
+                }
+            })
             .map_err(|e| e.to_string())
     }
 }

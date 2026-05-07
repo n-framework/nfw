@@ -71,7 +71,10 @@ steps:
     .expect("failed to write sub-template template.yaml");
     fs::write(tpl_dir.join("reg.cs.tera"), "// registered").expect("failed to write tera");
 
-    fs::create_dir_all(sandbox.join("src/TestService")).unwrap();
+    fs::create_dir_all(
+        sandbox.join("src/TestService/src/presentation/TestService.Presentation.WebApi"),
+    )
+    .unwrap();
 }
 
 #[test]
@@ -238,7 +241,10 @@ template_sources:
         "id: dotnet-service/mediator\nsteps: []",
     )
     .unwrap();
-    fs::create_dir_all(sandbox.join("src/TestService")).unwrap();
+    fs::create_dir_all(
+        sandbox.join("src/TestService/src/presentation/TestService.Presentation.WebApi"),
+    )
+    .unwrap();
 
     let _guard = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let services = CliServiceCollectionFactory::create();

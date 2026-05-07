@@ -5,6 +5,7 @@ use n_framework_nfw_core_application::features::service_management::services::ad
 use n_framework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
 use n_framework_nfw_core_application::features::service_management::services::service_template_selection_service::ServiceTemplateSelectionService;
 use n_framework_nfw_core_application::features::template_management::commands::add_template_source::add_template_source_command_handler::AddTemplateSourceCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::add_webapi::add_webapi_command_handler::AddWebApiCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::ensure_default_source::ensure_default_source_command_handler::EnsureDefaultSourceCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::refresh_templates::refresh_templates_command_handler::RefreshTemplatesCommandHandler;
 use n_framework_nfw_core_application::features::template_management::commands::remove_template_source::remove_template_source_command_handler::RemoveTemplateSourceCommandHandler;
@@ -49,6 +50,7 @@ impl CliServiceCollectionFactory {
         let service = ServiceFeatureFactory::build(templates.templates_service.clone());
 
         CliServiceCollection {
+            prompt_service: CliclackPromptService::new(),
             new_workspace_command_handler: workspace.new_workspace_command_handler,
             add_service_command_handler: service.add_service_command_handler,
             check_command_handler: CheckCommandHandler::default(),
@@ -64,6 +66,11 @@ impl CliServiceCollectionFactory {
                 n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
             ),
             add_persistence_command_handler: AddPersistenceCommandHandler::new(
+                StandardWorkingDirectoryProvider::new(),
+                FileSystemTemplateRootResolver::new(),
+                n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),
+            ),
+            add_webapi_command_handler: AddWebApiCommandHandler::new(
                 StandardWorkingDirectoryProvider::new(),
                 FileSystemTemplateRootResolver::new(),
                 n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine::new(),

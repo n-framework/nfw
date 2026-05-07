@@ -315,6 +315,16 @@ fn initializes_default_official_source_once() {
 
 // --- Helpers ---
 
+type TestTemplatesService = TemplatesService<
+    TrackingSourceSynchronizer,
+    MockCatalogSource,
+    TestYamlParser,
+    TestValidator,
+    TestVersionComparator,
+    TrackingConfigStore,
+    MockGitRepository,
+>;
+
 fn create_service(
     sources: Vec<TemplateSource>,
     sync_outcomes: HashMap<String, Result<(PathBuf, Option<String>), String>>,
@@ -322,15 +332,7 @@ fn create_service(
     metadata_by_directory: HashMap<PathBuf, String>,
     valid_remote_urls: HashMap<String, bool>,
 ) -> (
-    TemplatesService<
-        TrackingSourceSynchronizer,
-        MockCatalogSource,
-        TestYamlParser,
-        TestValidator,
-        TestVersionComparator,
-        TrackingConfigStore,
-        MockGitRepository,
-    >,
+    TestTemplatesService,
     TrackingConfigStore,
     TrackingSourceSynchronizer,
 ) {
