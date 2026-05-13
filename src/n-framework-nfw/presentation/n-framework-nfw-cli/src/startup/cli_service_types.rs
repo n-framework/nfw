@@ -19,6 +19,8 @@ use n_framework_nfw_infrastructure_git::features::template_management::services:
 use n_framework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
 use n_framework_nfw_infrastructure_yaml::features::template_management::services::serde_yaml_parser::SerdeYamlParser;
 
+#[allow(unused_imports)]
+use crate::commands::r#gen::endpoint::handler::GenEndpointRequest;
 use crate::runtime::interactive_service_template_prompt::InteractiveServiceTemplatePrompt;
 use crate::startup::cli_validator::CliValidator;
 
@@ -102,7 +104,14 @@ pub type CliGenMediatorQueryCommandHandler = GenMediatorQueryCommandHandler<
 >;
 
 use n_framework_nfw_core_application::features::template_management::commands::gen_repository::gen_repository_command_handler::GenRepositoryCommandHandler;
+use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
 pub type CliGenRepositoryCommandHandler = GenRepositoryCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemTemplateRootResolver,
+    FileSystemTemplateEngine,
+>;
+
+pub type CliGenEndpointCommandHandler = GenEndpointCommandHandler<
     CliWorkingDirectoryProvider,
     FileSystemTemplateRootResolver,
     FileSystemTemplateEngine,
@@ -139,6 +148,7 @@ pub struct CliServiceCollection {
     pub gen_mediator_command_command_handler: CliGenMediatorCommandCommandHandler,
     pub gen_mediator_query_command_handler: CliGenMediatorQueryCommandHandler,
     pub gen_repository_command_handler: CliGenRepositoryCommandHandler,
+    pub gen_endpoint_command_handler: CliGenEndpointCommandHandler,
     pub gen_entity_command_handler: CliAddEntityCommandHandler,
     pub template_engine: FileSystemTemplateEngine,
 }

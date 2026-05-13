@@ -77,7 +77,7 @@ fn generates_entity_successfully() {
     fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: mock-entity-template\nname: Mock Entity\nversion: 1.0.0\ngenerators:\n  entity: entity\n",
+        "id: mock-entity-template\nname: Mock Entity\nversion: 1.0.0\ngenerators:\n  entity: entity\nsteps:\n  - action: run_command\n    command: 'echo root'\n",
     )
     .expect("failed to write root template.yaml");
 

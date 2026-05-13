@@ -158,19 +158,6 @@ where
             return Ok(None);
         }
 
-        if existing_features.is_empty() {
-            let feature = self
-                .prompt
-                .text("Enter feature name (e.g. Catalog):", None)
-                .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
-
-            if feature.trim().is_empty() {
-                return Ok(None);
-            } else {
-                return Ok(Some(feature.trim().to_string()));
-            }
-        }
-
         let mut options: Vec<SelectOption> = existing_features
             .iter()
             .map(|f| SelectOption::new(f, f))
@@ -187,7 +174,7 @@ where
         if selected.value() == CREATE_NEW {
             let feature = self
                 .prompt
-                .text("Enter new feature name (e.g. Catalog):", None)
+                .text("Enter feature name (e.g. Catalog):", None)
                 .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
             if feature.trim().is_empty() {

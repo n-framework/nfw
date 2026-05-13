@@ -1,6 +1,5 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use crate::cli_error::CliError;
-use crate::commands::add::utils::find_presentation_layers;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command::AddMediatorCommand;
@@ -84,11 +83,9 @@ where
                 })?
         };
 
-        let layers = find_presentation_layers(
-            workspace_context.workspace_root(),
-            selected_service.path(),
-            selected_service.name(),
-        )?;
+        let layers = self
+            .handler
+            .list_presentation_layers(&workspace_context, &selected_service)?;
 
         if layers.is_empty() {
             return Err(CliError::internal(

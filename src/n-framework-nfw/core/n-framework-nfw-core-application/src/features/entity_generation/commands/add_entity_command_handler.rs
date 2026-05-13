@@ -62,7 +62,6 @@ where
         workspace: &WorkspaceContext,
         service: &ServiceInfo,
     ) -> Result<(EntitySchema, PathBuf), EntityGenerationError> {
-        self.validate_feature(command, workspace, service)?;
         self.validate_persistence_module(service)?;
         self.validate_id_type(command)?;
 
@@ -141,55 +140,6 @@ where
         service: &TemplateServiceInfo,
     ) -> Result<Vec<String>, AddArtifactError> {
         self.artifact_service.list_features(workspace, service)
-    }
-
-    fn validate_feature(
-        &self,
-        command: &AddEntityCommand,
-        _workspace: &WorkspaceContext,
-        service: &ServiceInfo,
-    ) -> Result<(), EntityGenerationError> {
-        let feature_name = command.feature();
-        let service_root = service.path();
-
-        // N-Framework services typically follow one of several project structure conventions.
-        // We attempt to find the feature directory by checking these common locations in order
-        // of likelihood:
-        // 1. {ServiceRoot}/src/core/Features/{Feature} - Standard vertical slice in core
-        // 2. {ServiceRoot}/src/Application/Features/{Feature} - Application layer in Hexagonal/Clean
-        // 3. {ServiceRoot}/src/Features/{Feature} - Simplified feature folders
-        // 4. {ServiceRoot}/Features/{Feature} - Flat feature folders
-        let possible_feature_roots = vec![
-            service_root.join("src").join("core").join("Features"),
-            service_root
-                .join("src")
-                .join("Application")
-                .join("Features"),
-            service_root.join("src").join("Features"),
-            service_root.join("Features"),
-        ];
-
-        let mut feature_path = None;
-        for root in possible_feature_roots {
-            let candidate = root.join(feature_name);
-            tracing::debug!("Checking for feature directory at: {}", candidate.display());
-            if candidate.is_dir() {
-                tracing::info!("Found feature directory at: {}", candidate.display());
-                feature_path = Some(candidate);
-                break;
-            }
-        }
-
-        if feature_path.is_none() {
-            tracing::info!(
-                "Feature directory '{}' not found in service '{}' ({}), it will be created during generation.",
-                feature_name,
-                service.name(),
-                service_root.display()
-            );
-        }
-
-        Ok(())
     }
 
     fn validate_persistence_module(

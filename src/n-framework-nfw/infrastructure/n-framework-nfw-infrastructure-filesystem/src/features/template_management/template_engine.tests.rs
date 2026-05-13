@@ -1,4 +1,7 @@
 use super::*;
+use n_framework_nfw_core_domain::features::template_management::template_config::{
+    InjectionTarget, TemplateConfig, TemplateStepAction, TemplateStepConfig,
+};
 use std::fs;
 use tempfile::TempDir;
 
@@ -19,9 +22,12 @@ fn execute_render_step_creates_file() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Render {
-            source: "hello.txt.tera".to_string(),
-            destination: "hello.txt".to_string(),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Render {
+                source: "hello.txt.tera".to_string(),
+                destination: "hello.txt".to_string(),
+            },
         }],
         vec![],
     )
@@ -53,9 +59,12 @@ fn prevents_path_traversal_in_render_destination() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Render {
-            source: "leak.txt".to_string(),
-            destination: "../outside.txt".to_string(),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Render {
+                source: "leak.txt".to_string(),
+                destination: "../outside.txt".to_string(),
+            },
         }],
         vec![],
     )
@@ -86,9 +95,12 @@ fn prevents_absolute_path_traversal() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Render {
-            source: "leak.txt".to_string(),
-            destination: "/tmp/evil.txt".to_string(),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Render {
+                source: "leak.txt".to_string(),
+                destination: "/tmp/evil.txt".to_string(),
+            },
         }],
         vec![],
     )
@@ -122,10 +134,13 @@ fn inject_at_end_works() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Inject {
-            source: "inject.txt".to_string(),
-            destination: "app.txt".to_string(),
-            injection_target: InjectionTarget::AtEnd,
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Inject {
+                source: "inject.txt".to_string(),
+                destination: "app.txt".to_string(),
+                injection_target: InjectionTarget::AtEnd,
+            },
         }],
         vec![],
     )
@@ -164,10 +179,13 @@ fn inject_region_works() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Inject {
-            source: "inject.txt".to_string(),
-            destination: "app.txt".to_string(),
-            injection_target: InjectionTarget::Region("deps".to_string()),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Inject {
+                source: "inject.txt".to_string(),
+                destination: "app.txt".to_string(),
+                injection_target: InjectionTarget::Region("deps".to_string()),
+            },
         }],
         vec![],
     )
@@ -205,10 +223,13 @@ fn inject_region_fails_when_start_marker_is_missing() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Inject {
-            source: "inject.txt".to_string(),
-            destination: "app.txt".to_string(),
-            injection_target: InjectionTarget::Region("deps".to_string()),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Inject {
+                source: "inject.txt".to_string(),
+                destination: "app.txt".to_string(),
+                injection_target: InjectionTarget::Region("deps".to_string()),
+            },
         }],
         vec![],
     )
@@ -244,10 +265,13 @@ fn inject_region_fails_when_end_marker_is_missing() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Inject {
-            source: "inject.txt".to_string(),
-            destination: "app.txt".to_string(),
-            injection_target: InjectionTarget::Region("deps".to_string()),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Inject {
+                source: "inject.txt".to_string(),
+                destination: "app.txt".to_string(),
+                injection_target: InjectionTarget::Region("deps".to_string()),
+            },
         }],
         vec![],
     )
@@ -287,10 +311,13 @@ fn inject_region_auto_indents_content() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Inject {
-            source: "inject.txt".to_string(),
-            destination: "app.cs".to_string(),
-            injection_target: InjectionTarget::Region("deps".to_string()),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Inject {
+                source: "inject.txt".to_string(),
+                destination: "app.cs".to_string(),
+                injection_target: InjectionTarget::Region("deps".to_string()),
+            },
         }],
         vec![],
     )
@@ -327,9 +354,12 @@ fn render_folder_step_copies_and_renders_directory_tree() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::RenderFolder {
-            source: "components".to_string(),
-            destination: "out_components".to_string(),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::RenderFolder {
+                source: "components".to_string(),
+                destination: "out_components".to_string(),
+            },
         }],
         vec![],
     )
@@ -362,9 +392,12 @@ fn render_step_fails_when_source_file_missing() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Render {
-            source: "does_not_exist.txt".to_string(),
-            destination: "out.txt".to_string(),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Render {
+                source: "does_not_exist.txt".to_string(),
+                destination: "out.txt".to_string(),
+            },
         }],
         vec![],
     )
@@ -400,10 +433,13 @@ fn inject_fails_when_destination_file_missing() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Inject {
-            source: "inject.txt".to_string(),
-            destination: "missing_target.txt".to_string(),
-            injection_target: InjectionTarget::AtEnd,
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Inject {
+                source: "inject.txt".to_string(),
+                destination: "missing_target.txt".to_string(),
+                injection_target: InjectionTarget::AtEnd,
+            },
         }],
         vec![],
     )
@@ -444,9 +480,12 @@ fn execute_fails_on_parent_directory_creation_failure() {
     // Destination requires creating a directory where 'obstacle' already is
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Render {
-            source: "hello.txt".to_string(),
-            destination: "file_blocking_dir/nested/hello.txt".to_string(),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Render {
+                source: "hello.txt".to_string(),
+                destination: "file_blocking_dir/nested/hello.txt".to_string(),
+            },
         }],
         vec![],
     )
@@ -482,9 +521,12 @@ fn execute_fails_on_template_syntax_error() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::Render {
-            source: "bad.txt.tera".to_string(),
-            destination: "out.txt".to_string(),
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::Render {
+                source: "bad.txt.tera".to_string(),
+                destination: "out.txt".to_string(),
+            },
         }],
         vec![],
     )
@@ -517,9 +559,12 @@ fn run_command_step_executes_successfully() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::RunCommand {
-            command: "echo hello > result.txt".to_string(),
-            working_directory: None,
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::RunCommand {
+                command: "echo hello > result.txt".to_string(),
+                working_directory: None,
+            },
         }],
         vec![],
     )
@@ -550,9 +595,12 @@ fn run_command_step_fails_on_nonzero_exit() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::RunCommand {
-            command: "exit 1".to_string(),
-            working_directory: None,
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::RunCommand {
+                command: "exit 1".to_string(),
+                working_directory: None,
+            },
         }],
         vec![],
     )
@@ -585,9 +633,12 @@ fn run_command_step_renders_tera_placeholders() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::RunCommand {
-            command: "echo {{ Name }} > greeting.txt".to_string(),
-            working_directory: None,
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::RunCommand {
+                command: "echo {{ Name }} > greeting.txt".to_string(),
+                working_directory: None,
+            },
         }],
         vec![],
     )
@@ -619,9 +670,12 @@ fn run_command_step_blocks_dangerous_patterns() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::RunCommand {
-            command: "echo {{ name }}".to_string(),
-            working_directory: None,
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::RunCommand {
+                command: "echo {{ name }}".to_string(),
+                working_directory: None,
+            },
         }],
         vec![],
     )
@@ -661,9 +715,12 @@ fn run_command_error_includes_context() {
 
     let config = TemplateConfig::new(
         None,
-        vec![TemplateStep::RunCommand {
-            command: "ls /non_existent_path_xyz_123_q42".to_string(),
-            working_directory: None,
+        vec![TemplateStepConfig {
+            condition: None,
+            action: TemplateStepAction::RunCommand {
+                command: "ls /non_existent_path_xyz_123_q42".to_string(),
+                working_directory: None,
+            },
         }],
         vec![],
     )

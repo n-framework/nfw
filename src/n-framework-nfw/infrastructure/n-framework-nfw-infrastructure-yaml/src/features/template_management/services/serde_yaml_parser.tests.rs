@@ -1,6 +1,6 @@
 use super::*;
 use n_framework_nfw_core_domain::features::template_management::template_config::{
-    InjectionTarget, TemplateConfig, TemplateStep,
+    InjectionTarget, TemplateConfig, TemplateStepAction,
 };
 
 #[test]
@@ -32,8 +32,8 @@ steps:
     let config = result.unwrap();
     assert_eq!(config.steps().len(), 2);
 
-    match &config.steps()[1] {
-        TemplateStep::Inject {
+    match &config.steps()[1].action {
+        TemplateStepAction::Inject {
             injection_target, ..
         } => {
             assert!(matches!(injection_target, InjectionTarget::Region(_)));

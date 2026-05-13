@@ -130,6 +130,16 @@ where
     ) -> Result<Vec<ServiceInfo>, AddArtifactError> {
         self.service.extract_services(workspace)
     }
+
+    /// Lists the presentation layer names available for the given service by reading the `webapi`
+    /// generator template's step destinations — no hardcoded paths or naming conventions.
+    pub fn list_presentation_layers(
+        &self,
+        workspace: &WorkspaceContext,
+        service: &ServiceInfo,
+    ) -> Result<Vec<String>, AddArtifactError> {
+        self.service.list_presentation_layers(workspace, service)
+    }
 }
 
 #[cfg(test)]

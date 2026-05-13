@@ -7,7 +7,7 @@ use n_framework_nfw_core_application::features::template_management::models::tem
 };
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_domain::features::template_management::template_config::{
-    InjectionTarget, TemplateConfig, TemplateStep,
+    InjectionTarget, TemplateConfig, TemplateStepAction,
 };
 use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
 
@@ -185,8 +185,51 @@ impl TemplateEngine for FileSystemTemplateEngine {
         };
 
         for (i, step) in config.steps().iter().enumerate() {
-            match step {
-                TemplateStep::Render {
+            // Evaluate condition first if provided
+            if let Some(condition_expr) = &step.condition {
+                let eval_result = self
+                    .renderer
+                    .render_content(condition_expr, ctx.core_context)
+                    .map_err(|e| TemplateError::TemplateRenderError {
+                        message: format!(
+                            "failed to evaluate condition '{}': {}",
+                            condition_expr, e
+                        ),
+                        step_index: Some(i),
+                        template_id: ctx.template_id.clone(),
+                        file_path: None,
+                        source: None,
+                    })?;
+
+                let is_true = match eval_result.trim().to_lowercase().as_str() {
+                    "true" | "1" => true,
+                    "false" | "0" | "" => false,
+                    _ => {
+                        return Err(TemplateError::TemplateRenderError {
+                            message: format!(
+                                "Invalid boolean evaluation for condition expression '{}'. Evaluated to '{}'",
+                                condition_expr, eval_result
+                            ),
+                            step_index: Some(i),
+                            template_id: ctx.template_id.clone(),
+                            file_path: None,
+                            source: None,
+                        });
+                    }
+                };
+
+                if !is_true {
+                    tracing::debug!(
+                        "Skipping step [action: {:?}] due to false condition: {}",
+                        step.action,
+                        condition_expr
+                    );
+                    continue;
+                }
+            }
+
+            match &step.action {
+                TemplateStepAction::Render {
                     source,
                     destination,
                 } => {
@@ -227,7 +270,53 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         TemplateError::io(format!("failed to write generated file: {e}"), dest_path)
                     })?;
                 }
-                TemplateStep::RenderFolder {
+                TemplateStepAction::RenderIfAbsent {
+                    source,
+                    destination,
+                } => {
+                    let (source_path, dest_path) =
+                        self.resolve_paths(source, destination, &ctx, i)?;
+
+                    // Skip if the destination already exists — this step is idempotent.
+                    if dest_path.exists() {
+                        continue;
+                    }
+
+                    if let Some(parent) = dest_path.parent() {
+                        fs::create_dir_all(parent).map_err(|e| {
+                            TemplateError::io(
+                                format!(
+                                    "failed to create parent directory for {}: {e}",
+                                    dest_path.display()
+                                ),
+                                parent,
+                            )
+                        })?;
+                    }
+
+                    let content = fs::read_to_string(&source_path).map_err(|e| {
+                        TemplateError::io(
+                            format!("failed to read template source: {e}"),
+                            source_path,
+                        )
+                    })?;
+                    let rendered_content = self
+                        .renderer
+                        .render_content(&content, ctx.core_context)
+                        .map_err(|e| {
+                            Self::map_error(
+                                e,
+                                i,
+                                template_id.clone(),
+                                Some(dest_path.display().to_string()),
+                            )
+                        })?;
+
+                    fs::write(&dest_path, rendered_content).map_err(|e| {
+                        TemplateError::io(format!("failed to write generated file: {e}"), dest_path)
+                    })?;
+                }
+                TemplateStepAction::RenderFolder {
                     source,
                     destination,
                 } => {
@@ -245,7 +334,7 @@ impl TemplateEngine for FileSystemTemplateEngine {
                             )
                         })?;
                 }
-                TemplateStep::Inject {
+                TemplateStepAction::Inject {
                     source,
                     destination,
                     injection_target,
@@ -318,7 +407,17 @@ impl TemplateEngine for FileSystemTemplateEngine {
                                 .collect();
 
                             let indented_content = indent_lines(&rendered_inject_content, &indent);
-                            file_content.insert_str(insert_pos, &indented_content);
+
+                            // Skip insert if the trimmed content already exists in the region.
+                            let region_slice = &file_content[start_pos..absolute_end_pos];
+                            let trimmed_new = rendered_inject_content.trim();
+                            if !trimmed_new.is_empty()
+                                && region_slice.lines().any(|l| l.trim() == trimmed_new)
+                            {
+                                // Content already present — no-op.
+                            } else {
+                                file_content.insert_str(insert_pos, &indented_content);
+                            }
                         } else {
                             let snippet = get_snippet(&file_content, start_pos);
                             return Err(TemplateError::TemplateInjectionError {
@@ -350,7 +449,7 @@ impl TemplateEngine for FileSystemTemplateEngine {
                         TemplateError::io(format!("failed to write injected file: {e}"), dest_path)
                     })?;
                 }
-                TemplateStep::RunCommand {
+                TemplateStepAction::RunCommand {
                     command,
                     working_directory,
                 } => {

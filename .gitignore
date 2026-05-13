@@ -2,6 +2,7 @@
 .agents/
 .claude/
 .codex/
+.forge/
 .kilo/
 .serena/
 .specify/

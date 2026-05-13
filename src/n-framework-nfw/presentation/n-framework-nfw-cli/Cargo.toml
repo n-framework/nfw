@@ -168,3 +168,7 @@ path = "../../../../tests/integration/n-framework-nfw/features/entity_generation
 name = "entity_generation_schema_test"
 path = "../../../../tests/integration/n-framework-nfw/features/entity_generation/schema_tests.rs"
 
+[[test]]
+name = "gen_endpoint_test"
+path = "../../../../tests/integration/n-framework-nfw/features/template_management/commands/gen_endpoint/gen_endpoint_test.rs"
+

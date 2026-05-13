@@ -191,40 +191,6 @@ fn validate_persistence_module_checks_service() {
 }
 
 #[test]
-fn validate_feature_allows_missing_feature_directory() {
-    let temp = tempfile::tempdir().unwrap();
-    let service_root = temp.path().join("src/Catalog");
-    std::fs::create_dir_all(&service_root).unwrap();
-
-    let handler = setup_handler(false);
-    let command = AddEntityCommand::try_new(
-        "Product".to_owned(),
-        vec![PropertyDefinition::new(
-            "Name".to_owned(),
-            GeneralType::String,
-            false,
-        )],
-        GeneralType::Uuid,
-        EntityType::Entity,
-        EntityGenerationOptions::new(None, "NonExistentFeature".to_owned(), false, None, true),
-    )
-    .unwrap();
-    let workspace = WorkspaceContext::new(PathBuf::from("/"), vec![]);
-    let service = ServiceInfo::new(
-        "Catalog".to_owned(),
-        service_root,
-        vec!["persistence".to_owned()],
-    );
-
-    let result = handler.validate_feature(&command, &workspace, &service);
-    assert!(
-        result.is_ok(),
-        "Expected Ok for missing feature directory, but got {:?}",
-        result
-    );
-}
-
-#[test]
 fn handle_from_schema_fails_if_schema_not_found() {
     let handler = setup_handler(false); // schema_exists returns false
     let command = AddEntityCommand::try_new(
