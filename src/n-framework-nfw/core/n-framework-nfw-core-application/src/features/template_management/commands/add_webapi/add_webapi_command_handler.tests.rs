@@ -124,7 +124,8 @@ fn handle_error_on_engine_failure() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -157,7 +158,8 @@ fn handle_error_on_missing_namespace() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -197,7 +199,8 @@ fn handle_error_on_existing_module() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -244,7 +247,8 @@ fn handle_error_on_resolver_failure() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -282,7 +286,8 @@ fn handle_error_on_missing_yaml() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -322,7 +327,8 @@ fn handle_error_on_missing_sub_template() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -357,7 +363,8 @@ fn handle_error_on_readonly_yaml() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -398,7 +405,8 @@ fn handle_captures_config_parameters() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         config,
     );
 
@@ -440,7 +448,8 @@ fn handle_captures_all_config_flags() {
             sandbox.path().to_path_buf(),
             nfw_yaml.clone(),
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         config_all_true,
     );
     handler.handle(&cmd1).unwrap();
@@ -476,7 +485,8 @@ fn handle_captures_all_config_flags() {
             sandbox.path().to_path_buf(),
             nfw_yaml_all_false,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         config_all_false,
     );
     // handler.handle(&cmd1).unwrap_err(); // This was causing issues due to file system state mismatch
@@ -515,7 +525,8 @@ fn handle_success_full_flow() {
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 
@@ -573,7 +584,8 @@ generators:
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         WebApiConfig::default(),
     );
 

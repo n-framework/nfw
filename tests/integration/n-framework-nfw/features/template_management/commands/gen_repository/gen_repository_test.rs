@@ -50,9 +50,30 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  repository: ./repository/\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  repository: ./repository/\n  entity: ./entity/\n",
     )
     .expect("failed to write root template.yaml");
+
+    // Scaffold the entity sub-template so find_artifact_in_features can derive the path.
+    let entity_tpl_dir = root_tpl_dir.join("entity");
+    fs::create_dir_all(entity_tpl_dir.join("content"))
+        .expect("failed to create entity template dir");
+    fs::write(
+        entity_tpl_dir.join("template.yaml"),
+        r#"
+id: dotnet-service/entity
+steps:
+  - action: render
+    source: "content/Entity.cs.tera"
+    destination: "src/core/{{ Namespace }}.Core.Domain/Features/{{ Feature }}/Entities/{{ Name }}.cs"
+"#,
+    )
+    .expect("failed to write entity template.yaml");
+    fs::write(
+        entity_tpl_dir.join("content/Entity.cs.tera"),
+        "public class {{ Name }} {}",
+    )
+    .expect("failed to write entity template");
 
     let tpl_dir = root_tpl_dir.join("repository");
     fs::create_dir_all(tpl_dir.join("content/interface"))
@@ -285,7 +306,8 @@ fn gen_repository_fails_if_entity_not_found() {
 
             let err_str = format!("{:?}", result.err().unwrap());
             if !err_str.contains("not found in feature")
-                && !err_str.contains("does not contain an Entities folder")
+                && !err_str.contains("does not contain")
+                && !err_str.contains("not found in any feature")
             {
                 return Err(format!("Unexpected error message: {}", err_str));
             }
@@ -321,7 +343,7 @@ fn gen_repository_fails_if_invalid_feature_folder() {
             }
 
             let err_str = format!("{:?}", result.err().unwrap());
-            if !err_str.contains("does not contain an Entities folder") {
+            if !err_str.contains("does not contain") && !err_str.contains("not found in feature") {
                 return Err(format!("Unexpected error message: {}", err_str));
             }
 

@@ -325,7 +325,7 @@ services:
 
     // We need to simulate required_modules. Since TemplateConfig fields are private,
     // we use a yaml string to deserialize it.
-    let config_yaml = "id: test\nrequired_modules: [\"persistence\"]";
+    let config_yaml = "id: test\nrequired_modules: [\"persistence\"]\nsteps:\n  - action: run_command\n    command: echo";
     let config: TemplateConfig = serde_yaml::from_str(config_yaml).unwrap();
 
     let result = service.validate_required_modules(&config, &nfw_yaml, Path::new("src/MyService"));

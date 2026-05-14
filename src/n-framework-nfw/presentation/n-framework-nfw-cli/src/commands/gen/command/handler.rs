@@ -86,7 +86,7 @@ where
         let feature = self.resolve_feature(&request, existing_features)?;
         let name = self.resolve_name(&request)?;
 
-        let resolved_params = self.resolve_params(&request, context.config.inputs())?;
+        let resolved_params = self.resolve_params(&request, context.config().inputs())?;
 
         let params_opt = if resolved_params.as_object().is_none_or(|o| o.is_empty()) {
             None
@@ -141,7 +141,7 @@ where
         }
 
         self.prompt
-            .text("Enter command name (e.g. ApproveOrderCommand):", None)
+            .text("Enter command name (e.g. ApproveOrder):", None)
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))
     }
 
@@ -156,19 +156,6 @@ where
 
         if request.no_input || !request.is_interactive_terminal {
             return Ok(None);
-        }
-
-        if existing_features.is_empty() {
-            let feature = self
-                .prompt
-                .text("Enter feature name (e.g. Catalog):", None)
-                .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
-
-            if feature.trim().is_empty() {
-                return Ok(None);
-            } else {
-                return Ok(Some(feature.trim().to_string()));
-            }
         }
 
         let mut options: Vec<SelectOption> = existing_features
@@ -187,7 +174,7 @@ where
         if selected.value() == CREATE_NEW {
             let feature = self
                 .prompt
-                .text("Enter new feature name (e.g. Catalog):", None)
+                .text("Enter feature name (e.g. Catalog):", None)
                 .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
             if feature.trim().is_empty() {

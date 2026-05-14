@@ -10,7 +10,7 @@ pub struct TemplateConfig {
     id: Option<String>,
     /// The sequence of rendering steps to perform.
     #[serde(default)]
-    steps: Vec<TemplateStep>,
+    steps: Vec<TemplateStepConfig>,
     /// The input parameters accepted by this template.
     #[serde(default)]
     inputs: Vec<TemplateInput>,
@@ -20,19 +20,26 @@ pub struct TemplateConfig {
     /// Explicit paths for nested generators.
     #[serde(default)]
     generators: Option<HashMap<String, String>>,
+    /// Generator types whose step destinations are scanned when attaching this template output to
+    /// an existing mediator artifact (command or query). Each entry is a key in the parent
+    /// template's `generators` map (e.g. `"command"`, `"query"`).
+    #[serde(default)]
+    mediator_sources: Vec<String>,
 }
 
 #[derive(Deserialize)]
 struct TemplateConfigShadow {
     id: Option<String>,
     #[serde(default)]
-    steps: Vec<TemplateStep>,
+    steps: Vec<TemplateStepConfig>,
     #[serde(default)]
     inputs: Vec<TemplateInput>,
     #[serde(default)]
     required_modules: Vec<String>,
     #[serde(default)]
     generators: Option<HashMap<String, String>>,
+    #[serde(default)]
+    mediator_sources: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -92,6 +99,7 @@ impl TryFrom<TemplateConfigShadow> for TemplateConfig {
             inputs: shadow.inputs,
             required_modules: shadow.required_modules,
             generators: shadow.generators,
+            mediator_sources: shadow.mediator_sources,
         };
         config.validate()?;
         Ok(config)
@@ -137,7 +145,7 @@ impl TemplateConfig {
     /// Returns an error if the configuration is invalid.
     pub fn new(
         id: Option<String>,
-        steps: Vec<TemplateStep>,
+        steps: Vec<TemplateStepConfig>,
         inputs: Vec<TemplateInput>,
     ) -> Result<Self, TemplateConfigError> {
         let config = Self {
@@ -146,23 +154,34 @@ impl TemplateConfig {
             inputs,
             required_modules: Vec::new(),
             generators: None,
+            mediator_sources: Vec::new(),
         };
         config.validate()?;
         Ok(config)
     }
 
     /// Validates the configuration state.
-    ///
-    /// Note: Allows empty steps for backward compatibility with legacy templates
-    /// that might use an empty template.yaml and rely on default content/ rendering.
     pub fn validate(&self) -> Result<(), TemplateConfigError> {
         if let Some(id) = &self.id {
             validate_id_format(id)?;
         }
 
+        // Allow steps to be empty if the template defines generators (acting as a parent template)
+        if self.steps.is_empty() && self.generators.as_ref().is_none_or(|g| g.is_empty()) {
+            return Err(TemplateConfigError::InvalidStep {
+                index: 0,
+                message: "A template must define at least one step or specify child generators"
+                    .to_string(),
+            });
+        }
+
         for (i, step) in self.steps.iter().enumerate() {
-            match step {
-                TemplateStep::Render {
+            match &step.action {
+                TemplateStepAction::Render {
+                    source,
+                    destination,
+                }
+                | TemplateStepAction::RenderIfAbsent {
                     source,
                     destination,
                 } => {
@@ -179,7 +198,7 @@ impl TemplateConfig {
                         });
                     }
                 }
-                TemplateStep::RenderFolder {
+                TemplateStepAction::RenderFolder {
                     source,
                     destination,
                 } => {
@@ -202,10 +221,10 @@ impl TemplateConfig {
                         });
                     }
                 }
-                TemplateStep::Inject {
+                TemplateStepAction::Inject {
                     source,
                     destination,
-                    ..
+                    injection_target: _,
                 } => {
                     if source.trim().is_empty() {
                         return Err(TemplateConfigError::InvalidStep {
@@ -220,7 +239,7 @@ impl TemplateConfig {
                         });
                     }
                 }
-                TemplateStep::RunCommand { command, .. } => {
+                TemplateStepAction::RunCommand { command, .. } => {
                     if command.trim().is_empty() {
                         return Err(TemplateConfigError::InvalidStep {
                             index: i,
@@ -381,7 +400,7 @@ impl TemplateConfig {
     }
 
     /// Returns the list of rendering steps.
-    pub fn steps(&self) -> &[TemplateStep] {
+    pub fn steps(&self) -> &[TemplateStepConfig] {
         &self.steps
     }
 
@@ -402,6 +421,15 @@ impl TemplateConfig {
     /// complex templates to encompass multiple artifacts within the same template bundle.
     pub fn generators(&self) -> Option<&HashMap<String, String>> {
         self.generators.as_ref()
+    }
+
+    /// Returns the generator types whose step destinations are scanned when attaching this
+    /// template's output to an existing mediator artifact.
+    ///
+    /// Each entry corresponds to a key in the parent template's `generators` map
+    /// (e.g. `"command"`, `"query"`). An empty slice means no mediator attachment is supported.
+    pub fn mediator_sources(&self) -> &[String] {
+        &self.mediator_sources
     }
 }
 
@@ -426,10 +454,32 @@ fn validate_id_format(id: &str) -> Result<(), TemplateConfigError> {
 
 /// A single step in the template rendering process.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TemplateStepConfig {
+    /// Optional condition (Tera expression). If it evaluates to false, the step is skipped.
+    #[serde(rename = "if", default, skip_serializing_if = "Option::is_none")]
+    pub condition: Option<String>,
+
+    /// The action to perform for this step.
+    #[serde(flatten)]
+    pub action: TemplateStepAction,
+}
+
+/// The action of a template step.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "action", rename_all = "snake_case")]
-pub enum TemplateStep {
+pub enum TemplateStepAction {
     /// Renders a single template file.
     Render {
+        /// Path to the source template file (relative to template root).
+        source: String,
+        /// Path to the destination file (relative to output root).
+        destination: String,
+    },
+    /// Renders a single template file only if the destination does not already exist.
+    /// Use this for hand-editable scaffolding files that should be created once but never
+    /// overwritten by subsequent generator runs (e.g. partial class declarations,
+    /// feature grouping registration stubs).
+    RenderIfAbsent {
         /// Path to the source template file (relative to template root).
         source: String,
         /// Path to the destination file (relative to output root).

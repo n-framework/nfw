@@ -50,9 +50,20 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n  webapi: webapi\n",
     )
     .expect("failed to write root template.yaml");
+
+    // Scaffold a minimal webapi sub-template so list_presentation_layers can derive the path.
+    let webapi_tpl_dir = root_tpl_dir.join("webapi");
+    fs::create_dir_all(&webapi_tpl_dir).expect("failed to create webapi template dir");
+    fs::write(
+        webapi_tpl_dir.join("template.yaml"),
+        "id: dotnet-service/webapi\nsteps:\n  - action: render\n    source: \"Startup.cs.tera\"\n    destination: \"src/presentation/{{ Service }}.Presentation.WebApi/Startup.cs\"\n",
+    )
+    .expect("failed to write webapi template.yaml");
+    fs::write(webapi_tpl_dir.join("Startup.cs.tera"), "// startup")
+        .expect("failed to write webapi tera");
 
     let tpl_dir = root_tpl_dir.join("persistence");
     fs::create_dir_all(&tpl_dir).expect("failed to create sub-template dir");
@@ -227,15 +238,24 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n  webapi: webapi\n",
     )
     .unwrap();
+
+    let webapi_tpl_dir = root_tpl_dir.join("webapi");
+    fs::create_dir_all(&webapi_tpl_dir).unwrap();
+    fs::write(
+        webapi_tpl_dir.join("template.yaml"),
+        "id: dotnet-service/webapi\nsteps:\n  - action: render\n    source: \"Startup.cs.tera\"\n    destination: \"src/presentation/{{ Service }}.Presentation.WebApi/Startup.cs\"\n",
+    )
+    .unwrap();
+    fs::write(webapi_tpl_dir.join("Startup.cs.tera"), "// startup").unwrap();
 
     let tpl_dir = root_tpl_dir.join("persistence");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
         tpl_dir.join("template.yaml"),
-        "id: dotnet-service/persistence\nsteps: []",
+        "id: dotnet-service/persistence\nsteps:\n  - action: run_command\n    command: \"echo done\"\n",
     )
     .unwrap();
     fs::create_dir_all(
@@ -307,9 +327,18 @@ template_sources:
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
         root_tpl_dir.join("template.yaml"),
-        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n",
+        "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  persistence: persistence\n  webapi: webapi\n",
     )
     .unwrap();
+
+    let webapi_tpl_dir = root_tpl_dir.join("webapi");
+    fs::create_dir_all(&webapi_tpl_dir).unwrap();
+    fs::write(
+        webapi_tpl_dir.join("template.yaml"),
+        "id: dotnet-service/webapi\nsteps:\n  - action: render\n    source: \"Startup.cs.tera\"\n    destination: \"src/presentation/{{ Service }}.Presentation.WebApi/Startup.cs\"\n",
+    )
+    .unwrap();
+    fs::write(webapi_tpl_dir.join("Startup.cs.tera"), "// startup").unwrap();
 
     let tpl_dir = root_tpl_dir.join("persistence");
     fs::create_dir_all(&tpl_dir).unwrap();

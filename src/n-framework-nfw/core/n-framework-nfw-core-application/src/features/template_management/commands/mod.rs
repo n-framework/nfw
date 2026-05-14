@@ -3,6 +3,7 @@ pub mod add_persistence;
 pub mod add_template_source;
 pub mod add_webapi;
 pub mod ensure_default_source;
+pub mod gen_endpoint;
 pub mod gen_mediator_command;
 pub mod gen_mediator_query;
 pub mod gen_repository;

@@ -83,7 +83,8 @@ generators:
             sandbox.path().to_path_buf(),
             nfw_yaml,
             n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
-        ),
+        )
+        .unwrap(),
         "WebApi".to_string(),
     )
     .unwrap();
