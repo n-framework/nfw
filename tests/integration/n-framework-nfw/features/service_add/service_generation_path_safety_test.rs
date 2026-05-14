@@ -40,7 +40,7 @@ fn rejects_rendered_paths_that_escape_service_output_root() {
     match error {
         AddServiceError::RenderFailed(message) => {
             assert!(
-                message.contains("unsafe rendered path"),
+                message.to_lowercase().contains("unsafe rendered path"),
                 "expected unsafe path render error, got: {message}"
             );
         }

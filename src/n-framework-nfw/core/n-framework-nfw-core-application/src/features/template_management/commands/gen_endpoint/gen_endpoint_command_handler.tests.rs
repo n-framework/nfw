@@ -1,9 +1,17 @@
 #[cfg(test)]
 mod tests {
     use super::super::gen_endpoint_command_handler::GenEndpointCommandHandler;
-    use crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::GenEndpointCommand;
+    use crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::{
+        GenEndpointCommand, HttpMethod,
+    };
     use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
-    use crate::features::template_management::services::artifact_generation_service::AddArtifactContext;
+    use crate::features::template_management::models::template_error::TemplateError;
+    use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
+    use crate::features::template_management::services::artifact_generation_service::{
+        AddArtifactContext, WorkspaceContext,
+    };
+    use crate::features::template_management::services::template_engine::TemplateEngine;
+    use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
     use n_framework_nfw_core_domain::features::template_management::{
         template_config::TemplateConfig, template_parameters::TemplateParameters,
     };
@@ -12,24 +20,21 @@ mod tests {
 
     // Need mocks since we're in core-application and infrastructure is not available
     struct MockWorkingDir {}
-    impl crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider for MockWorkingDir {
+    impl WorkingDirectoryProvider for MockWorkingDir {
         fn current_dir(&self) -> Result<PathBuf, String> {
             Ok(PathBuf::from(""))
         }
     }
 
     struct MockTemplateEngine {}
-    impl crate::features::template_management::services::template_engine::TemplateEngine
-        for MockTemplateEngine
-    {
+    impl TemplateEngine for MockTemplateEngine {
         fn execute(
             &self,
             _config: &TemplateConfig,
             _template_root: &Path,
             _output_root: &Path,
             _parameters: &TemplateParameters,
-        ) -> Result<(), crate::features::template_management::models::template_error::TemplateError>
-        {
+        ) -> Result<(), TemplateError> {
             Ok(())
         }
     }
@@ -79,10 +84,13 @@ steps:
         base: PathBuf,
     }
 
-    impl crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver
-        for FixedMockTemplateRoot
-    {
-        fn resolve(&self, _nfw_yaml: &serde_yaml::Value, _template_id: &str, _workspace_root: &std::path::Path) -> Result<PathBuf, String> {
+    impl TemplateRootResolver for FixedMockTemplateRoot {
+        fn resolve(
+            &self,
+            _nfw_yaml: &serde_yaml::Value,
+            _template_id: &str,
+            _workspace_root: &std::path::Path,
+        ) -> Result<PathBuf, String> {
             Ok(self.base.clone())
         }
     }
@@ -129,17 +137,23 @@ steps:
             service_path: std::path::PathBuf::from("src/TestService"),
             service_name: "TestService".to_string(),
             config,
-            workspace: crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(root.path().to_path_buf(), nfw_yaml.clone(), PreservedComments::default()).unwrap(),
+            workspace: WorkspaceContext::new(
+                root.path().to_path_buf(),
+                nfw_yaml.clone(),
+                PreservedComments::default(),
+            )
+            .unwrap(),
         };
 
         let command = GenEndpointCommand::new(
-        "GetProduct".to_string(),
-        Some("NonExistentFeature".to_string()),
-        crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
-        None,
-        context,
-        true,
-    ).unwrap();
+            "GetProduct".to_string(),
+            Some("NonExistentFeature".to_string()),
+            HttpMethod::Get,
+            None,
+            context,
+            true,
+        )
+        .unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -182,17 +196,23 @@ steps:
             service_path: std::path::PathBuf::from("src/TestService"),
             service_name: "TestService".to_string(),
             config,
-            workspace: crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(root.path().to_path_buf(), nfw_yaml.clone(), PreservedComments::default()).unwrap(),
+            workspace: WorkspaceContext::new(
+                root.path().to_path_buf(),
+                nfw_yaml.clone(),
+                PreservedComments::default(),
+            )
+            .unwrap(),
         };
 
         let command = GenEndpointCommand::new(
-        "GetProduct".to_string(),
-        Some("Inventory".to_string()),
-        crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
-        None,
-        context,
-        true,
-    ).unwrap();
+            "GetProduct".to_string(),
+            Some("Inventory".to_string()),
+            HttpMethod::Get,
+            None,
+            context,
+            true,
+        )
+        .unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -244,17 +264,23 @@ steps:
             service_path: std::path::PathBuf::from("src/TestService"),
             service_name: "TestService".to_string(),
             config,
-            workspace: crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(root.path().to_path_buf(), nfw_yaml.clone(), PreservedComments::default()).unwrap(),
+            workspace: WorkspaceContext::new(
+                root.path().to_path_buf(),
+                nfw_yaml.clone(),
+                PreservedComments::default(),
+            )
+            .unwrap(),
         };
 
         let command = GenEndpointCommand::new(
-        "GetProduct".to_string(),
-        Some("Inventory".to_string()),
-        crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
-        None,
-        context,
-        true,
-    ).unwrap();
+            "GetProduct".to_string(),
+            Some("Inventory".to_string()),
+            HttpMethod::Get,
+            None,
+            context,
+            true,
+        )
+        .unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -292,17 +318,19 @@ steps:
         let config = test_endpoint_config();
         let nfw_yaml = test_valid_yaml();
 
-        let context = crate::features::template_management::services::artifact_generation_service::AddArtifactContext::new(
-            crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(
+        let context = AddArtifactContext::new(
+            WorkspaceContext::new(
                 root.path().to_path_buf(),
                 nfw_yaml.clone(),
-                PreservedComments::default()
-            ).unwrap(),
+                PreservedComments::default(),
+            )
+            .unwrap(),
             root.path().to_path_buf(),
             config,
             "TestService".to_string(),
-            std::path::PathBuf::from("src/TestService")
-        ).unwrap();
+            std::path::PathBuf::from("src/TestService"),
+        )
+        .unwrap();
 
         // Pass a JSON parameter containing `OperationType` to verify the system correctly overrides it
         let custom_params = serde_json::json!({
@@ -314,11 +342,12 @@ steps:
         let command = GenEndpointCommand::new(
             "GetProduct".to_string(),
             Some("Inventory".to_string()),
-            crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
+            HttpMethod::Get,
             Some(custom_params),
             context,
             true,
-        ).unwrap();
+        )
+        .unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -346,25 +375,28 @@ steps:
         let nfw_yaml = test_valid_yaml();
 
         let context = AddArtifactContext::new(
-        crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(
+            WorkspaceContext::new(
+                root.path().to_path_buf(),
+                nfw_yaml.clone(),
+                PreservedComments::default(),
+            )
+            .unwrap(),
             root.path().to_path_buf(),
-            nfw_yaml.clone(),
-            PreservedComments::default()
-        ).unwrap(),
-        root.path().to_path_buf(),
-        config,
-        "TestService".to_string(),
-        std::path::PathBuf::from("src/TestService")
-    ).unwrap();
+            config,
+            "TestService".to_string(),
+            std::path::PathBuf::from("src/TestService"),
+        )
+        .unwrap();
 
         let command = GenEndpointCommand::new(
             "GetProduct".to_string(),
             Some("Inventory".to_string()),
-            crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
+            HttpMethod::Get,
             None,
             context,
             false, // Bypass check!
-        ).unwrap();
+        )
+        .unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -377,5 +409,155 @@ steps:
             result.is_ok(),
             "Expected success when attach_to_mediator is false, even if artifact is missing"
         );
+    }
+
+    #[test]
+    fn test_get_mediator_items_success() {
+        let root = tempfile::tempdir().unwrap();
+        let tpl_base = root.path().join("templates").join("test");
+        std::fs::create_dir_all(&tpl_base).unwrap();
+        write_mediator_template_configs(&tpl_base);
+
+        // Create some mediator commands
+        let feature_dir = root.path().join(
+            "src/TestService/src/core/TestService.Core.Application/Features/Inventory/Commands",
+        );
+
+        let cmd1_dir = feature_dir.join("CreateProduct");
+        std::fs::create_dir_all(&cmd1_dir).unwrap();
+        std::fs::write(cmd1_dir.join("CreateProductCommand.cs"), "dummy").unwrap();
+
+        let cmd2_dir = feature_dir.join("UpdateProduct");
+        std::fs::create_dir_all(&cmd2_dir).unwrap();
+        std::fs::write(cmd2_dir.join("UpdateProductCommand.cs"), "dummy").unwrap();
+
+        let handler = GenEndpointCommandHandler::new(
+            MockWorkingDir {},
+            FixedMockTemplateRoot { base: tpl_base },
+            MockTemplateEngine {},
+        );
+
+        let workspace_context = WorkspaceContext::new(
+            root.path().to_path_buf(),
+            test_valid_yaml(),
+            PreservedComments::default(),
+        )
+        .unwrap();
+
+        let service_info = handler
+            .service
+            .extract_services(&workspace_context)
+            .unwrap()
+            .into_iter()
+            .find(|s| s.name() == "TestService")
+            .unwrap();
+
+        let items = handler
+            .get_mediator_items(&workspace_context, &service_info, "Inventory", false)
+            .unwrap();
+
+        assert_eq!(items.len(), 2);
+        assert!(items.contains(&"CreateProduct".to_string()));
+        assert!(items.contains(&"UpdateProduct".to_string()));
+    }
+
+    #[test]
+    fn test_has_mediator_sources_success() {
+        let root = tempfile::tempdir().unwrap();
+        let tpl_base = root.path().join("templates").join("test");
+        std::fs::create_dir_all(&tpl_base).unwrap();
+        write_mediator_template_configs(&tpl_base);
+
+        let handler = GenEndpointCommandHandler::new(
+            MockWorkingDir {},
+            FixedMockTemplateRoot { base: tpl_base },
+            MockTemplateEngine {},
+        );
+
+        let nfw_yaml = r#"
+services:
+  TestService:
+    path: src/TestService
+    template:
+      id: "test"
+    modules: ["mediator"]
+"#;
+        let workspace_context = WorkspaceContext::new(
+            root.path().to_path_buf(),
+            serde_yaml::from_str(nfw_yaml).unwrap(),
+            PreservedComments::default(),
+        )
+        .unwrap();
+
+        let service_info = handler
+            .service
+            .extract_services(&workspace_context)
+            .unwrap()
+            .into_iter()
+            .find(|s| s.name() == "TestService")
+            .unwrap();
+
+        let sources = vec!["command".to_string(), "query".to_string()];
+
+        // Mocking template context load: we need the command/query templates to NOT have required_modules
+        // or have modules that the service has. Our write_mediator_template_configs creates them without required_modules.
+
+        assert!(handler.has_mediator_sources(&workspace_context, &service_info, &sources));
+    }
+
+    #[test]
+    fn test_has_mediator_sources_fails_on_missing_modules() {
+        let root = tempfile::tempdir().unwrap();
+        let tpl_base = root.path().join("templates").join("test");
+        std::fs::create_dir_all(&tpl_base).unwrap();
+
+        // Write templates that REQUIRE "mediator" module
+        let cmd_dir = tpl_base.join("command");
+        std::fs::create_dir_all(&cmd_dir).unwrap();
+        std::fs::write(
+            cmd_dir.join("template.yaml"),
+            "id: test/command\nrequired_modules: [\"mediator\"]\nsteps: []\n",
+        )
+        .unwrap();
+
+        std::fs::write(
+            tpl_base.join("template.yaml"),
+            "id: test\ngenerators:\n  command: command\n",
+        )
+        .unwrap();
+
+        let handler = GenEndpointCommandHandler::new(
+            MockWorkingDir {},
+            FixedMockTemplateRoot { base: tpl_base },
+            MockTemplateEngine {},
+        );
+
+        // Service with NO modules
+        let nfw_yaml = r#"
+services:
+  TestService:
+    path: src/TestService
+    template:
+      id: "test"
+    modules: []
+"#;
+        let workspace_context = WorkspaceContext::new(
+            root.path().to_path_buf(),
+            serde_yaml::from_str(nfw_yaml).unwrap(),
+            PreservedComments::default(),
+        )
+        .unwrap();
+
+        let service_info = handler
+            .service
+            .extract_services(&workspace_context)
+            .unwrap()
+            .into_iter()
+            .find(|s| s.name() == "TestService")
+            .unwrap();
+
+        let sources = vec!["command".to_string()];
+
+        assert!(!handler.has_mediator_sources(&workspace_context, &service_info, &sources));
     }
 }

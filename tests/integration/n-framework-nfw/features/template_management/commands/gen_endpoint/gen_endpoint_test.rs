@@ -296,3 +296,154 @@ fn gen_endpoint_fails_if_webapi_missing() {
         },
     );
 }
+
+#[test]
+fn gen_endpoint_fails_if_template_resolution_fails() {
+    run_test_in_sandbox(
+        "invalid-template",
+        (true, true, false, false, "Catalog"),
+        |sandbox, _| {
+            // Corrupt the template by removing the steps
+            let tpl_dir = sandbox.join("templates/dotnet-service/endpoint");
+            fs::write(
+                tpl_dir.join("template.yaml"),
+                "id: dotnet-service/endpoint\nrequired_modules: [\"webapi\"]\nmediator_sources: [\"command\", \"query\"]\nsteps: [{ action: render, source: 't', destination: '{{ Feature }}/d' }]",
+            )
+            .unwrap();
+
+            let result = gen_support::execute_non_interactive_gen_endpoint(
+                &sandbox, "Test", "Catalog", "POST",
+            );
+
+            if result.is_ok() {
+                return Err("Expected error for empty template steps, but got success".to_string());
+            }
+
+            let err_str = format!("{:?}", result.err().unwrap());
+            // Since there are no steps, it won't find the features root.
+            if !err_str.contains("No Command or Query artifact found") {
+                return Err(format!("Unexpected error message: {}", err_str));
+            }
+
+            Ok(())
+        },
+    );
+}
+
+#[test]
+fn test_get_mediator_items() {
+    let _lock = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let sandbox = support::create_sandbox_directory("get-mediator-items");
+    if sandbox.exists() {
+        fs::remove_dir_all(&sandbox).unwrap();
+    }
+    fs::create_dir_all(&sandbox).unwrap();
+
+    setup_endpoint_workspace(&sandbox, true, true, true, false, "Catalog");
+
+    let current_dir = std::env::current_dir().unwrap();
+    std::env::set_current_dir(&sandbox).unwrap();
+
+    use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::standard_working_directory_provider::StandardWorkingDirectoryProvider;
+    use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
+    use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
+    use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
+
+    let handler = GenEndpointCommandHandler::new(
+        StandardWorkingDirectoryProvider::new(),
+        FileSystemTemplateRootResolver::new(),
+        FileSystemTemplateEngine::new(),
+    );
+
+    let workspace_context = handler.get_workspace_context().unwrap();
+    let services = handler.extract_services(&workspace_context).unwrap();
+    let service = services[0].clone();
+
+    // Test get_mediator_items for commands
+    let commands = handler
+        .get_mediator_items(&workspace_context, &service, "Catalog", false)
+        .unwrap();
+    assert!(commands.contains(&"Test".to_string()));
+
+    // Test get_mediator_items for queries (should be empty)
+    let queries = handler
+        .get_mediator_items(&workspace_context, &service, "Catalog", true)
+        .unwrap();
+    assert!(queries.is_empty());
+
+    std::env::set_current_dir(current_dir).unwrap();
+}
+
+#[test]
+fn test_has_mediator_sources() {
+    let _lock = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let sandbox = support::create_sandbox_directory("has-mediator-sources");
+    if sandbox.exists() {
+        fs::remove_dir_all(&sandbox).unwrap();
+    }
+    fs::create_dir_all(&sandbox).unwrap();
+
+    // Case 1: Service has webapi but no mediator module - has_mediator_sources should be false
+    // because command/query templates require 'mediator' module.
+    setup_endpoint_workspace(&sandbox, true, false, false, false, "Catalog");
+
+    let current_dir = std::env::current_dir().unwrap();
+    std::env::set_current_dir(&sandbox).unwrap();
+
+    use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::standard_working_directory_provider::StandardWorkingDirectoryProvider;
+    use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
+    use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
+    use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
+
+    let handler = GenEndpointCommandHandler::new(
+        StandardWorkingDirectoryProvider::new(),
+        FileSystemTemplateRootResolver::new(),
+        FileSystemTemplateEngine::new(),
+    );
+
+    let workspace_context = handler.get_workspace_context().unwrap();
+    let services = handler.extract_services(&workspace_context).unwrap();
+    let service = services[0].clone();
+
+    let mediator_sources = vec!["command".to_string(), "query".to_string()];
+
+    let has_sources = handler.has_mediator_sources(&workspace_context, &service, &mediator_sources);
+    assert!(
+        !has_sources,
+        "Should NOT have mediator sources when mediator module is missing"
+    );
+
+    // Case 2: Add mediator module to nfw.yaml
+    fs::write(
+        sandbox.join("nfw.yaml"),
+        r#"
+workspace:
+  name: Test
+  namespace: TestApp
+services:
+  TestService:
+    path: src/TestService
+    template:
+      id: dotnet-service
+    modules:
+      - webapi
+      - mediator
+template_sources:
+  local: "templates"
+"#,
+    )
+    .unwrap();
+
+    // Reload context
+    let workspace_context = handler.get_workspace_context().unwrap();
+    let services = handler.extract_services(&workspace_context).unwrap();
+    let service = services[0].clone();
+
+    let has_sources = handler.has_mediator_sources(&workspace_context, &service, &mediator_sources);
+    assert!(
+        has_sources,
+        "Should HAVE mediator sources when mediator module is present"
+    );
+
+    std::env::set_current_dir(current_dir).unwrap();
+}

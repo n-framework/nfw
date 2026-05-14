@@ -13,6 +13,10 @@ use crate::features::template_management::services::abstractions::template_root_
 use crate::features::template_management::services::template_engine::TemplateEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 
+pub const GEN_TYPE_COMMAND: &str = "command";
+pub const GEN_TYPE_QUERY: &str = "query";
+pub const GEN_TYPE_WEBAPI: &str = "webapi";
+
 #[derive(Debug, Clone)]
 pub struct WorkspaceContext {
     workspace_root: PathBuf,
@@ -367,13 +371,13 @@ where
     /// Lists all features available in the workspace.
     ///
     /// The features root is resolved from the service's own template step destinations — no
-    /// hardcoded paths. See `get_features_root` for the derivation logic.
+    /// hardcoded paths. See `derive_features_root` for the derivation logic.
     pub fn list_features(
         &self,
         workspace: &WorkspaceContext,
         service: &ServiceInfo,
     ) -> Result<Vec<String>, AddArtifactError> {
-        let Some(features_root) = self.get_features_root(workspace, service)? else {
+        let Some(features_root) = self.derive_features_root(workspace, service)? else {
             return Ok(Vec::new());
         };
 
@@ -391,13 +395,29 @@ where
             ))
         })?;
 
-        for entry in entries.flatten() {
-            let _path = entry.path();
-            if let Ok(file_type) = entry.file_type()
-                && file_type.is_dir()
-                && let Some(name) = entry.file_name().to_str()
-            {
-                features.push(name.to_string());
+        for entry in entries {
+            let entry = entry.map_err(|e| {
+                AddArtifactError::WorkspaceError(format!(
+                    "failed to read directory entry in {}: {}",
+                    features_root.display(),
+                    e
+                ))
+            })?;
+
+            match entry.file_type() {
+                Ok(ft) if ft.is_dir() => {
+                    if let Some(name) = entry.file_name().to_str() {
+                        features.push(name.to_string());
+                    }
+                }
+                Ok(_) => {} // skip files
+                Err(e) => {
+                    tracing::warn!(
+                        "Failed to get file type for entry {}: {}",
+                        entry.path().display(),
+                        e
+                    );
+                }
             }
         }
         Ok(features)
@@ -414,7 +434,7 @@ where
     ///
     /// Returns `Ok(None)` when no matching template step is found (e.g. the service template
     /// declares no generators with a feature-level destination).
-    pub fn get_features_root(
+    pub fn derive_features_root(
         &self,
         workspace: &WorkspaceContext,
         service: &ServiceInfo,
@@ -967,6 +987,11 @@ where
             return Ok(Some((features_root, sub_dirs, file_suffix)));
         }
 
+        tracing::warn!(
+            "No Render step with {{ Feature }} placeholder found for generator '{}' in service '{}'",
+            generator_type,
+            service.name
+        );
         Ok(None)
     }
 
@@ -990,7 +1015,7 @@ where
         // Try to load the webapi generator template. If the template does not declare a
         // "webapi" generator, return an empty list gracefully.
         let context = self
-            .load_template_context(workspace.clone(), service, "webapi")
+            .load_template_context(workspace.clone(), service, GEN_TYPE_WEBAPI)
             .map_err(|e| {
                 AddArtifactError::ConfigError(format!(
                     "Failed to load context for webapi generator: {}",
@@ -1073,7 +1098,15 @@ where
                     e
                 ))
             })?;
-            for entry in entries.flatten() {
+            for entry in entries {
+                let entry = entry.map_err(|e| {
+                    AddArtifactError::WorkspaceError(format!(
+                        "failed to read directory entry in {}: {}",
+                        pres_root.display(),
+                        e
+                    ))
+                })?;
+
                 if !entry.path().is_dir() {
                     continue;
                 }
@@ -1107,16 +1140,17 @@ where
         generator_type: &str,
         feature: &str,
     ) -> Result<Option<std::path::PathBuf>, AddArtifactError> {
-        if let Ok(Some((features_root, sub_dirs, _file_suffix))) =
-            self.resolve_mediator_artifact_root(workspace, service, generator_type)
-        {
-            let mut dir = features_root.join(feature);
-            for seg in &sub_dirs {
-                dir = dir.join(seg);
-            }
-            return Ok(Some(dir));
+        let Some((features_root, sub_dirs, _file_suffix)) =
+            self.resolve_mediator_artifact_root(workspace, service, generator_type)?
+        else {
+            return Ok(None);
+        };
+
+        let mut dir = features_root.join(feature);
+        for seg in &sub_dirs {
+            dir = dir.join(seg);
         }
-        Ok(None)
+        Ok(Some(dir))
     }
 
     /// Searches features for one that contains a file matching `<name>.<ext_suffix>` inside the
@@ -1209,6 +1243,10 @@ where
         }
 
         let Some((features_root, sub_dirs, file_suffix)) = features_root_opt else {
+            tracing::warn!(
+                "Could not determine features root from template steps for artifact check in service '{}'",
+                service.name
+            );
             return Ok(Vec::new());
         };
 
@@ -1217,32 +1255,65 @@ where
         }
 
         let mut matched_features = Vec::new();
-        if let Ok(entries) = std::fs::read_dir(&features_root) {
-            for entry in entries.flatten() {
-                if !entry.path().is_dir() {
-                    continue;
-                }
-                let feature_name = match entry.file_name().into_string() {
-                    Ok(n) => n,
-                    Err(_) => continue,
-                };
-                let mut scan_dir = entry.path();
-                for seg in &sub_dirs {
-                    scan_dir = scan_dir.join(seg);
-                }
-                if !scan_dir.is_dir() {
-                    continue;
-                }
-                if let Ok(inner) = std::fs::read_dir(&scan_dir) {
-                    for inner_entry in inner.flatten() {
-                        if let Some(fname) = inner_entry.file_name().to_str()
-                            && fname.starts_with(artifact_name)
-                            && fname.ends_with(&file_suffix)
-                        {
-                            matched_features.push(feature_name.clone());
-                            break;
-                        }
-                    }
+        let entries = std::fs::read_dir(&features_root).map_err(|e| {
+            tracing::warn!(
+                "Failed to read features root directory {}: {}",
+                features_root.display(),
+                e
+            );
+            AddArtifactError::WorkspaceError(format!("Failed to read features root: {e}"))
+        })?;
+
+        for entry in entries {
+            let entry = entry.map_err(|e| {
+                AddArtifactError::WorkspaceError(format!(
+                    "failed to read directory entry in {}: {}",
+                    features_root.display(),
+                    e
+                ))
+            })?;
+
+            if !entry.path().is_dir() {
+                continue;
+            }
+            let feature_name = match entry.file_name().into_string() {
+                Ok(n) => n,
+                Err(_) => continue,
+            };
+            let mut scan_dir = entry.path();
+            for seg in &sub_dirs {
+                scan_dir = scan_dir.join(seg);
+            }
+
+            if !scan_dir.is_dir() {
+                continue;
+            }
+            let inner_entries = std::fs::read_dir(&scan_dir).map_err(|e| {
+                tracing::warn!(
+                    "Failed to read artifact sub-directory {}: {}",
+                    scan_dir.display(),
+                    e
+                );
+                AddArtifactError::WorkspaceError(format!(
+                    "Failed to read artifact sub-directory: {e}"
+                ))
+            })?;
+
+            for inner_entry in inner_entries {
+                let inner_entry = inner_entry.map_err(|e| {
+                    AddArtifactError::WorkspaceError(format!(
+                        "failed to read directory entry in {}: {}",
+                        scan_dir.display(),
+                        e
+                    ))
+                })?;
+
+                if let Some(fname) = inner_entry.file_name().to_str()
+                    && fname.starts_with(artifact_name)
+                    && fname.ends_with(&file_suffix)
+                {
+                    matched_features.push(feature_name.clone());
+                    break;
                 }
             }
         }

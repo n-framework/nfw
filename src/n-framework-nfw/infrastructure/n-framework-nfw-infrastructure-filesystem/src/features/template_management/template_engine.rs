@@ -34,7 +34,7 @@ impl FileSystemTemplateEngine {
     pub fn new() -> Self {
         Self {
             generator: TeraFileGenerator::default(),
-            renderer: TeraTemplateRenderer,
+            renderer: TeraTemplateRenderer::new(),
         }
     }
 

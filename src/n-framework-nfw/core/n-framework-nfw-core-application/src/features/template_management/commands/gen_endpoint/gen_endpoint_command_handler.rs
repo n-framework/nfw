@@ -13,7 +13,7 @@ use super::gen_endpoint_command::GenEndpointCommand;
 
 #[derive(Debug, Clone)]
 pub struct GenEndpointCommandHandler<W, R, E> {
-    service: ArtifactGenerationService<W, R, E>,
+    pub(crate) service: ArtifactGenerationService<W, R, E>,
 }
 
 impl<W, R, E> GenEndpointCommandHandler<W, R, E>
