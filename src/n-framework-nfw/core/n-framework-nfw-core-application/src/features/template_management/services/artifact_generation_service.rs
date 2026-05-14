@@ -369,76 +369,93 @@ where
     }
 
     /// Lists all features available in the workspace.
-    ///
-    /// The features root is resolved from the service's own template step destinations — no
-    /// hardcoded paths. See `derive_features_root` for the derivation logic.
     pub fn list_features(
         &self,
         workspace: &WorkspaceContext,
         service: &ServiceInfo,
     ) -> Result<Vec<String>, AddArtifactError> {
-        let Some(features_root) = self.derive_features_root(workspace, service)? else {
-            return Ok(Vec::new());
-        };
+        let features_roots = self.derive_all_features_roots(workspace, service)?;
 
-        if !features_root.is_dir() {
-            return Ok(Vec::new());
-        }
+        let mut features = std::collections::HashSet::new();
 
-        let mut features = Vec::new();
+        for features_root in features_roots {
+            if !features_root.is_dir() {
+                continue;
+            }
 
-        let entries = std::fs::read_dir(&features_root).map_err(|e| {
-            AddArtifactError::WorkspaceError(format!(
-                "failed to read features directory {}: {}",
-                features_root.display(),
-                e
-            ))
-        })?;
-
-        for entry in entries {
-            let entry = entry.map_err(|e| {
+            let entries = std::fs::read_dir(&features_root).map_err(|e| {
                 AddArtifactError::WorkspaceError(format!(
-                    "failed to read directory entry in {}: {}",
+                    "failed to read features directory {}: {}",
                     features_root.display(),
                     e
                 ))
             })?;
 
-            match entry.file_type() {
-                Ok(ft) if ft.is_dir() => {
-                    if let Some(name) = entry.file_name().to_str() {
-                        features.push(name.to_string());
-                    }
-                }
-                Ok(_) => {} // skip files
-                Err(e) => {
-                    tracing::warn!(
-                        "Failed to get file type for entry {}: {}",
-                        entry.path().display(),
+            for entry in entries {
+                let entry = entry.map_err(|e| {
+                    AddArtifactError::WorkspaceError(format!(
+                        "failed to read directory entry in {}: {}",
+                        features_root.display(),
                         e
-                    );
+                    ))
+                })?;
+
+                match entry.file_type() {
+                    Ok(ft) if ft.is_dir() => {
+                        if let Some(name) = entry.file_name().to_str() {
+                            features.insert(name.to_string());
+                        }
+                    }
+                    Ok(_) => {} // skip files
+                    Err(e) => {
+                        tracing::warn!(
+                            "Failed to get file type for entry {}: {}",
+                            entry.path().display(),
+                            e
+                        );
+                    }
                 }
             }
         }
-        Ok(features)
+
+        let mut features_vec: Vec<String> = features.into_iter().collect();
+        features_vec.sort();
+        Ok(features_vec)
     }
 
-    /// Finds the root directory where features are stored for a given service.
-    ///
-    /// Instead of maintaining a hardcoded list of candidate paths (which breaks for non-.NET
-    /// languages), this method derives the features root from the service's own template step
-    /// destinations. It loads the base template config, iterates every generator type declared in
-    /// the `generators` map, and for each one looks for a `Render` step whose destination
-    /// contains a `{{ Feature }}` placeholder. The path prefix up to (but not including) that
-    /// placeholder segment — with `{{ Service }}` substituted — is the features root.
-    ///
-    /// Returns `Ok(None)` when no matching template step is found (e.g. the service template
-    /// declares no generators with a feature-level destination).
     pub fn derive_features_root(
         &self,
         workspace: &WorkspaceContext,
         service: &ServiceInfo,
     ) -> Result<Option<std::path::PathBuf>, AddArtifactError> {
+        let roots = self.derive_all_features_roots(workspace, service)?;
+        if let Some(root) = roots.first() {
+            // Log it just to maintain existing behavior parity, though not strictly required
+            tracing::info!("Derived features root: {}", root.display());
+            Ok(Some(root.clone()))
+        } else {
+            tracing::warn!(
+                "No generator template for service '{}' declares a '{{{{ Feature }}}}' destination — features root cannot be derived.",
+                service.name
+            );
+            Ok(None)
+        }
+    }
+
+    /// Finds all root directories where features are stored for a given service.
+    ///
+    /// This method derives the features roots from the service's own template step
+    /// destinations. It loads the base template config, iterates every generator type declared in
+    /// the `generators` map, and for each one looks for a `Render` step whose destination
+    /// contains a `{{ Feature }}` placeholder. The path prefix up to (but not including) that
+    /// placeholder segment — with `{{ Service }}` substituted — is the features root.
+    ///
+    /// Returns a list of all distinct candidate directories across all layers.
+    pub fn derive_all_features_roots(
+        &self,
+        workspace: &WorkspaceContext,
+        service: &ServiceInfo,
+    ) -> Result<Vec<std::path::PathBuf>, AddArtifactError> {
         use n_framework_nfw_core_domain::features::template_management::template_config::TemplateStepAction;
 
         let base_root = self
@@ -536,39 +553,14 @@ where
             })
         });
 
-        let mut last_candidate: Option<PathBuf> = None;
-        for (generator_name, features_root, _) in candidates {
-            last_candidate = Some(features_root.clone());
-
-            if features_root.is_dir() {
-                tracing::info!(
-                    "Derived features root from template '{}': {}",
-                    generator_name,
-                    features_root.display()
-                );
-                return Ok(Some(features_root));
+        let mut roots = Vec::new();
+        for (_, features_root, _) in candidates {
+            if !roots.contains(&features_root) {
+                roots.push(features_root.clone());
             }
-
-            tracing::debug!(
-                "Template-derived features root does not exist yet: {}",
-                features_root.display()
-            );
         }
 
-        // Return the last candidate path for new feature creation when no existing directory found
-        if let Some(path) = last_candidate {
-            tracing::debug!(
-                "No existing features directory found, returning candidate path for new feature creation: {}",
-                path.display()
-            );
-            return Ok(Some(path));
-        }
-
-        tracing::warn!(
-            "No generator template for service '{}' declares a '{{{{ Feature }}}}' destination — features root cannot be derived.",
-            service.name
-        );
-        Ok(None)
+        Ok(roots)
     }
 
     /// Extracts the namespace from the workspace configuration.

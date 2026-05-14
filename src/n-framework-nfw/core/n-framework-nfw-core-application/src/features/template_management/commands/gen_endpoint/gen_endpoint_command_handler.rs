@@ -9,8 +9,8 @@ use tracing::info;
 
 use crate::features::template_management::models::template_error::TemplateError;
 
-use crate::features::template_management::constants::generation::DEFAULT_FEATURE_NAME;
 use super::gen_endpoint_command::GenEndpointCommand;
+use crate::features::template_management::constants::generation::DEFAULT_FEATURE_NAME;
 
 #[derive(Debug, Clone)]
 pub struct GenEndpointCommandHandler<W, R, E> {
