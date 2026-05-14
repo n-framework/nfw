@@ -24,6 +24,9 @@ pub mod source {
 
 /// Constants related to generation features
 pub mod generation {
+    /// Default feature name when none is provided
+    pub const DEFAULT_FEATURE_NAME: &str = "Common";
+
     /// Identifier for the PresentationLayer feature
     pub const PRESENTATION_LAYER: &str = "PresentationLayer";
 

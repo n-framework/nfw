@@ -9,6 +9,7 @@ use tracing::info;
 
 use crate::features::template_management::models::template_error::TemplateError;
 
+use crate::features::template_management::constants::generation::DEFAULT_FEATURE_NAME;
 use super::gen_endpoint_command::GenEndpointCommand;
 
 #[derive(Debug, Clone)]
@@ -51,7 +52,7 @@ where
             &command.context().service_path,
         )?;
 
-        let feature_name = command.feature().unwrap_or("Common");
+        let feature_name = command.feature().unwrap_or(DEFAULT_FEATURE_NAME);
 
         let mediator_sources = command.context().config().mediator_sources().to_vec();
 
@@ -179,7 +180,7 @@ where
     ) -> Result<(), AddArtifactError> {
         use n_framework_nfw_core_domain::features::template_management::template_config::TemplateStepAction;
 
-        let feature_name = command.feature().unwrap_or("Common");
+        let feature_name = command.feature().unwrap_or(DEFAULT_FEATURE_NAME);
 
         for step in command.context().config().steps() {
             let destination = match &step.action {
