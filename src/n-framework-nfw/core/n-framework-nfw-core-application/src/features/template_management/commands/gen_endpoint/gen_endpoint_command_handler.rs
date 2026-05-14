@@ -5,7 +5,6 @@ use crate::features::template_management::services::artifact_generation_service:
 };
 use crate::features::template_management::services::template_engine::TemplateEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
-use n_framework_nfw_infrastructure_workspace_metadata::PreservedComments;
 use tracing::info;
 
 use crate::features::template_management::models::template_error::TemplateError;
@@ -30,48 +29,40 @@ where
     }
 
     pub fn handle(&self, command: GenEndpointCommand) -> Result<String, AddArtifactError> {
-        info!("Handling GenEndpointCommand for name: {}", command.name);
+        info!("Handling GenEndpointCommand for name: {}", command.name());
 
-        let workspace_context = crate::features::template_management::services::artifact_generation_service::WorkspaceContext {
-            workspace_root: command.context.workspace_root.clone(),
-            nfw_yaml: command.context.nfw_yaml.clone(),
-            preserved_comments: PreservedComments::default()
-        };
+        let workspace_context = command.context().workspace.clone();
 
         let services = self.service.extract_services(&workspace_context)?;
         let service = services
             .into_iter()
-            .find(|s| s.path() == &command.context.service_path)
+            .find(|s| s.path() == command.context().service_path().to_str().unwrap_or(""))
             .ok_or_else(|| {
                 AddArtifactError::ConfigError(format!(
                     "Service not found for path: {}",
-                    command.context.service_path.display()
+                    command.context().service_path().display()
                 ))
             })?;
 
-        // Validate required modules (e.g., webapi)
+        // Validate required modules
         self.service.validate_required_modules(
-            &command.context.config,
-            &command.context.nfw_yaml,
-            &command.context.service_path,
+            &command.context().config,
+            command.context().workspace.nfw_yaml(),
+            &command.context().service_path,
         )?;
 
-        let feature_name = command.feature.as_deref().unwrap_or("Common");
+        let feature_name = command.feature().unwrap_or("Common");
 
-        // The endpoint template declares which generator types hold attachable mediator artifacts
-        // (e.g. "command", "query") via the `mediator_sources` field. Use that list instead of
-        // hardcoding generator type names. When the list is empty the endpoint is not
-        // mediator-backed and no existence check is performed.
-        let mediator_sources = command.context.config.mediator_sources().to_vec();
+        let mediator_sources = command.context().config().mediator_sources().to_vec();
 
-        if !mediator_sources.is_empty() {
+        if !mediator_sources.is_empty() && command.attach_to_mediator() {
             // Validate that the mediator artifact (Command or Query) exists for the given name,
             // deriving the expected location from the command/query template step destinations.
             let mediator_ok = self.mediator_artifact_exists(
                 &workspace_context,
                 &service,
                 feature_name,
-                &command.name,
+                command.name(),
                 &mediator_sources,
             )?;
             if !mediator_ok {
@@ -80,7 +71,8 @@ where
                         format!(
                             "No Command or Query artifact found for '{}' in feature '{}'. \
                              Generate the command or query first.",
-                            command.name, feature_name
+                            command.name(),
+                            feature_name
                         ),
                         std::path::PathBuf::new(),
                     ),
@@ -93,35 +85,39 @@ where
         self.assert_endpoint_not_exists(&command, &service)?;
 
         let context = AddArtifactContext {
-            config: command.context.config.clone(),
-            nfw_yaml: command.context.nfw_yaml.clone(),
-            workspace_root: command.context.workspace_root.clone(),
-            service_path: command.context.service_path.clone(),
-            service_name: command.context.service_name.clone(),
-            preserved_comments: command.context.preserved_comments.clone(),
-            template_root: command.context.template_root.clone(),
+            workspace: workspace_context.clone(),
+            template_root: command.context().template_root().clone(),
+            config: command.context().config().clone(),
+            service_name: command.context().service_name().to_string(),
+            service_path: command.context().service_path().clone(),
         };
 
-        let mut final_params = command.params.unwrap_or_else(|| serde_json::json!({}));
+        let mut final_params = command
+            .params()
+            .cloned()
+            .unwrap_or_else(|| serde_json::json!({}));
         if let Some(obj) = final_params.as_object_mut() {
             obj.insert(
                 "OperationType".to_string(),
-                serde_json::json!(command.operation_type),
+                serde_json::json!(command.operation_type().to_string()),
             );
             obj.insert(
                 "AttachToMediator".to_string(),
-                serde_json::json!(command.attach_to_mediator),
+                serde_json::json!(command.attach_to_mediator()),
             );
         }
 
         self.service.execute_generation(
-            &command.name,
-            command.feature.as_deref(),
+            command.name(),
+            command.feature(),
             &Some(final_params),
             &context,
         )?;
 
-        Ok(format!("Successfully generated endpoint {}", command.name))
+        Ok(format!(
+            "Successfully generated endpoint {}",
+            command.name()
+        ))
     }
 
     /// Checks whether a Command or Query artifact already exists for the given name and feature by
@@ -136,21 +132,38 @@ where
         mediator_sources: &[String],
     ) -> Result<bool, AddArtifactError> {
         for generator_type in mediator_sources {
-            if let Ok(Some((features_root, sub_dirs, file_suffix))) = self
-                .service
-                .resolve_mediator_artifact_root(workspace_context, service, generator_type)
-            {
-                // Path: features_root / feature / sub_dirs... / {{ Name }}{{ suffix }}
-                let mut candidate = features_root.join(feature_name);
-                for seg in &sub_dirs {
-                    candidate = candidate.join(seg);
+            match self.service.resolve_mediator_artifact_root(
+                workspace_context,
+                service,
+                generator_type,
+            ) {
+                Ok(Some((features_root, sub_dirs, file_suffix))) => {
+                    // Path: features_root / feature / sub_dirs... / {{ Name }}{{ suffix }}
+                    let mut candidate = features_root.join(feature_name);
+                    for seg in &sub_dirs {
+                        candidate = candidate.join(seg);
+                    }
+                    // The template nests the artifact under a {{ Name }} sub-directory as well.
+                    candidate = candidate
+                        .join(artifact_name)
+                        .join(format!("{}{}", artifact_name, file_suffix));
+                    if candidate.is_file() {
+                        return Ok(true);
+                    }
                 }
-                // The template nests the artifact under a {{ Name }} sub-directory as well.
-                candidate = candidate
-                    .join(artifact_name)
-                    .join(format!("{}{}", artifact_name, file_suffix));
-                if candidate.is_file() {
-                    return Ok(true);
+                Ok(None) => {
+                    tracing::debug!(
+                        "Template step destination does not resolve properly for generator '{}'",
+                        generator_type
+                    );
+                }
+                Err(e) => {
+                    tracing::error!(
+                        "Template resolution failure for mediator artifact '{}': {}",
+                        generator_type,
+                        e
+                    );
+                    return Err(e);
                 }
             }
         }
@@ -166,17 +179,18 @@ where
     ) -> Result<(), AddArtifactError> {
         use n_framework_nfw_core_domain::features::template_management::template_config::TemplateStepAction;
 
-        let feature_name = command.feature.as_deref().unwrap_or("Common");
+        let feature_name = command.feature().unwrap_or("Common");
 
-        for step in command.context.config.steps() {
+        for step in command.context().config().steps() {
             let destination = match &step.action {
                 TemplateStepAction::Render { destination, .. } => destination,
                 _ => continue,
             };
 
             let namespace = command
-                .context
-                .nfw_yaml
+                .context()
+                .workspace
+                .nfw_yaml()
                 .get("workspace")
                 .and_then(|w| w.get("namespace"))
                 .and_then(|v| v.as_str())
@@ -189,13 +203,13 @@ where
                 .replace("{{Namespace}}", namespace)
                 .replace("{{ Feature }}", feature_name)
                 .replace("{{Feature}}", feature_name)
-                .replace("{{ Name }}", &command.name)
-                .replace("{{Name}}", &command.name);
+                .replace("{{ Name }}", command.name())
+                .replace("{{Name}}", command.name());
 
             let endpoint_file = command
-                .context
-                .workspace_root
-                .join(&command.context.service_path)
+                .context()
+                .workspace_root()
+                .join(command.context().service_path())
                 .join(&resolved);
 
             if endpoint_file.is_file() {
@@ -225,7 +239,7 @@ where
         module_name: &str,
     ) -> Result<bool, AddArtifactError> {
         self.service.has_service_module(
-            &workspace_context.workspace_root,
+            workspace_context.workspace_root(),
             &service.name,
             module_name,
         )
@@ -262,30 +276,53 @@ where
         let mut items = Vec::new();
         // The template nests each artifact under its own {{ Name }} sub-directory, so scan one
         // level of sub-directories and look for a file matching the suffix inside each one.
-        if let Ok(entries) = std::fs::read_dir(&scan_dir) {
-            for entry in entries.flatten() {
-                let entry_path = entry.path();
-                if entry_path.is_dir() {
-                    // Sub-directory named after the artifact (e.g. `CreateProduct/`)
-                    if let Ok(inner) = std::fs::read_dir(&entry_path) {
-                        for inner_entry in inner.flatten() {
-                            if let Some(name) = inner_entry.file_name().to_str()
-                                && name.ends_with(&file_suffix)
-                            {
-                                let class_name = &name[..name.len() - file_suffix.len()];
-                                if !class_name.is_empty() {
-                                    items.push(class_name.to_string());
-                                }
-                            }
-                        }
-                    }
-                } else if let Some(name) = entry.file_name().to_str() {
-                    // Flat layout — file is directly in the scan dir
-                    if name.ends_with(&file_suffix) {
+        let entries = std::fs::read_dir(&scan_dir).map_err(|e| {
+            AddArtifactError::WorkspaceError(format!(
+                "failed to read directory {}: {}",
+                scan_dir.display(),
+                e
+            ))
+        })?;
+
+        for entry in entries {
+            let entry = entry.map_err(|e| {
+                AddArtifactError::WorkspaceError(format!("failed to read directory entry: {}", e))
+            })?;
+
+            let entry_path = entry.path();
+            if entry_path.is_dir() {
+                // Sub-directory named after the artifact (e.g. `CreateProduct/`)
+                let inner = std::fs::read_dir(&entry_path).map_err(|e| {
+                    AddArtifactError::WorkspaceError(format!(
+                        "failed to read sub-directory {}: {}",
+                        entry_path.display(),
+                        e
+                    ))
+                })?;
+
+                for inner_entry in inner {
+                    let inner_entry = inner_entry.map_err(|e| {
+                        AddArtifactError::WorkspaceError(format!(
+                            "failed to read sub-directory entry: {}",
+                            e
+                        ))
+                    })?;
+
+                    if let Some(name) = inner_entry.file_name().to_str()
+                        && name.ends_with(&file_suffix)
+                    {
                         let class_name = &name[..name.len() - file_suffix.len()];
                         if !class_name.is_empty() {
                             items.push(class_name.to_string());
                         }
+                    }
+                }
+            } else if let Some(name) = entry.file_name().to_str() {
+                // Flat layout — file is directly in the scan dir
+                if name.ends_with(&file_suffix) {
+                    let class_name = &name[..name.len() - file_suffix.len()];
+                    if !class_name.is_empty() {
+                        items.push(class_name.to_string());
                     }
                 }
             }
@@ -326,9 +363,9 @@ where
         context: &AddArtifactContext,
     ) -> Result<(), AddArtifactError> {
         self.service.validate_required_modules(
-            &context.config,
-            &context.nfw_yaml,
-            &context.service_path,
+            context.config(),
+            context.nfw_yaml(),
+            context.service_path(),
         )
     }
 
@@ -356,7 +393,7 @@ where
                 generator_type,
             ) && self
                 .service
-                .validate_required_modules(&ctx.config, &ctx.nfw_yaml, &ctx.service_path)
+                .validate_required_modules(ctx.config(), ctx.nfw_yaml(), ctx.service_path())
                 .is_ok()
             {
                 return true;

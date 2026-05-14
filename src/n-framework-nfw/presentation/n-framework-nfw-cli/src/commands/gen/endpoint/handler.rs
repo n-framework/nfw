@@ -2,13 +2,14 @@ use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption}
 use crate::cli_error::CliError;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command::GenEndpointCommand;
+use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command::{GenEndpointCommand, HttpMethod};
 use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
 pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
 use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
 use n_framework_nfw_core_domain::features::template_management::template_config::{TemplateInput, TemplateInputType};
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub struct GenEndpointCliCommand<W, R, E, P> {
@@ -54,7 +55,11 @@ where
 
         let selected_service =
             if (request.no_input || !request.is_interactive_terminal) && services.len() == 1 {
-                services.into_iter().next().unwrap()
+                services.into_iter().next().ok_or_else(|| {
+                    AddArtifactError::WorkspaceError(
+                        "Expected at least one service, but found none.".to_string(),
+                    )
+                })?
             } else {
                 let options: Vec<SelectOption> = services
                     .iter()
@@ -95,18 +100,20 @@ where
             .handler
             .list_features(&workspace_context, &selected_service)?;
         let feature = self.resolve_feature(&request, existing_features)?;
-        let op_type = self.resolve_operation_type(&request)?;
-        let mediator_sources = context.config.mediator_sources().to_vec();
+        let op_type_str = self.resolve_operation_type(&request)?;
+        let op_type = HttpMethod::from_str(&op_type_str)
+            .map_err(|e| AddArtifactError::InvalidParameter(e.to_string()))?;
+        let mediator_sources = context.config().mediator_sources().to_vec();
         let (name, attach_to_mediator) = self.resolve_name(
             &request,
             &workspace_context,
             &selected_service,
             feature.as_deref(),
-            &op_type,
+            &op_type_str,
             &mediator_sources,
         )?;
 
-        let resolved_params = self.resolve_params(&request, context.config.inputs())?;
+        let resolved_params = self.resolve_params(&request, context.config().inputs())?;
 
         let params_opt = if resolved_params.as_object().is_none_or(|o| o.is_empty()) {
             None
@@ -117,11 +124,11 @@ where
         let command = GenEndpointCommand::new(
             name.to_string(),
             feature,
-            op_type.to_string(),
+            op_type,
             params_opt,
             context,
             attach_to_mediator,
-        );
+        )?;
 
         let spinner = self
             .prompt
@@ -301,7 +308,7 @@ where
                     )?;
 
                     let mut map = serde_json::Map::new();
-                    for input in template_context.config.inputs() {
+                    for input in template_context.config().inputs() {
                         let value = self.prompt_for_input(input)?;
                         map.insert(input.id().to_string(), value);
                     }

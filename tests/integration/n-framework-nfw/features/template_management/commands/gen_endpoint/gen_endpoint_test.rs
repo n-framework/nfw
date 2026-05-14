@@ -143,7 +143,7 @@ fn run_test_in_sandbox<F>(test_name: &str, params: (bool, bool, bool, bool, &str
 where
     F: FnOnce(&Path, Instant) -> Result<(), String> + std::panic::UnwindSafe,
 {
-    let _lock = DIR_LOCK.lock().unwrap();
+    let _lock = DIR_LOCK.lock().unwrap_or_else(|e| e.into_inner());
 
     let sandbox_name = format!("gen-endpoint-{}", test_name);
     let sandbox = support::create_sandbox_directory(&sandbox_name);

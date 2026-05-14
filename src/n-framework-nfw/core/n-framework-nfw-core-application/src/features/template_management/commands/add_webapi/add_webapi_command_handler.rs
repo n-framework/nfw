@@ -42,7 +42,7 @@ where
         )?;
 
         self.service.validate_required_modules(
-            &context.config,
+            context.config(),
             workspace.nfw_yaml(),
             Path::new(cmd.service_info().path()),
         )?;
@@ -95,8 +95,8 @@ where
         self.service
             .engine()
             .execute(
-                &context.config,
-                &context.template_root,
+                context.config(),
+                context.template_root(),
                 &output_root,
                 &parameters,
             )

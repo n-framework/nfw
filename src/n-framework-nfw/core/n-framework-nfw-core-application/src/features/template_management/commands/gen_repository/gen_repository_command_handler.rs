@@ -44,22 +44,22 @@ where
         }
 
         let context = command.context();
-        let service_name = &context.service_name;
+        let service_name = &context.service_name();
 
         // Build the WorkspaceContext so we can use template-driven path resolution.
-        let workspace = WorkspaceContext {
-            workspace_root: context.workspace_root.clone(),
-            nfw_yaml: context.nfw_yaml.clone(),
-            preserved_comments: Default::default(),
-        };
-        let service = ServiceInfo {
-            name: service_name.clone(),
-            path: context.service_path.to_string_lossy().to_string(),
+        let workspace = WorkspaceContext::new(
+            context.workspace_root().clone(),
+            context.nfw_yaml().clone(),
+            Default::default(),
+        )?;
+        let service = crate::features::template_management::services::artifact_generation_service::ServiceInfo {
+            name: service_name.to_string(),
+            path: context.service_path().to_string_lossy().to_string(),
             template_id: context
-                .nfw_yaml
+                .nfw_yaml()
                 .get("services")
                 .and_then(|s| s.get(service_name))
-                .and_then(|d| d.get("template"))
+                .and_then(|s| s.get("template"))
                 .and_then(|t| t.as_mapping())
                 .and_then(|t| t.get("id"))
                 .and_then(|id| id.as_str())
@@ -163,7 +163,7 @@ where
 
         // Validate persistence module is configured.
         let has_persistence = context
-            .nfw_yaml
+            .nfw_yaml()
             .get("services")
             .and_then(|s| s.get(service_name))
             .and_then(|d| d.get("modules"))

@@ -15,9 +15,9 @@ use crate::features::workspace_management::services::abstractions::working_direc
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceContext {
-    pub workspace_root: PathBuf,
-    pub nfw_yaml: serde_yaml::Value,
-    pub preserved_comments: PreservedComments,
+    workspace_root: PathBuf,
+    nfw_yaml: serde_yaml::Value,
+    preserved_comments: PreservedComments,
 }
 
 impl WorkspaceContext {
@@ -25,12 +25,19 @@ impl WorkspaceContext {
         workspace_root: PathBuf,
         nfw_yaml: serde_yaml::Value,
         preserved_comments: PreservedComments,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, AddArtifactError> {
+        if !workspace_root.is_dir() {
+            return Err(AddArtifactError::WorkspaceError(format!(
+                "Workspace root is not a valid directory: {}",
+                workspace_root.display()
+            )));
+        }
+
+        Ok(Self {
             workspace_root,
             nfw_yaml,
             preserved_comments,
-        }
+        })
     }
 
     pub fn workspace_root(&self) -> &PathBuf {
@@ -39,6 +46,10 @@ impl WorkspaceContext {
 
     pub fn nfw_yaml(&self) -> &serde_yaml::Value {
         &self.nfw_yaml
+    }
+
+    pub fn preserved_comments(&self) -> &PreservedComments {
+        &self.preserved_comments
     }
 }
 
@@ -82,13 +93,68 @@ impl ServiceInfo {
 
 #[derive(Debug, Clone)]
 pub struct AddArtifactContext {
-    pub workspace_root: PathBuf,
-    pub nfw_yaml: YamlValue,
-    pub preserved_comments: PreservedComments,
+    pub workspace: WorkspaceContext,
     pub template_root: PathBuf,
     pub config: TemplateConfig,
     pub service_name: String,
     pub service_path: PathBuf,
+}
+
+impl AddArtifactContext {
+    pub fn new(
+        workspace: WorkspaceContext,
+        template_root: PathBuf,
+        config: TemplateConfig,
+        service_name: String,
+        service_path: PathBuf,
+    ) -> Result<Self, AddArtifactError> {
+        if service_name.is_empty() {
+            return Err(AddArtifactError::InvalidParameter(
+                "service_name cannot be empty".to_string(),
+            ));
+        }
+        if service_path.as_os_str().is_empty() {
+            return Err(AddArtifactError::InvalidParameter(
+                "service_path cannot be empty".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            workspace,
+            template_root,
+            config,
+            service_name,
+            service_path,
+        })
+    }
+
+    pub fn workspace_root(&self) -> &PathBuf {
+        &self.workspace.workspace_root
+    }
+
+    pub fn nfw_yaml(&self) -> &YamlValue {
+        &self.workspace.nfw_yaml
+    }
+
+    pub fn preserved_comments(&self) -> &PreservedComments {
+        &self.workspace.preserved_comments
+    }
+
+    pub fn template_root(&self) -> &PathBuf {
+        &self.template_root
+    }
+
+    pub fn config(&self) -> &TemplateConfig {
+        &self.config
+    }
+
+    pub fn service_name(&self) -> &str {
+        &self.service_name
+    }
+
+    pub fn service_path(&self) -> &PathBuf {
+        &self.service_path
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -97,6 +163,9 @@ pub struct ArtifactGenerationService<W, R, E> {
     root_resolver: R,
     engine: E,
 }
+
+const PRIORITY_APP_LAYER: u8 = 0;
+const PRIORITY_PRESENTATION_LAYER: u8 = 1;
 
 impl<W, R, E> ArtifactGenerationService<W, R, E>
 where
@@ -125,16 +194,20 @@ where
         context: &AddArtifactContext,
     ) -> Result<(), AddArtifactError> {
         self.validate_identifiers(command_name, command_feature)?;
-        self.validate_required_modules(&context.config, &context.nfw_yaml, &context.service_path)?;
+        self.validate_required_modules(
+            &context.config,
+            &context.workspace.nfw_yaml,
+            &context.service_path,
+        )?;
 
         let parameters = self.build_parameters(
-            &context.nfw_yaml,
+            &context.workspace.nfw_yaml,
             command_name,
             &context.service_name,
             command_feature,
             command_params,
         )?;
-        let output_root = context.workspace_root.join(&context.service_path);
+        let output_root = context.workspace.workspace_root.join(&context.service_path);
 
         self.engine
             .execute(
@@ -232,11 +305,7 @@ where
         })?;
 
         let (nfw_yaml, preserved_comments) = self.read_nfw_yaml(&workspace_root)?;
-        Ok(WorkspaceContext {
-            workspace_root,
-            nfw_yaml,
-            preserved_comments,
-        })
+        WorkspaceContext::new(workspace_root, nfw_yaml, preserved_comments)
     }
 
     /// Extracts all services defined in the workspace.
@@ -352,41 +421,29 @@ where
     ) -> Result<Option<std::path::PathBuf>, AddArtifactError> {
         use n_framework_nfw_core_domain::features::template_management::template_config::TemplateStepAction;
 
-        let base_root = match self.root_resolver.resolve(
-            &workspace.nfw_yaml,
-            &service.template_id,
-            &workspace.workspace_root,
-        ) {
-            Ok(r) => r,
-            Err(_) => {
-                tracing::warn!(
-                    "Could not resolve base template '{}' for service '{}' — features root cannot be derived.",
-                    service.template_id,
-                    service.name
-                );
-                return Ok(None);
-            }
-        };
+        let base_root = self
+            .root_resolver
+            .resolve(
+                &workspace.nfw_yaml,
+                &service.template_id,
+                &workspace.workspace_root,
+            )
+            .map_err(|e| {
+                AddArtifactError::TemplateNotFound(format!(
+                    "Could not resolve base template '{}' for service '{}': {}",
+                    service.template_id, service.name, e
+                ))
+            })?;
 
-        let base_config = match self.load_and_validate_template_config(&base_root) {
-            Ok(c) => c,
-            Err(e) => {
-                tracing::warn!("Could not load base template config: {e}");
-                return Ok(None);
-            }
-        };
+        let base_config = self.load_and_validate_template_config(&base_root)?;
 
-        let generators = match base_config.generators() {
-            Some(g) => g,
-            None => {
-                tracing::warn!(
-                    "No generators declared in template '{}' for service '{}' — cannot derive features root.",
-                    service.template_id,
-                    service.name
-                );
-                return Ok(None);
-            }
-        };
+        let generators = base_config.generators().ok_or_else(|| {
+            AddArtifactError::ConfigError(format!(
+                "No generators declared in template '{}' for service '{}' — cannot derive features root.",
+                service.template_id,
+                service.name
+            ))
+        })?;
 
         let mut candidates: Vec<(String, std::path::PathBuf, u8)> = Vec::new();
 
@@ -437,7 +494,11 @@ where
                 let is_application_layer = sub_folder.as_str().contains("command")
                     || sub_folder.as_str().contains("query")
                     || sub_folder.as_str().contains("entity");
-                let priority = if is_application_layer { 0 } else { 1 };
+                let priority = if is_application_layer {
+                    PRIORITY_APP_LAYER
+                } else {
+                    PRIORITY_PRESENTATION_LAYER
+                };
 
                 candidates.push((sub_folder.as_str().to_string(), features_root, priority));
             }
@@ -451,7 +512,7 @@ where
                     a.1.is_dir() && a.1.read_dir().is_ok_and(|mut d| d.next().is_some());
                 let b_has_content =
                     b.1.is_dir() && b.1.read_dir().is_ok_and(|mut d| d.next().is_some());
-                a_has_content.cmp(&b_has_content)
+                b_has_content.cmp(&a_has_content)
             })
         });
 
@@ -551,9 +612,7 @@ where
         let config = self.load_and_validate_template_config(&template_root)?;
 
         Ok(AddArtifactContext {
-            workspace_root: workspace.workspace_root,
-            nfw_yaml: workspace.nfw_yaml,
-            preserved_comments: workspace.preserved_comments,
+            workspace,
             template_root,
             config,
             service_name: service.name.clone(),
@@ -930,10 +989,14 @@ where
 
         // Try to load the webapi generator template. If the template does not declare a
         // "webapi" generator, return an empty list gracefully.
-        let context = match self.load_template_context(workspace.clone(), service, "webapi") {
-            Ok(ctx) => ctx,
-            Err(_) => return Ok(Vec::new()),
-        };
+        let context = self
+            .load_template_context(workspace.clone(), service, "webapi")
+            .map_err(|e| {
+                AddArtifactError::ConfigError(format!(
+                    "Failed to load context for webapi generator: {}",
+                    e
+                ))
+            })?;
 
         for step in context.config.steps() {
             // Collect any path-like string from the step that contains {{ Service }} or {{ Namespace }}
@@ -999,18 +1062,27 @@ where
             }
 
             let mut layers = Vec::new();
-            if let Ok(entries) = std::fs::read_dir(&pres_root) {
-                for entry in entries.flatten() {
-                    if !entry.path().is_dir() {
-                        continue;
-                    }
-                    if let Some(name) = entry.file_name().to_str()
-                        && name.starts_with(&prefix_to_strip)
-                    {
-                        let layer = name[prefix_to_strip.len()..].to_string();
-                        if !layer.is_empty() {
-                            layers.push(layer);
-                        }
+            let entries = std::fs::read_dir(&pres_root).map_err(|e| {
+                tracing::warn!(
+                    "Failed to read presentation root directory {}: {}",
+                    pres_root.display(),
+                    e
+                );
+                AddArtifactError::WorkspaceError(format!(
+                    "Failed to read presentation root directory: {}",
+                    e
+                ))
+            })?;
+            for entry in entries.flatten() {
+                if !entry.path().is_dir() {
+                    continue;
+                }
+                if let Some(name) = entry.file_name().to_str()
+                    && name.starts_with(&prefix_to_strip)
+                {
+                    let layer = name[prefix_to_strip.len()..].to_string();
+                    if !layer.is_empty() {
+                        layers.push(layer);
                     }
                 }
             }
@@ -1065,10 +1137,14 @@ where
     ) -> Result<Vec<String>, AddArtifactError> {
         use n_framework_nfw_core_domain::features::template_management::template_config::TemplateStepAction;
 
-        let context = match self.load_template_context(workspace.clone(), service, generator_type) {
-            Ok(ctx) => ctx,
-            Err(_) => return Ok(Vec::new()),
-        };
+        let context = self
+            .load_template_context(workspace.clone(), service, generator_type)
+            .map_err(|e| {
+                AddArtifactError::ConfigError(format!(
+                    "Failed to load context for generator type {}: {}",
+                    generator_type, e
+                ))
+            })?;
 
         // Find the first Render step with {{ Feature }} to derive the features root and sub-dirs.
         let mut features_root_opt: Option<(std::path::PathBuf, Vec<String>, String)> = None;

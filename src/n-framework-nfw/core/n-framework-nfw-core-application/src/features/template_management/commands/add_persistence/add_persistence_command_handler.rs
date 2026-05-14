@@ -77,8 +77,8 @@ where
         self.service
             .engine()
             .execute(
-                &context.config,
-                &context.template_root,
+                context.config(),
+                context.template_root(),
                 &output_root,
                 &parameters,
             )

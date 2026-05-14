@@ -1,10 +1,11 @@
 use std::path::Path;
+use std::str::FromStr;
 
 use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::standard_working_directory_provider::StandardWorkingDirectoryProvider;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::services::file_system_template_root_resolver::FileSystemTemplateRootResolver;
 use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
 
-use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command::GenEndpointCommand;
+use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command::{GenEndpointCommand, HttpMethod};
 use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
 
 pub fn execute_non_interactive_gen_endpoint(
@@ -38,14 +39,14 @@ pub fn execute_non_interactive_gen_endpoint(
         Some(feature.to_string())
     };
 
-    let command = GenEndpointCommand {
-        name: name.to_string(),
-        feature: feature_opt,
-        operation_type: operation_type.to_string(),
-        context: template_context,
-        params: None,
-        attach_to_mediator: false,
-    };
+    let command = GenEndpointCommand::new(
+        name.to_string(),
+        feature_opt,
+        HttpMethod::from_str(operation_type).map_err(|e| n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError::InvalidParameter(e.to_string()))?,
+        None,
+        template_context,
+        true,
+    ).map_err(|e| n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError::InvalidParameter(e.to_string()))?;
 
     handler.handle(command).map(|_| ())
 }

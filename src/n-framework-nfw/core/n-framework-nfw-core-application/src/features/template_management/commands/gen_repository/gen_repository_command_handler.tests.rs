@@ -37,9 +37,9 @@ mod tests {
     impl TemplateRootResolver for FixedTemplateRootResolver {
         fn resolve(
             &self,
-            _nfw_yaml: &YamlValue,
+            _nfw_yaml: &serde_yaml::Value,
             _template_id: &str,
-            _workspace_root: &Path,
+            _workspace_root: &std::path::Path,
         ) -> Result<PathBuf, String> {
             Ok(self.base.clone())
         }
@@ -106,9 +106,7 @@ services:
         let nfw_yaml: YamlValue = serde_yaml::from_str(yaml_content).unwrap();
 
         AddArtifactContext {
-            workspace_root,
-            nfw_yaml,
-            preserved_comments: PreservedComments::default(),
+            workspace: crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(workspace_root.clone(), nfw_yaml.clone(), PreservedComments::default()).unwrap(),
             template_root,
             config: TemplateConfig::new(
                 Some("test".to_string()),

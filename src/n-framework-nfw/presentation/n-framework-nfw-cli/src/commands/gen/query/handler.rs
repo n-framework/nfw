@@ -83,7 +83,7 @@ where
         let feature = self.resolve_feature(&request, existing_features)?;
         let name = self.resolve_name(&request)?;
 
-        let resolved_params = self.resolve_params(&request, context.config.inputs())?;
+        let resolved_params = self.resolve_params(&request, context.config().inputs())?;
 
         let params_opt = if resolved_params.as_object().is_none_or(|o| o.is_empty()) {
             None
@@ -135,7 +135,7 @@ where
         }
 
         self.prompt
-            .text("Enter query name (e.g. GetProductByIdQuery):", None)
+            .text("Enter query name (e.g. GetProductById):", None)
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))
     }
 

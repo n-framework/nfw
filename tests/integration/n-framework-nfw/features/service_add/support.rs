@@ -255,11 +255,11 @@ pub fn create_service_template(root: &Path, template_name: &str, _template_type:
         .expect("infrastructure template directory should be created");
     fs::create_dir_all(content_root.join("Api")).expect("api template directory should be created");
 
-    // Root template.yaml — identity metadata only, no steps
+    // Root template.yaml — identity metadata with generators pointing to service sub-template
     fs::write(
-        template_root.join("template.yaml"),
-        format!("id: {template_name}\nname: {template_name}\ndescription: test\nversion: 1.0.0\n"),
-    )
+         template_root.join("template.yaml"),
+         format!("id: {template_name}\nname: {template_name}\ndescription: test\nversion: 1.0.0\ngenerators:\n  entity: service\n"),
+     )
     .expect("root template metadata should be written");
 
     // Service sub-template — owns the rendering steps

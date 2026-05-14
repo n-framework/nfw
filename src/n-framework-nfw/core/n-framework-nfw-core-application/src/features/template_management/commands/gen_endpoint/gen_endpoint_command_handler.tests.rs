@@ -82,12 +82,7 @@ steps:
     impl crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver
         for FixedMockTemplateRoot
     {
-        fn resolve(
-            &self,
-            _nfw_yaml: &serde_yaml::Value,
-            _template_id: &str,
-            _workspace_root: &Path,
-        ) -> Result<PathBuf, String> {
+        fn resolve(&self, _nfw_yaml: &serde_yaml::Value, _template_id: &str, _workspace_root: &std::path::Path) -> Result<PathBuf, String> {
             Ok(self.base.clone())
         }
     }
@@ -130,23 +125,21 @@ steps:
         let nfw_yaml = test_valid_yaml();
 
         let context = AddArtifactContext {
-            workspace_root: root.path().to_path_buf(),
             template_root: root.path().to_path_buf(),
             service_path: std::path::PathBuf::from("src/TestService"),
             service_name: "TestService".to_string(),
-            nfw_yaml,
             config,
-            preserved_comments: PreservedComments::default(),
+            workspace: crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(root.path().to_path_buf(), nfw_yaml.clone(), PreservedComments::default()).unwrap(),
         };
 
-        let command = GenEndpointCommand {
-            name: "GetProduct".to_string(),
-            feature: Some("NonExistentFeature".to_string()),
-            operation_type: "GET".to_string(),
-            context,
-            params: None,
-            attach_to_mediator: true,
-        };
+        let command = GenEndpointCommand::new(
+        "GetProduct".to_string(),
+        Some("NonExistentFeature".to_string()),
+        crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
+        None,
+        context,
+        true,
+    ).unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -185,23 +178,21 @@ steps:
         let nfw_yaml = test_valid_yaml();
 
         let context = AddArtifactContext {
-            workspace_root: root.path().to_path_buf(),
             template_root: root.path().to_path_buf(),
             service_path: std::path::PathBuf::from("src/TestService"),
             service_name: "TestService".to_string(),
-            nfw_yaml,
             config,
-            preserved_comments: PreservedComments::default(),
+            workspace: crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(root.path().to_path_buf(), nfw_yaml.clone(), PreservedComments::default()).unwrap(),
         };
 
-        let command = GenEndpointCommand {
-            name: "GetProduct".to_string(),
-            feature: Some("Inventory".to_string()),
-            operation_type: "GET".to_string(),
-            context,
-            params: None,
-            attach_to_mediator: true,
-        };
+        let command = GenEndpointCommand::new(
+        "GetProduct".to_string(),
+        Some("Inventory".to_string()),
+        crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
+        None,
+        context,
+        true,
+    ).unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -249,23 +240,21 @@ steps:
         let nfw_yaml = test_valid_yaml();
 
         let context = AddArtifactContext {
-            workspace_root: root.path().to_path_buf(),
             template_root: root.path().to_path_buf(),
             service_path: std::path::PathBuf::from("src/TestService"),
             service_name: "TestService".to_string(),
-            nfw_yaml,
             config,
-            preserved_comments: PreservedComments::default(),
+            workspace: crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(root.path().to_path_buf(), nfw_yaml.clone(), PreservedComments::default()).unwrap(),
         };
 
-        let command = GenEndpointCommand {
-            name: "GetProduct".to_string(),
-            feature: Some("Inventory".to_string()),
-            operation_type: "GET".to_string(),
-            context,
-            params: None,
-            attach_to_mediator: true,
-        };
+        let command = GenEndpointCommand::new(
+        "GetProduct".to_string(),
+        Some("Inventory".to_string()),
+        crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
+        None,
+        context,
+        true,
+    ).unwrap();
 
         let handler = GenEndpointCommandHandler::new(
             MockWorkingDir {},
@@ -285,5 +274,108 @@ steps:
             }
             e => panic!("Expected ExecutionFailed, got: {:?}", e),
         }
+    }
+
+    #[test]
+    fn test_parameter_injection_collision() {
+        let root = tempfile::tempdir().unwrap();
+        let tpl_base = root.path().join("templates").join("test");
+        std::fs::create_dir_all(&tpl_base).unwrap();
+        write_mediator_template_configs(&tpl_base);
+
+        let query_dir = root
+            .path()
+            .join("src/TestService/src/core/TestService.Core.Application/Features/Inventory/Queries/GetProduct");
+        std::fs::create_dir_all(&query_dir).unwrap();
+        std::fs::write(query_dir.join("GetProductQuery.cs"), "dummy").unwrap();
+
+        let config = test_endpoint_config();
+        let nfw_yaml = test_valid_yaml();
+
+        let context = crate::features::template_management::services::artifact_generation_service::AddArtifactContext::new(
+            crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(
+                root.path().to_path_buf(),
+                nfw_yaml.clone(),
+                PreservedComments::default()
+            ).unwrap(),
+            root.path().to_path_buf(),
+            config,
+            "TestService".to_string(),
+            std::path::PathBuf::from("src/TestService")
+        ).unwrap();
+
+        // Pass a JSON parameter containing `OperationType` to verify the system correctly overrides it
+        let custom_params = serde_json::json!({
+            "OperationType": "CUSTOM",
+            "AttachToMediator": false,
+            "CustomKey": "CustomValue"
+        });
+
+        let command = GenEndpointCommand::new(
+            "GetProduct".to_string(),
+            Some("Inventory".to_string()),
+            crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
+            Some(custom_params),
+            context,
+            true,
+        ).unwrap();
+
+        let handler = GenEndpointCommandHandler::new(
+            MockWorkingDir {},
+            FixedMockTemplateRoot { base: tpl_base },
+            MockTemplateEngine {},
+        );
+
+        let result = handler.handle(command);
+        assert!(
+            result.is_ok(),
+            "Expected success with overridden parameter injection"
+        );
+    }
+
+    #[test]
+    fn test_attach_to_mediator_false_bypasses_check() {
+        let root = tempfile::tempdir().unwrap();
+        let tpl_base = root.path().join("templates").join("test");
+        std::fs::create_dir_all(&tpl_base).unwrap();
+        write_mediator_template_configs(&tpl_base);
+
+        // DO NOT create the query file. It should still succeed because attach_to_mediator = false
+
+        let config = test_endpoint_config();
+        let nfw_yaml = test_valid_yaml();
+
+        let context = AddArtifactContext::new(
+        crate::features::template_management::services::artifact_generation_service::WorkspaceContext::new(
+            root.path().to_path_buf(),
+            nfw_yaml.clone(),
+            PreservedComments::default()
+        ).unwrap(),
+        root.path().to_path_buf(),
+        config,
+        "TestService".to_string(),
+        std::path::PathBuf::from("src/TestService")
+    ).unwrap();
+
+        let command = GenEndpointCommand::new(
+            "GetProduct".to_string(),
+            Some("Inventory".to_string()),
+            crate::features::template_management::commands::gen_endpoint::gen_endpoint_command::HttpMethod::Get,
+            None,
+            context,
+            false, // Bypass check!
+        ).unwrap();
+
+        let handler = GenEndpointCommandHandler::new(
+            MockWorkingDir {},
+            FixedMockTemplateRoot { base: tpl_base },
+            MockTemplateEngine {},
+        );
+
+        let result = handler.handle(command);
+        assert!(
+            result.is_ok(),
+            "Expected success when attach_to_mediator is false, even if artifact is missing"
+        );
     }
 }

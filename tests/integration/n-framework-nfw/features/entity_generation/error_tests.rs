@@ -66,11 +66,13 @@ fn run(sandbox: &Path, opts: HashMap<String, String>) -> Result<(), String> {
 fn fails_on_invalid_entity_name() {
     let sandbox = support::create_sandbox_directory("gen-entity-invalid-name");
 
+    support::create_service_template(&sandbox, "basic-api", "service");
+
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
-        sandbox.join("nfw.yaml"),
-        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
-    ).unwrap();
+         sandbox.join("nfw.yaml"),
+         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+     ).unwrap();
 
     let opts = make_opts(
         "invalid_name",
@@ -96,11 +98,13 @@ fn fails_on_invalid_entity_name() {
 fn fails_on_invalid_property_syntax() {
     let sandbox = support::create_sandbox_directory("gen-entity-invalid-prop");
 
+    support::create_service_template(&sandbox, "basic-api", "service");
+
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
-        sandbox.join("nfw.yaml"),
-        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
-    ).unwrap();
+         sandbox.join("nfw.yaml"),
+         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+     ).unwrap();
 
     let opts = make_opts("Product", Some("Catalog"), Some("Name-string"), None, true); // Missing colon
 
@@ -120,12 +124,14 @@ fn fails_on_invalid_property_syntax() {
 fn fails_when_no_persistence_module_found() {
     let sandbox = support::create_sandbox_directory("gen-entity-no-persist");
 
+    support::create_service_template(&sandbox, "basic-api", "service");
+
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     // Missing persistence module
     fs::write(
-        sandbox.join("nfw.yaml"),
-        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n",
-    ).unwrap();
+         sandbox.join("nfw.yaml"),
+         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n",
+     ).unwrap();
 
     let opts = make_opts("Product", Some("Catalog"), Some("Name:string"), None, true);
 
@@ -145,11 +151,13 @@ fn fails_when_no_persistence_module_found() {
 fn fails_on_missing_schema_file() {
     let sandbox = support::create_sandbox_directory("gen-entity-missing-schema");
 
+    support::create_service_template(&sandbox, "basic-api", "service");
+
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
-        sandbox.join("nfw.yaml"),
-        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
-    ).unwrap();
+         sandbox.join("nfw.yaml"),
+         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+     ).unwrap();
 
     let opts = make_opts(
         "Product",
@@ -175,11 +183,13 @@ fn fails_on_missing_schema_file() {
 fn fails_on_invalid_schema_yaml() {
     let sandbox = support::create_sandbox_directory("gen-entity-invalid-schema-yaml");
 
+    support::create_service_template(&sandbox, "basic-api", "service");
+
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
-        sandbox.join("nfw.yaml"),
-        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
-    ).unwrap();
+         sandbox.join("nfw.yaml"),
+         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+     ).unwrap();
 
     let schema_path = sandbox.join("invalid.yaml");
     fs::write(&schema_path, "invalid: yaml: [ : }").unwrap();
