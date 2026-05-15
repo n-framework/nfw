@@ -77,9 +77,7 @@ where
         let schema = EntitySchema::from_command(command);
         let specs_dir = service
             .path()
-            .join(GlobalConstants::SPECS_DIR)
-            .join(GlobalConstants::FEATURES_DIR)
-            .join(command.feature())
+            .join(GlobalConstants::NFW_DIR)
             .join(GlobalConstants::ENTITIES_DIR);
         let schema_file = specs_dir.join(format!("{}.yaml", command.entity_name()));
 

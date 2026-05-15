@@ -112,5 +112,5 @@ fn writes_yaml_language_server_hint() {
     let schema_path = specs_dir.join("Product.yaml");
     let content = fs::read_to_string(schema_path).unwrap();
 
-    assert!(content.starts_with("# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/entity.schema.json"));
+    assert!(content.starts_with("# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/nfw.entity.schema.json"));
 }

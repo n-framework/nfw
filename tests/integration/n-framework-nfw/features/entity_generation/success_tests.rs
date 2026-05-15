@@ -110,7 +110,7 @@ fn generates_entity_successfully() {
     let result = run(&sandbox, opts);
     assert!(result.is_ok(), "Generation failed: {:?}", result.err());
 
-    let schema_file = sandbox.join("src/Application/specs/features/Catalog/entities/Product.yaml");
+    let schema_file = sandbox.join("src/Application/.nfw/entities/Product.yaml");
     assert!(
         schema_file.exists(),
         "Schema file not found at {:?}",

@@ -245,7 +245,7 @@ fn handle_fails_if_schema_already_exists() {
 
     // We need MockSchemaStore to return true for the specific schema file path
     // The handler builds the path as: service.path()/specs/features/Catalog/entities/Product.yaml
-    let specs_dir = service_path.join("specs/features/Catalog/entities");
+    let specs_dir = service_path.join(".nfw/entities");
     let schema_file = specs_dir.join("Product.yaml");
 
     // The MockSchemaStore in setup_handler returns self.exists regardless of path

@@ -78,7 +78,7 @@ fn schema_conflict_detection_test() {
          "workspace:\n  name: Test\n  namespace: TestApp\ngenerator_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    generator:\n      id: basic-api\n    modules:\n      - persistence\n",
      ).unwrap();
 
-    let specs_dir = sandbox.join("src/Application/specs/features/Catalog/entities");
+    let specs_dir = sandbox.join("src/Application/.nfw/entities");
     fs::create_dir_all(&specs_dir).unwrap();
     fs::write(specs_dir.join("Product.yaml"), "$schema: dummy\nentity: Product\nid_type: uuid\nentity_type: entity\nproperties:\n  - name: Dummy\n    type: string\n    nullable: false\n").unwrap();
 
@@ -127,7 +127,7 @@ fn schema_only_generation_test() {
     let result = run(&sandbox, opts);
     assert!(result.is_ok(), "Generation failed: {:?}", result.err());
 
-    let schema_file = sandbox.join("src/Application/specs/features/Catalog/entities/Product.yaml");
+    let schema_file = sandbox.join("src/Application/.nfw/entities/Product.yaml");
     assert!(schema_file.exists());
 
     let content = fs::read_to_string(&schema_file).unwrap();
@@ -148,7 +148,7 @@ fn from_schema_generation_test() {
          "workspace:\n  name: Test\n  namespace: TestApp\ngenerator_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    generator:\n      id: basic-api\n    modules:\n      - persistence\n",
      ).unwrap();
 
-    let specs_dir = sandbox.join("src/Application/specs/features/Catalog/entities");
+    let specs_dir = sandbox.join("src/Application/.nfw/entities");
     fs::create_dir_all(&specs_dir).unwrap();
     let schema_path = specs_dir.join("Product.yaml");
     fs::write(&schema_path, "$schema: dummy\nentity: Product\nid_type: uuid\nentity_type: entity\nproperties:\n  - name: Title\n    type: string\n    nullable: false\n").unwrap();

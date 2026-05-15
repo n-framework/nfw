@@ -9,10 +9,10 @@ pub struct GlobalConstants;
 impl GlobalConstants {
     pub const FEATURES_DIR: &'static str = "features";
     pub const SPECS_DIR: &'static str = "specs";
+    pub const NFW_DIR: &'static str = ".nfw";
     pub const ENTITIES_DIR: &'static str = "entities";
     pub const ENTITY_LABEL: &'static str = "entity";
     pub const SERVICE_LABEL: &'static str = "service";
     pub const PROPERTY_LABEL: &'static str = "property";
-    pub const ENTITY_SCHEMA_PATH: &'static str =
-        "https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/entity.schema.json";
+    pub const ENTITY_SCHEMA_PATH: &'static str = "https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/nfw.entity.schema.json";
 }

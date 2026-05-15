@@ -47,7 +47,7 @@ impl EntitySchemaStore for FileSystemEntitySchemaStore {
                 reason: format!("failed to serialize schema: {e}"),
             })?;
 
-        let schema_url = "https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/entity.schema.json";
+        let schema_url = "https://raw.githubusercontent.com/n-framework/nfw/main/src/nfw/schemas/nfw.entity.schema.json";
         let yaml_with_hint = format!("# yaml-language-server: $schema={}\n{}", schema_url, yaml);
 
         tracing::info!("Writing entity schema to {}", schema_path.display());
