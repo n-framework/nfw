@@ -110,7 +110,7 @@ As a developer, I want clear, actionable output from `nfw check` so that I can c
 - `docs/ROADMAP.md` Phase 2 deliverable requiring `nfw check` validation of forbidden references, namespaces, and packages.
 - `docs/SPECIFICATION_GUIDELINES.md` for module spec structure and quality expectations.
 - `specs/001-phase1-foundations-core-contracts/tasks.md` F4-T001 as the downstream spec instruction source.
-- `src/nfw/specs/002-workspace-structure-new-command/spec.md` and `src/nfw/specs/003-add-service-dotnet-template-based/spec.md` for workspace and layer convention context.
+- `src/nfw/specs/002-workspace-structure-new-command/spec.md` and `src/nfw/specs/003-add-service-dotnet-generator-based/spec.md` for workspace and layer convention context.
 
 ## Clarifications
 

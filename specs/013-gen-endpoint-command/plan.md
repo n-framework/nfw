@@ -10,8 +10,8 @@ Implement `nfw gen endpoint` command to generate an HTTP Minimal API endpoint fo
 ## Technical Context
 
 **Language/Version**: Rust 1.85+ (2024 edition)  
-**Primary Dependencies**: clap (CLI), serde/serde_yaml (templates), NFramework templates store  
-**Storage**: File system (templates and generated C# code)  
+**Primary Dependencies**: clap (CLI), serde/serde_yaml (generators), NFramework generators store  
+**Storage**: File system (generators and generated C# code)  
 **Testing**: cargo test (unit, integration)  
 **Target Platform**: CLI binary (Linux/macOS/Windows)  
 **Project Type**: CLI Tool  
@@ -52,10 +52,10 @@ src/nfw/src/commands/gen/
 src/nfw/tests/integration/
 └── gen_endpoint_tests.rs # (New test file)
 
-src/nfw-templates/src/dotnet-service/
-├── template.yaml        # (Update to register endpoint generator)
+src/nfw-generators/src/dotnet-service/
+├── nfw.generator.yaml    # (Update to register endpoint generator)
 └── endpoint/
-    └── Endpoint.cs.tera # (New template)
+    └── Endpoint.cs.tera # (New generator)
 ```
 
-**Structure Decision**: Extending existing CLI command logic. Adding `commands/gen/endpoint.rs` and the generator definition in `nfw-templates/src/dotnet-service/`.
+**Structure Decision**: Extending existing CLI command logic. Adding `commands/gen/endpoint.rs` and the generator definition in `nfw-generators/src/dotnet-service/`.

@@ -8,8 +8,8 @@ pub fn register() -> CliCommandSpec {
                 .with_help("Workspace name (required in non-interactive mode)"),
         )
         .with_option(
-            CliOptionSpec::new("template", "template")
-                .with_help("Template identifier (qualified or unqualified)"),
+            CliOptionSpec::new("generator", "generator")
+                .with_help("Generator identifier (qualified or unqualified)"),
         )
         .with_option(
             CliOptionSpec::new("no-input", "no-input")

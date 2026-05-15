@@ -5,19 +5,19 @@
 
 ## Summary
 
-Implement deterministic workspace bootstrapping through `nfw new` with a layered workspace root (`src/`, `tests/`, `docs/`), YAML-only baseline configuration, template-driven artifact generation, and strict CLI routing/validation behavior for interactive and `--no-input` flows.
+Implement deterministic workspace bootstrapping through `nfw new` with a layered workspace root (`src/`, `tests/`, `docs/`), YAML-only baseline configuration, generator-driven artifact generation, and strict CLI routing/validation behavior for interactive and `--no-input` flows.
 
 ## Technical Context
 
 **Language/Version**: Rust 1.85+ (2024 edition)
-**Primary Dependencies**: clap (CLI parsing), serde + serde_yaml (YAML config/model I/O), semver (template version resolution), regex (validation)
-**Storage**: File system (workspace artifacts, template cache, user config)
+**Primary Dependencies**: clap (CLI parsing), serde + serde_yaml (YAML config/model I/O), semver (generator version resolution), regex (validation)
+**Storage**: File system (workspace artifacts, generator cache, user config)
 **Testing**: cargo test (unit + integration), benchmark-style integration checks for acceptance goals
 **Target Platform**: Linux, macOS, Windows (CLI)
 **Project Type**: CLI application (multi-crate clean architecture)
-**Performance Goals**: Command parsing errors returned immediately; `nfw new` end-to-end generation remains deterministic and fast for standard template sizes
+**Performance Goals**: Command parsing errors returned immediately; `nfw new` end-to-end generation remains deterministic and fast for standard generator sizes
 **Constraints**: `--no-input` must never prompt; existing non-empty target must fail immediately; YAML is the only baseline config format
-**Scale/Scope**: Single workspace generation per command invocation; supports official and registered template catalogs already defined by `001-nfw-template-system`
+**Scale/Scope**: Single workspace generation per command invocation; supports official and registered generator catalogs already defined by `001-nfw-generator-system`
 
 ## Constitution Check
 
@@ -40,7 +40,7 @@ Research questions resolved in [research.md](./research.md):
 1. Deterministic command routing and option precedence for `nfw new`
 2. Interactive vs non-interactive prompting boundaries
 3. Canonical YAML-only baseline configuration strategy
-4. Workspace/template namespace consistency rules
+4. Workspace/generator namespace consistency rules
 5. Failure handling for existing directories and invalid inputs
 
 Outcome: all identified ambiguities resolved and encoded as implementation decisions.
@@ -92,7 +92,7 @@ src/nfw/
 │   ├── unit/
 │   └── integration/
 └── specs/
-    ├── 001-nfw-template-system/
+    ├── 001-nfw-generator-system/
     └── 002-workspace-structure-new-command/
 ```
 
@@ -104,7 +104,7 @@ Expected task decomposition themes:
 
 1. CLI routing surface and argument contract for `nfw new`
 2. Workspace blueprint and namespace derivation rules
-3. Template content and YAML baseline config generation
+3. Generator content and YAML baseline config generation
 4. Interactive prompt orchestration and `--no-input` gating
 5. Validation and deterministic failure paths
 6. Unit/integration coverage for acceptance criteria

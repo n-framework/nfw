@@ -4,15 +4,15 @@
 
 ### User Story 1 - Smoke Test End-to-End Workflows (Priority: P1)
 
-As a developer, I want CLI smoke tests that validate template selection, workspace generation, and service scaffolding so that I can verify the CLI works correctly after installation or updates.
+As a developer, I want CLI smoke tests that validate generator selection, workspace generation, and service scaffolding so that I can verify the CLI works correctly after installation or updates.
 
 **Why this priority**: Smoke tests are the first line of defense against regressions in core user journeys. Without them, broken releases can reach users undetected.
 
-**Independent Test**: Run the smoke test suite and verify it exercises interactive and non-interactive template selection, workspace creation, and service scaffolding without manual intervention.
+**Independent Test**: Run the smoke test suite and verify it exercises interactive and non-interactive generator selection, workspace creation, and service scaffolding without manual intervention.
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh CLI installation, **When** smoke tests run, **Then** template selection works in both interactive and non-interactive modes
+1. **Given** a fresh CLI installation, **When** smoke tests run, **Then** generator selection works in both interactive and non-interactive modes
 2. **Given** a clean test environment, **When** the workspace generation smoke test runs, **Then** `nfw new` creates a valid workspace with documented structure
 3. **Given** a generated workspace, **When** the service scaffolding smoke test runs, **Then** `nfw add service` creates a compilable service with correct layer structure
 4. **Given** smoke test results, **When** all scenarios pass, **Then** the test suite exits with status 0 and reports success
@@ -56,7 +56,7 @@ As a platform engineer, I want a benchmark harness that validates workspace and 
 - **Slow disk I/O**: When disk performance is degraded, benchmark results include environment metadata so that hardware-specific slowdowns can be distinguished from CLI regressions
 - **Concurrent test execution**: When smoke tests run in parallel, each test uses an isolated temporary directory to avoid cross-test contamination
 - **Partial workspace generation**: When workspace creation is interrupted during smoke testing, the test cleans up partial artifacts before reporting results
-- **Template cache miss**: When smoke tests run without a pre-populated template cache, the test accounts for initial clone time separately from generation time
+- **Generator cache miss**: When smoke tests run without a pre-populated generator cache, the test accounts for initial clone time separately from generation time
 - **Non-deterministic timing**: When benchmark results vary due to system load, the harness runs multiple iterations and reports median and p95 values
 
 ## Requirements
@@ -65,7 +65,7 @@ As a platform engineer, I want a benchmark harness that validates workspace and 
 
 #### CLI Smoke Tests
 
-- **FR-001**: The system MUST provide CLI smoke tests that validate template selection in non-interactive mode (`--no-input`); interactive mode validation is covered by the prompt service tests in spec `002-workspace-structure-new-command`
+- **FR-001**: The system MUST provide CLI smoke tests that validate generator selection in non-interactive mode (`--no-input`); interactive mode validation is covered by the prompt service tests in spec `002-workspace-structure-new-command`
 - **FR-002**: The system MUST provide CLI smoke tests that validate workspace generation produces documented folder structure and baseline configuration
 - **FR-003**: The system MUST provide CLI smoke tests that validate service scaffolding creates compilable services with correct layer structure
 - **FR-004**: Smoke tests MUST run without manual intervention and MUST exit with deterministic pass/fail status
@@ -91,7 +91,7 @@ As a platform engineer, I want a benchmark harness that validates workspace and 
 
 ### Key Entities
 
-- **Smoke Test Suite**: A collection of end-to-end CLI tests validating template selection, workspace generation, and service scaffolding
+- **Smoke Test Suite**: A collection of end-to-end CLI tests validating generator selection, workspace generation, and service scaffolding
 - **Build Command**: The documented single command that compiles all projects in a generated workspace
 - **Test Command**: The documented single command that runs all tests in a generated workspace
 - **Benchmark Harness**: A tool that measures and reports CLI generation performance against defined targets
@@ -101,7 +101,7 @@ As a platform engineer, I want a benchmark harness that validates workspace and 
 
 ### Measurable Outcomes
 
-- **SC-001**: CLI smoke tests pass for template selection, workspace generation, and service scaffolding scenarios with 100% success rate
+- **SC-001**: CLI smoke tests pass for generator selection, workspace generation, and service scaffolding scenarios with 100% success rate
 - **SC-002**: Generated workspaces build successfully on first run 100% of the time without manual file edits
 - **SC-003**: Generated workspaces pass all tests on first run 100% of the time without manual configuration
 - **SC-004**: Workspace and service creation completes with p95 under 1 second on baseline hardware (2 CPU cores, 4GB RAM)
@@ -110,7 +110,7 @@ As a platform engineer, I want a benchmark harness that validates workspace and 
 ## Assumptions
 
 - Smoke tests run in CI environments that have the required toolchain (Rust, .NET SDK) installed
-- Template cache is pre-populated for smoke tests to avoid network-dependent timing
+- Generator cache is pre-populated for smoke tests to avoid network-dependent timing
 - Benchmark hardware profile (2 CPU cores, 4GB RAM) is available as a CI runner or dedicated test machine
 - Generated workspaces use `make build` and `make test` as the documented single-command workflows (consistent with repository conventions)
 - Performance targets are measured end-to-end including CLI startup, file generation, and command completion
@@ -118,21 +118,21 @@ As a platform engineer, I want a benchmark harness that validates workspace and 
 ## Dependencies
 
 - `specs/001-phase1-foundations-core-contracts/spec.md` for SC-001, SC-002, SC-003, SC-005, SC-007 success criteria
-- `src/nfw/specs/001-nfw-template-system/spec.md` for template discovery and caching behavior
+- `src/nfw/specs/001-nfw-generator-system/spec.md` for generator discovery and caching behavior
 - `src/nfw/specs/002-workspace-structure-new-command/spec.md` for workspace generation behavior and structure
-- `src/nfw/specs/003-add-service-dotnet-template-based/spec.md` for service scaffolding behavior
+- `src/nfw/specs/003-add-service-dotnet-generator-based/spec.md` for service scaffolding behavior
 - `src/nfw/specs/004-nfw-check-validation/spec.md` for architecture validation command behavior
 
 ## Clarifications
 
-- Q: Should smoke tests cover all CLI commands or only core workflows? → A: Core workflows only (template selection, workspace creation, service scaffolding). Individual command specs cover their own edge cases.
+- Q: Should smoke tests cover all CLI commands or only core workflows? → A: Core workflows only (generator selection, workspace creation, service scaffolding). Individual command specs cover their own edge cases.
 - Q: Should benchmark results be stored for trend analysis? → A: Yes. Benchmark results should be output in a machine-readable format (JSON) suitable for CI artifact storage and trend analysis.
-- Q: Should smoke tests run against real templates or mocked templates? → A: Both. Core smoke tests use real templates for end-to-end validation; isolated unit tests mock template operations for fast feedback.
+- Q: Should smoke tests run against real generators or mocked generators? → A: Both. Core smoke tests use real generators for end-to-end validation; isolated unit tests mock generator operations for fast feedback.
 
 ## Non-Goals
 
 - Defining individual CLI command behavior (covered by respective command specs)
-- Defining template authoring workflows or template validation CI
+- Defining generator authoring workflows or generator validation CI
 - Defining distributed CI pipeline orchestration or multi-environment deployment
 - Defining performance targets for commands other than workspace and service creation
 - Defining load testing or stress testing for the CLI under concurrent usage

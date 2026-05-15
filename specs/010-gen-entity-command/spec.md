@@ -2,7 +2,7 @@
 
 **Command**: `nfw gen entity <NAME> --props <DEFINITIONS>`
 
-**Purpose**: Create entity schema files and invoke template engine for code generation. CLI manages schema creation/reading and provides data to templates; templates determine target language, base class, and type mappings.
+**Purpose**: Create entity schema files and invoke generator engine for code generation. CLI manages schema creation/reading and provides data to generators; generators determine target language, base class, and type mappings.
 
 ## User Scenarios & Testing
 
@@ -12,25 +12,25 @@ As a developer, I want to create entity schema files and invoke code generation 
 
 **Why this priority**: This is a core capability for the NFramework development workflow. Without this feature, developers must manually create entity classes, which is time-consuming and error-prone, blocking rapid application development.
 
-**Independent Test**: Can be tested independently by verifying that the command creates valid schema files and invokes the template engine with correct parameters. The test delivers value by ensuring developers can reliably create entities that conform to NFramework architectural standards.
+**Independent Test**: Can be tested independently by verifying that the command creates valid schema files and invokes the generator engine with correct parameters. The test delivers value by ensuring developers can reliably create entities that conform to NFramework architectural standards.
 
 **Acceptance Scenarios**:
 
-1. **Given** the nfw CLI is installed in a workspace with at least one service that has the persistence module added, **When** I run `nfw gen entity Product --props Name:string,Price:decimal --no-input`, **Then** a schema file is created and the template engine is invoked with entity parameters, generating code using the configured entity template.
+1. **Given** the nfw CLI is installed in a workspace with at least one service that has the persistence module added, **When** I run `nfw gen entity Product --props Name:string,Price:decimal --no-input`, **Then** a schema file is created and the generator engine is invoked with entity parameters, generating code using the configured entity generator.
 
-2. **Given** the nfw CLI is installed in a workspace with multiple services, **When** I run `nfw gen entity Customer --props Email:string --service MyService --no-input`, **Then** the schema file is created in the specified service's entity specs directory and the template engine generates code with the `Email` property.
+2. **Given** the nfw CLI is installed in a workspace with multiple services, **When** I run `nfw gen entity Customer --props Email:string --service MyService --no-input`, **Then** the schema file is created in the specified service's entity specs directory and the generator engine generates code with the `Email` property.
 
 3. **Given** the nfw CLI is installed in a workspace with exactly one service, **When** I run `nfw gen entity Order --props OrderDate:datetime --no-input` without specifying a service, **Then** the command automatically selects the single available service and creates the schema file.
 
 4. **Given** the nfw CLI is installed and I have specified an invalid property type, **When** I run `nfw gen entity Item --props Count:InvalidType --no-input`, **Then** the command fails with a clear error message indicating the invalid type and suggesting valid type options.
 
-5. **Given** the nfw CLI is installed in a workspace with a service that uses custom ID types, **When** I run `nfw gen entity Category --props Name:string --id-type uuid --no-input`, **Then** the schema file is created with `uuid` as the ID type and the template engine is invoked.
+5. **Given** the nfw CLI is installed in a workspace with a service that uses custom ID types, **When** I run `nfw gen entity Category --props Name:string --id-type uuid --no-input`, **Then** the schema file is created with `uuid` as the ID type and the generator engine is invoked.
 
 6. **Given** the nfw CLI is installed in a workspace with a service that has NOT added the persistence module, **When** I run `nfw gen entity Product --props Name:string --no-input`, **Then** the command fails with a clear error message stating that the persistence module is required and providing the command to add it: `nfw add persistence --service <ServiceName>`.
 
-7. **Given** the nfw CLI is installed in a workspace, **When** I run `nfw gen entity Product --props Name:string,Price:decimal --schema-only --no-input`, **Then** a schema file `specs/entities/Product.yaml` is created in the target service directory with the entity definition but the template engine is NOT invoked.
+7. **Given** the nfw CLI is installed in a workspace, **When** I run `nfw gen entity Product --props Name:string,Price:decimal --schema-only --no-input`, **Then** a schema file `specs/entities/Product.yaml` is created in the target service directory with the entity definition but the generator engine is NOT invoked.
 
-8. **Given** the nfw CLI is installed in a workspace with an existing schema file `specs/entities/Product.yaml`, **When** I run `nfw gen entity Product --from-schema --no-input`, **Then** the schema file is read and the template engine is invoked with the schema parameters.
+8. **Given** the nfw CLI is installed in a workspace with an existing schema file `specs/entities/Product.yaml`, **When** I run `nfw gen entity Product --from-schema --no-input`, **Then** the schema file is read and the generator engine is invoked with the schema parameters.
 
 ---
 
@@ -92,7 +92,7 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - **Schema path not a directory**: When the configured `entitySpecsPath` exists but is a file rather than a directory, the command must fail with a clear error indicating the path must be a directory.
 
-- **Template execution failure**: When the template engine fails to execute or returns an error, the command must fail with a clear error message indicating the template execution failure.
+- **Generator execution failure**: When the generator engine fails to execute or returns an error, the command must fail with a clear error message indicating the generator execution failure.
 
 ---
 
@@ -114,7 +114,7 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - **FR-006**: The command MUST automatically select the single available service when `--no-input` is used and only one service exists in the workspace.
 
-- **FR-008**: The command MUST accept property type arguments using familiar type syntax and map these to language-agnostic general types in the schema file. The specific language type mappings and database type mappings are determined by the entity template in `nfw-templates`.
+- **FR-008**: The command MUST accept property type arguments using familiar type syntax and map these to language-agnostic general types in the schema file. The specific language type mappings and database type mappings are determined by the entity generator in `nfw-generators`.
 
 - **FR-010**: The command MUST support only primitive property types as specified in FR-008 and FR-026.
 
@@ -134,7 +134,7 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - **FR-017**: The command MUST detect and prevent duplicate property names within a single entity definition.
 
-- **FR-018**: The command MUST invoke the template engine with entity parameters for code generation.
+- **FR-018**: The command MUST invoke the generator engine with entity parameters for code generation.
 
 - **FR-020**: The command MUST support interactive prompts for service selection when no service is specified and multiple services exist.
 
@@ -154,29 +154,29 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - **FR-028-A**: The command MUST read the entity specs directory path from the service configuration in `nfw.yaml` (e.g., `services.<serviceName>.entity-specs-path`), defaulting to `specs/entities/` relative to the service root if not configured.
 
-- **FR-029**: The command MUST support both quick-start mode (CLI arguments → schema + invoke template) and schema-first mode (create schema file → invoke template from schema).
+- **FR-029**: The command MUST support both quick-start mode (CLI arguments → schema + invoke generator) and schema-first mode (create schema file → invoke generator from schema).
 
 - **FR-030**: The command MUST emit structured logs to stdout during execution including generation steps, warnings, schema file creation, and final result for debugging and audit purposes.
 
-- **FR-031**: When `--schema-only` flag is provided, the command MUST create the schema file in the configured entity specs directory without invoking the template engine.
+- **FR-031**: When `--schema-only` flag is provided, the command MUST create the schema file in the configured entity specs directory without invoking the generator engine.
 
 - **FR-032**: The schema file format MUST be YAML with standard structure including entity name, ID type, property list (name, general type, nullable), and entity type selection. Property types in the schema MUST be language-agnostic general types (e.g., `string`, `integer`, `decimal`, `boolean`, `datetime`, `uuid`, `bytes`).
 
-#### Template Responsibilities (Code Generation)
+#### Generator Responsibilities (Code Generation)
 
-- **FR-T001**: Templates MUST determine the target programming language for code generation.
+- **FR-T001**: Generators MUST determine the target programming language for code generation.
 
-- **FR-T002**: Templates MUST determine the output directory and file structure for generated code.
+- **FR-T002**: Generators MUST determine the output directory and file structure for generated code.
 
-- **FR-T003**: Templates MUST map general types from the schema to language-specific types for the target programming language.
+- **FR-T003**: Generators MUST map general types from the schema to language-specific types for the target programming language.
 
-- **FR-T004**: Templates MUST determine base class selection based on the `entityType` field in the schema (valid values: `entity`, `auditable-entity`, `soft-deletable-entity`).
+- **FR-T004**: Generators MUST determine base class selection based on the `entityType` field in the schema (valid values: `entity`, `auditable-entity`, `soft-deletable-entity`).
 
-- **FR-T005**: Templates MAY add property validation attributes based on property types and template-specific rules.
+- **FR-T005**: Generators MAY add property validation attributes based on property types and generator-specific rules.
 
-- **FR-T006**: Templates MUST ensure generated code is compatible with Native AOT compilation (no reflection-heavy patterns).
+- **FR-T006**: Generators MUST ensure generated code is compatible with Native AOT compilation (no reflection-heavy patterns).
 
-- **FR-T007**: Templates MUST determine file naming conventions and namespace structure for generated code.
+- **FR-T007**: Generators MUST determine file naming conventions and namespace structure for generated code.
 
 ### Key Entities
 
@@ -184,9 +184,9 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - **PropertyDefinition**: A value object representing a single property definition with name, type, and nullable flag.
 
-- **EntityGenerationParameters**: A value object containing template rendering parameters including entity name, namespace, ID type, properties, and service information.
+- **EntityGenerationParameters**: A value object containing generator rendering parameters including entity name, namespace, ID type, properties, and service information.
 
-- **AddEntityCommandHandler**: A command handler that orchestrates entity generation including validation, template rendering, and file creation.
+- **AddEntityCommandHandler**: A command handler that orchestrates entity generation including validation, generator rendering, and file creation.
 
 - **AddEntityCliCommand**: A CLI command adapter that handles user interaction, parameter parsing, and service selection, delegating core logic to the command handler.
 
@@ -202,7 +202,7 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - **ServiceModuleValidator**: A service responsible for validating that required service modules (specifically the persistence module) have been added to the target service before allowing entity generation.
 
-- **EntityGenerationError**: An error type representing various failure scenarios including validation errors, file system errors, schema errors, module dependency errors, and template execution failures.
+- **EntityGenerationError**: An error type representing various failure scenarios including validation errors, file system errors, schema errors, module dependency errors, and generator execution failures.
 
 ---
 
@@ -240,17 +240,17 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - The workspace has a valid `nfw.yaml` configuration file with at least one service defined.
 
-- Template sources are configured and accessible, with entity templates available in the configured template repository (`nfw-templates`).
+- Generator sources are configured and accessible, with entity generators available in the configured generator repository (`nfw-generators`).
 
 - The user has write permissions for the entity specs directory of the target service.
 
 - The target service has the persistence module added via `nfw add persistence` before entity generation is attempted, as entity generation depends on persistence infrastructure being in place.
 
-- Entity templates provide various entity type choices (entity, auditable-entity, soft-deletable-entity) through template configuration, with templates handling the actual inheritance and framework integration.
+- Entity generators provide various entity type choices (entity, auditable-entity, soft-deletable-entity) through generator configuration, with generators handling the actual inheritance and framework integration.
 
 - Entity properties are limited to primitive types only; complex types and value objects are not supported.
 
-- The template engine is properly configured and can resolve entity templates and execute template rendering.
+- The generator engine is properly configured and can resolve entity generators and execute generator rendering.
 
 - Schema files (YAML) are stored in a configurable directory path specified in `nfw.yaml` under the service configuration (e.g., `services.<serviceName>.entity-specs-path`), defaulting to `specs/entities/` relative to the service root if not configured.
 
@@ -258,29 +258,29 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - Schema property types are language-agnostic general types (e.g., `string`, `integer`, `decimal`, `boolean`, `datetime`, `uuid`, `bytes`). CLI arguments use familiar type syntax which is mapped to general types in the schema.
 
-- Templates are responsible for determining: target programming language, output directory structure, language-specific type mappings, base class selection (based on `entityType` field), validation attributes, and file naming conventions.
+- Generators are responsible for determining: target programming language, output directory structure, language-specific type mappings, base class selection (based on `entityType` field), validation attributes, and file naming conventions.
 
-- Templates in `nfw-templates` map general types from the schema to both language-specific types for the target programming language (e.g., `string` → C# `string`, Go `string`, Rust `String`) and database-specific types for the persistence layer.
+- Generators in `nfw-generators` map general types from the schema to both language-specific types for the target programming language (e.g., `string` → C# `string`, Go `string`, Rust `String`) and database-specific types for the persistence layer.
 
-- Generated code uses a "safe zone" approach (e.g., `.g.cs` partial files for C#) to enable schema-driven regeneration without overwriting user code. The specific file extension and pattern is determined by the template.
+- Generated code uses a "safe zone" approach (e.g., `.g.cs` partial files for C#) to enable schema-driven regeneration without overwriting user code. The specific file extension and pattern is determined by the generator.
 
 - The hybrid approach allows quick-start development (CLI args only) while supporting schema-first workflows for polyglot scenarios and future CRUD update operations.
 
 - Identifier naming rules follow general programming conventions (alphanumeric, no leading numbers, no reserved keywords).
 
-- Native AOT compatibility requires avoiding reflection-heavy patterns and using compile-time code generation. Templates ensure generated code meets these requirements.
+- Native AOT compatibility requires avoiding reflection-heavy patterns and using compile-time code generation. Generators ensure generated code meets these requirements.
 
 - ID types are constrained to general types that can serve as entity identifiers (`integer`, `uuid`, `string`, etc.).
 
 - Entity generation is a one-time operation; subsequent modifications to entity properties are done manually or through separate commands.
 
-- Nullable properties use the nullable type syntax (Type?) and are handled appropriately in generated code based on template rules.
+- Nullable properties use the nullable type syntax (Type?) and are handled appropriately in generated code based on generator rules.
 
 ---
 
 ## Dependencies
 
-- Template engine must be configured with entity templates, providing various base class choices and language-specific code generation capabilities.
+- Generator engine must be configured with entity generators, providing various base class choices and language-specific code generation capabilities.
 
 - Workspace configuration (`nfw.yaml`) must define services with their module configuration and entity specs path.
 
@@ -311,7 +311,7 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - The target service MUST have the persistence module added via `nfw add persistence` before entity generation can proceed, as entity generation depends on persistence infrastructure being in place.
 
-- Templates in `nfw-templates` repository handle language-specific decisions including: target language selection, output directory structure, namespace/package organization, type mappings, and validation attributes.
+- Generators in `nfw-generators` repository handle language-specific decisions including: target language selection, output directory structure, namespace/package organization, type mappings, and validation attributes.
 
 ---
 
@@ -323,13 +323,13 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - Q: What types should entity properties support and is there a maximum property limit? → A: Entity properties MUST be primitive types only (no complex types, nested collections, or value objects). There is NO maximum property limit.
 
-- Q: What base entity classes should generated entities inherit from? → A: Base class selection is a template concern. The CLI provides entity parameters (name, properties, ID type) to templates, and templates determine which base class to use based on template configuration and options. Templates may offer choices like standard entity, auditable entity, or soft-deletable entity.
+- Q: What base entity classes should generated entities inherit from? → A: Base class selection is a generator concern. The CLI provides entity parameters (name, properties, ID type) to generators, and generators determine which base class to use based on generator configuration and options. Generators may offer choices like standard entity, auditable entity, or soft-deletable entity.
 
 - Q: Should the command support code-first (CLI args), schema-first (YAML file), or both? → A: Hybrid approach - support both workflows. CLI arguments create both the schema file and generated code; developers can also create/edit schema files manually for polyglot scenarios or schema-first workflows.
 
 - Q: Where should entity schema files be stored? → A: The entity specs directory path should be configurable in `nfw.yaml` under the service configuration (e.g., `services.<serviceName>.entitySpecsPath`), defaulting to `<service_path>/specs/entities/` if not configured. This provides a logical default while allowing per-service customization.
 
-- Q: How should property types be represented in schema files vs CLI arguments? → A: CLI arguments use C#-like primitive type syntax for developer convenience (e.g., `Name:string`, `Price:decimal`). The schema file stores language-agnostic general types (e.g., `name: {type: string}`, `price: {type: decimal}`). Templates then map general types to both language-specific types and database-specific types for the target programming language and persistence layer.
+- Q: How should property types be represented in schema files vs CLI arguments? → A: CLI arguments use C#-like primitive type syntax for developer convenience (e.g., `Name:string`, `Price:decimal`). The schema file stores language-agnostic general types (e.g., `name: {type: string}`, `price: {type: decimal}`). Generators then map general types to both language-specific types and database-specific types for the target programming language and persistence layer.
 
 - Q: Why was the command renamed from `nfw add entity` to `nfw gen entity`? → A: The `gen` prefix better aligns with NFramework's code generation focus and distinguishes generation commands from module addition commands. It also groups related generation commands (`gen entity`, `gen command`, `gen query`) under a consistent namespace.
 
@@ -339,7 +339,7 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - Q: Should the command support generating entity interfaces alongside concrete classes? → A: No, entity interfaces are out of scope for this command. Entities are concrete domain classes.
 
-- Q: Should the command support generating entity configuration (e.g., EF Core configuration) alongside the entity class? → A: No, entity configuration is handled separately by persistence-related commands or templates.
+- Q: Should the command support generating entity configuration (e.g., EF Core configuration) alongside the entity class? → A: No, entity configuration is handled separately by persistence-related commands or generators.
 
 - Q: Should the command support generating domain events alongside entities? → A: No, domain event generation is a separate concern and should be handled by a dedicated command if needed.
 
@@ -347,9 +347,9 @@ As a developer, I want entity definitions stored in schema files so that I can m
 
 - Q: Should the command support generating enums for properties that have a limited set of values? → A: No, enum generation is a separate concern. Entity properties are limited to primitive types only.
 
-- Q: Should the command support generating entity constructors with required parameters? → A: Entity constructor generation is determined by the entity template and framework conventions. The command provides property definitions; the template handles constructor patterns.
+- Q: Should the command support generating entity constructors with required parameters? → A: Entity constructor generation is determined by the entity generator and framework conventions. The command provides property definitions; the generator handles constructor patterns.
 
-- Q: Should validation attributes be configurable or follow fixed rules? → A: Validation attributes are determined by entity templates. The CLI provides property type information to templates, and templates decide which validation attributes (if any) to include based on template-specific rules and conventions.
+- Q: Should validation attributes be configurable or follow fixed rules? → A: Validation attributes are determined by entity generators. The CLI provides property type information to generators, and generators decide which validation attributes (if any) to include based on generator-specific rules and conventions.
 
 ---
 

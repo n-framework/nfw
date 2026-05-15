@@ -3,45 +3,45 @@
 **Branch**: `009-add-persistence-command` | **Date**: 2026-04-29 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/009-add-persistence-command/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Note**: This generator is filled in by the `/speckit.plan` command. See `.specify/generators/plan-generator.md` for the execution workflow.
 
 ## Summary
 
-Implement the `nfw add persistence` CLI command that enables developers to add the Persistence module to existing NFramework services. The command updates `nfw.yaml` to register the persistence module and executes template rendering to generate DbContext, repository base classes, and database configuration artifacts. The implementation follows the same architectural pattern as the existing `nfw add mediator` command (spec 008), using the ArtifactGenerationService for workspace operations, template execution, and service module registration with atomic rollback on failure.
+Implement the `nfw add persistence` CLI command that enables developers to add the Persistence module to existing NFramework services. The command updates `nfw.yaml` to register the persistence module and executes generator rendering to generate DbContext, repository base classes, and database configuration artifacts. The implementation follows the same architectural pattern as the existing `nfw add mediator` command (spec 008), using the ArtifactGenerationService for workspace operations, generator execution, and service module registration with atomic rollback on failure.
 
 ## Technical Context
 
 **Language/Version**: Rust 1.85+ (2024 edition)
 **Primary Dependencies**:
 
-- `template-engine-rust` (from `src/core-template-rust/`)
+- `generator-engine-rust` (from `src/core-generator-rust/`)
 - `n_framework_core_cli_abstractions` (CLI traits)
 - `n_framework_core_cli_cliclack` (interactive prompts)
 - `n_framework_nfw_core_application` (ArtifactGenerationService)
 - YAML handling with comment preservation
 - Entity Framework Core (generated artifacts target .NET)
 
-**Storage**: File system operations (nfw.yaml, service directories, template files)
+**Storage**: File system operations (nfw.yaml, service directories, generator files)
 **Testing**: `cargo test` with integration tests using sandbox workspaces
 **Target Platform**: Cross-platform (Linux, macOS, Windows) - same as nfw CLI
 **Project Type**: CLI command (nfw workspace tool)
 **Performance Goals**:
 
 - <5 seconds total execution time for typical workspaces
-- <1 second rollback time on template failure
+- <1 second rollback time on generator failure
 - Support workspaces with up to 10 services
 
 **Constraints**:
 
 - Must preserve YAML comments 100% when updating nfw.yaml
-- Must roll back nfw.yaml changes atomically if template execution fails
+- Must roll back nfw.yaml changes atomically if generator execution fails
 - Must detect existing persistence modules and skip redundant operations
 - Must support both interactive and automated (--no-input) modes
 
 **Scale/Scope**:
 
 - Workspaces with 1-10 services
-- Template artifacts targeting .NET services (DbContext, repository base classes)
+- Generator artifacts targeting .NET services (DbContext, repository base classes)
 - Single service per command execution (no batch operations)
 
 ## Constitution Check
@@ -103,7 +103,7 @@ src/nfw/src/n-framework-nfw/
 ├── core/
 │   └── nframework-nfw-application/
 │       └── features/
-│           └── template_management/
+│           └── generator_management/
 │               ├── commands/
 │               │   └── add_persistence/
 │               │       ├── add_persistence_command.rs

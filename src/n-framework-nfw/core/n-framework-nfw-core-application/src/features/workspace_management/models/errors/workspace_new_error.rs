@@ -5,9 +5,9 @@ pub enum WorkspaceNewError {
     InvalidWorkspaceName(String),
     MissingWorkspaceName,
     MissingRequiredInput(String),
-    NoWorkspaceTemplatesDiscovered,
-    TemplateNotFound(String),
-    AmbiguousTemplate(String),
+    NoWorkspaceGeneratorsDiscovered,
+    GeneratorNotFound(String),
+    AmbiguousGenerator(String),
     InvalidOptionCombination(String),
     TargetDirectoryNotEmpty(String),
     PromptFailed(String),
@@ -31,17 +31,17 @@ impl Display for WorkspaceNewError {
                     "required input '{field}' is missing in non-interactive mode"
                 )
             }
-            Self::NoWorkspaceTemplatesDiscovered => {
-                write!(f, "no workspace templates were discovered")
+            Self::NoWorkspaceGeneratorsDiscovered => {
+                write!(f, "no workspace generators were discovered")
             }
-            Self::TemplateNotFound(template) => {
+            Self::GeneratorNotFound(generator) => {
                 write!(
                     f,
-                    "template '{template}' was not found in discovered templates"
+                    "generator '{generator}' was not found in discovered generators"
                 )
             }
-            Self::AmbiguousTemplate(template) => {
-                write!(f, "template identifier '{template}' is ambiguous")
+            Self::AmbiguousGenerator(generator) => {
+                write!(f, "generator identifier '{generator}' is ambiguous")
             }
             Self::InvalidOptionCombination(message) => {
                 write!(f, "invalid option combination: {message}")

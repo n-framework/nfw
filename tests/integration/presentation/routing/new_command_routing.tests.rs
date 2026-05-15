@@ -11,7 +11,7 @@ fn new_command_help_lists_workspace_argument_and_flags() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Usage: nfw new [OPTIONS] [workspace-name]"));
-    assert!(stdout.contains("--template <template>"));
+    assert!(stdout.contains("--generator <generator>"));
     assert!(stdout.contains("--no-input"));
 
     cleanup_sandbox_directory(&sandbox_home);

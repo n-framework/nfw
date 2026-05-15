@@ -3,13 +3,13 @@
 ## 1. Create a workspace in non-interactive mode
 
 ```bash
-nfw new BillingPlatform --template official/blank-workspace --no-input
+nfw new BillingPlatform --generator official/blank-workspace --no-input
 ```
 
 Expected behavior:
 
 - Creates workspace with layered root: `src/`, `tests/`, `docs/`
-- Renders template-defined files/directories from selected template content
+- Renders generator-defined files/directories from selected generator content
 - Uses YAML baseline configuration files only
 
 ## CLI help contract
@@ -21,7 +21,7 @@ nfw new --help
 Expected output includes:
 
 - `Usage: nfw new [OPTIONS] [workspace-name]`
-- `--template <template>`
+- `--generator <generator>`
 - `--no-input`
 
 ## 2. Create a workspace in interactive mode
@@ -33,7 +33,7 @@ nfw new
 Expected behavior:
 
 - Prompts for required missing values
-- Resolves template and namespace values
+- Resolves generator and namespace values
 - Generates workspace only after validation is complete
 
 ## 3. Verify structure quickly
@@ -48,7 +48,7 @@ Root should include:
 - `src/`
 - `tests/`
 - `docs/`
-- template-defined root-level artifacts (for blank template: `README.md`, `nfw.yaml`, manifests)
+- generator-defined root-level artifacts (for blank generator: `README.md`, `nfw.yaml`, manifests)
 
 ## 4. Verify build and test commands
 
@@ -69,9 +69,9 @@ Run the workspace-documented one-command flows:
 
 Command must fail before generation and list missing required values.
 
-### Case C: Invalid template
+### Case C: Invalid generator
 
-Command must fail with actionable message and template selection guidance.
+Command must fail with actionable message and generator selection guidance.
 
 ## 6. Acceptance verification commands
 

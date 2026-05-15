@@ -18,14 +18,14 @@ main() {
 	local test_passed=0
 	local test_failed=0
 
-	# Test 1: Invalid template should fail gracefully
-	echo "Test 1: Invalid template identifier"
-	output=$(nfw new TestWorkspace --template "nonexistent/template" --no-input 2>&1 || true)
-	if echo "$output" | grep -q "template"; then
-		log_pass "Invalid template rejected with appropriate error message"
+	# Test 1: Invalid generator should fail gracefully
+	echo "Test 1: Invalid generator identifier"
+	output=$(nfw new TestWorkspace --generator "nonexistent/generator" --no-input 2>&1 || true)
+	if echo "$output" | grep -q "generator"; then
+		log_pass "Invalid generator rejected with appropriate error message"
 		test_passed=$((test_passed + 1))
 	else
-		log_fail "Invalid template did not produce expected error"
+		log_fail "Invalid generator did not produce expected error"
 		test_failed=$((test_failed + 1))
 	fi
 
@@ -40,7 +40,7 @@ main() {
 		log_info "Skipping this test"
 	else
 		PATH="$temp_path"
-		output=$(nfw new TestWorkspace --template "official/blank-workspace" --no-input 2>&1 || true)
+		output=$(nfw new TestWorkspace --generator "official/blank-workspace" --no-input 2>&1 || true)
 		if echo "$output" | grep -iqE "(dotnet|\.net|sdk)"; then
 			log_pass "Missing .NET SDK detected appropriately"
 			test_passed=$((test_passed + 1))
@@ -53,7 +53,7 @@ main() {
 
 	# Test 3: Invalid workspace name should be rejected
 	echo "Test 3: Invalid workspace name"
-	output=$(nfw new "" --template "official/blank-workspace" --no-input 2>&1 || true)
+	output=$(nfw new "" --generator "official/blank-workspace" --no-input 2>&1 || true)
 	if echo "$output" | grep -iqE "(invalid|name|required)"; then
 		log_pass "Empty workspace name rejected"
 		test_passed=$((test_passed + 1))
@@ -68,7 +68,7 @@ main() {
 	mkdir -p "$restricted_dir"
 	chmod 000 "$restricted_dir"
 
-	output=$(nfw new TestWorkspace --template "official/blank-workspace" --no-input --cwd "$restricted_dir" 2>&1 || true)
+	output=$(nfw new TestWorkspace --generator "official/blank-workspace" --no-input --cwd "$restricted_dir" 2>&1 || true)
 	# Note: --cwd option may not exist on all versions
 	if echo "$output" | grep -iqE "(permission|denied|access)"; then
 		log_pass "Permission errors handled gracefully"
@@ -81,11 +81,11 @@ main() {
 
 	chmod 755 "$restricted_dir"
 
-	# Test 5: Template cache empty scenario
-	echo "Test 5: Empty template cache"
-	# This test assumes we can clear the template cache
-	# If nfw templates cache is cleared, should provide helpful error
-	log_info "Template cache test - verify error message quality"
+	# Test 5: Generator cache empty scenario
+	echo "Test 5: Empty generator cache"
+	# This test assumes we can clear the generator cache
+	# If nfw generators cache is cleared, should provide helpful error
+	log_info "Generator cache test - verify error message quality"
 
 	# Summary
 	echo "=================================="

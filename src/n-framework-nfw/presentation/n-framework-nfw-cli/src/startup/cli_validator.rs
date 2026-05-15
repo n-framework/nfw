@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use n_framework_nfw_core_application::features::template_management::services::abstractions::validator::Validator;
+use n_framework_nfw_core_application::features::generator_management::services::abstractions::validator::Validator;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_name_validator::WorkspaceNameValidator;
 use n_framework_nfw_core_application::validation::is_kebab_case;
 

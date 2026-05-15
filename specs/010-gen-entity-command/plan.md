@@ -3,22 +3,22 @@
 **Branch**: `010-gen-entity-command` | **Date**: 2026-04-30 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/src/nfw/specs/010-gen-entity-command/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Note**: This generator is filled in by the `/speckit.plan` command. See `.specify/generators/plan-generator.md` for the execution workflow.
 
 ## Summary
 
-Generate a CLI command that creates entity schema files with language-agnostic general types and invokes the template engine for code generation. The command accepts property definitions via CLI arguments, creates/reads YAML schema files, and provides entity parameters to templates. Templates in `nfw-templates` determine target language, output directory, base class, and type mappings. Entity generation requires the persistence module to be added first to the target service.
+Generate a CLI command that creates entity schema files with language-agnostic general types and invokes the generator engine for code generation. The command accepts property definitions via CLI arguments, creates/reads YAML schema files, and provides entity parameters to generators. Generators in `nfw-generators` determine target language, output directory, base class, and type mappings. Entity generation requires the persistence module to be added first to the target service.
 
 ## Technical Context
 
-**Language/Version**: Rust 1.85+ (2024 edition) for nfw CLI; templates target multiple languages (C#, Go, Rust) via `nfw-templates`
-**Primary Dependencies**: clap (CLI parsing), template-engine-rust, serde_yaml (YAML parsing), cli-abstraction crates
-**Storage**: File system (YAML schema files in configured `entitySpecsPath`, generated code location determined by templates)
-**Testing**: cargo test with integration tests for schema creation and template invocation
+**Language/Version**: Rust 1.85+ (2024 edition) for nfw CLI; generators target multiple languages (C#, Go, Rust) via `nfw-generators`
+**Primary Dependencies**: clap (CLI parsing), generator-engine-rust, serde_yaml (YAML parsing), cli-abstraction crates
+**Storage**: File system (YAML schema files in configured `entitySpecsPath`, generated code location determined by generators)
+**Testing**: cargo test with integration tests for schema creation and generator invocation
 **Target Platform**: Linux/macOS/Windows (CLI tool)
 **Project Type**: CLI command
-**Performance Goals**: <3 seconds for schema creation and template invocation (FR-013, SC-002)
-**Constraints**: Schema uses general types only; templates handle language-specific decisions
+**Performance Goals**: <3 seconds for schema creation and generator invocation (FR-013, SC-002)
+**Constraints**: Schema uses general types only; generators handle language-specific decisions
 **Scale/Scope**: Entity schema generation for services in monorepo workspace
 
 ## Constitution Check
@@ -104,13 +104,13 @@ src/nfw/tests/integration/
 
 - Type mapping from C# CLI syntax to general types
 - Schema file format and storage location
-- Template integration approach
+- Generator integration approach
 - Service module validation logic
 - Property validation rules
 
 **Key Decisions**:
 
-1. CLI uses C#-like syntax; schema uses general types; templates handle language-specific mapping
+1. CLI uses C#-like syntax; schema uses general types; generators handle language-specific mapping
 2. YAML schema files stored in configurable `entitySpecsPath` (default: `specs/entities/`)
 3. Persistence module validation required before entity generation
 4. Primitive types only; no collections or complex types
@@ -148,7 +148,7 @@ The implementation will follow this structure:
 2. Check persistence module presence
 3. Map C# types to general types
 4. Create or read schema file
-5. Invoke template engine
+5. Invoke generator engine
 6. Generate entity code in Domain layer
 7. Write integration tests
 

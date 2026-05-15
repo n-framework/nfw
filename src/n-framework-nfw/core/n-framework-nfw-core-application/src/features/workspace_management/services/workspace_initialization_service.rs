@@ -1,4 +1,4 @@
-use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::generator_management::services::abstractions::generator_catalog_discovery_service::GeneratorCatalogDiscoveryService;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 use crate::features::workspace_management::models::new_command_request::NewCommandRequest;
 use crate::features::workspace_management::models::new_command_resolution::NewCommandResolution;
@@ -8,7 +8,7 @@ use crate::features::workspace_management::services::abstractions::workspace_wri
 use crate::features::workspace_management::services::input_resolution_service::InputResolutionService;
 use crate::features::workspace_management::services::namespace_resolver::NamespaceResolver;
 use crate::features::workspace_management::services::new_command_validator::NewCommandValidator;
-use crate::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
+use crate::features::workspace_management::services::generator_selection_for_new_service::GeneratorSelectionForNewService;
 use crate::features::workspace_management::services::workspace_blueprint_builder::WorkspaceBlueprintBuilder;
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
@@ -17,13 +17,13 @@ pub struct WorkspaceInitializationService<P, V, T, W, D, PS>
 where
     P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
-    T: TemplateCatalogDiscoveryService + Clone,
+    T: GeneratorCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
     PS: InteractivePrompt + Logger + Clone,
 {
     input_resolution_service: InputResolutionService<P, V>,
-    template_selection_service: TemplateSelectionForNewService<T, PS>,
+    generator_selection_service: GeneratorSelectionForNewService<T, PS>,
     workspace_blueprint_builder: WorkspaceBlueprintBuilder,
     namespace_resolver: NamespaceResolver,
     new_command_validator: NewCommandValidator<V>,
@@ -35,7 +35,7 @@ impl<P, V, T, W, D, PS> WorkspaceInitializationService<P, V, T, W, D, PS>
 where
     P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
-    T: TemplateCatalogDiscoveryService + Clone,
+    T: GeneratorCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
     PS: InteractivePrompt + Logger + Clone,
@@ -43,7 +43,7 @@ where
     pub fn new(
         prompt_service: P,
         workspace_name_validator: V,
-        template_selection_service: TemplateSelectionForNewService<T, PS>,
+        generator_selection_service: GeneratorSelectionForNewService<T, PS>,
         workspace_writer: W,
         working_directory_provider: D,
     ) -> Self {
@@ -53,7 +53,7 @@ where
 
         Self {
             input_resolution_service,
-            template_selection_service,
+            generator_selection_service,
             workspace_blueprint_builder: WorkspaceBlueprintBuilder::new(),
             namespace_resolver: NamespaceResolver::new(),
             new_command_validator,
@@ -71,10 +71,12 @@ where
         let workspace_name = self
             .input_resolution_service
             .resolve_workspace_name(&request)?;
-        let template_selection = self.template_selection_service.resolve_template_selection(
-            request.template_id.as_deref(),
-            !request.no_input && request.is_interactive_terminal,
-        )?;
+        let generator_selection = self
+            .generator_selection_service
+            .resolve_generator_selection(
+                request.generator_id.as_deref(),
+                !request.no_input && request.is_interactive_terminal,
+            )?;
 
         let namespace_base = self
             .namespace_resolver
@@ -87,11 +89,11 @@ where
 
         let resolution = NewCommandResolution {
             workspace_name: workspace_name.clone(),
-            template_id: format!(
+            generator_id: format!(
                 "{}/{}",
-                template_selection.source_name, template_selection.template.metadata.id
+                generator_selection.source_name, generator_selection.generator.metadata.id
             ),
-            template_cache_path: template_selection.template.cache_path.clone(),
+            generator_cache_path: generator_selection.generator.cache_path.clone(),
             namespace_base,
             output_path,
         };

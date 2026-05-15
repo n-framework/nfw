@@ -1,2 +1,2 @@
-pub mod template_management;
+pub mod generator_management;
 pub mod workspace_management;

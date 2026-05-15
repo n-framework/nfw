@@ -15,13 +15,13 @@ use crate::commands::r#gen::entity::GenEntityCliCommand;
 use crate::commands::r#gen::query::GenMediatorQueryCliCommand;
 use crate::commands::r#gen::registration::register as gen_registration;
 use crate::commands::r#gen::repository::handler::GenRepositoryCliCommand;
+use crate::commands::generators::add::AddSourceCliCommand;
+use crate::commands::generators::list::GeneratorsCliCommand;
+use crate::commands::generators::refresh::RefreshGeneratorsCliCommand;
+use crate::commands::generators::registration::register as generators_registration;
+use crate::commands::generators::remove::RemoveSourceCliCommand;
 use crate::commands::new::NewWorkspaceCliCommand;
 use crate::commands::new::registration::register as new_registration;
-use crate::commands::templates::add::AddSourceCliCommand;
-use crate::commands::templates::list::TemplatesCliCommand;
-use crate::commands::templates::refresh::RefreshTemplatesCliCommand;
-use crate::commands::templates::registration::register as templates_registration;
-use crate::commands::templates::remove::RemoveSourceCliCommand;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 
 const NFRAMEWORK_ASCII_BANNER: &str = r#"
@@ -36,7 +36,7 @@ pub fn build_nfw_cli_app_config() -> CliAppConfig {
             .with_about("NFramework CLI")
             .require_command()
             .with_command(new_registration())
-            .with_command(templates_registration())
+            .with_command(generators_registration())
             .with_command(check_registration())
             .with_command(add_registration())
             .with_command(gen_registration()),
@@ -59,10 +59,10 @@ pub fn build_nfw_cli_runtime(services: CliServiceCollection) -> CliRuntime<CliSe
         .register_handler("gen/entity", GenEntityCliCommand::handle)
         .register_handler("gen/query", GenMediatorQueryCliCommand::handle)
         .register_handler("gen/repository", GenRepositoryCliCommand::handle)
-        .register_handler("templates/list", TemplatesCliCommand::handle)
-        .register_handler("templates/add", AddSourceCliCommand::handle)
-        .register_handler("templates/remove", RemoveSourceCliCommand::handle)
-        .register_handler("templates/refresh", RefreshTemplatesCliCommand::handle)
+        .register_handler("generators/list", GeneratorsCliCommand::handle)
+        .register_handler("generators/add", AddSourceCliCommand::handle)
+        .register_handler("generators/remove", RemoveSourceCliCommand::handle)
+        .register_handler("generators/refresh", RefreshGeneratorsCliCommand::handle)
         .build()
 }
 

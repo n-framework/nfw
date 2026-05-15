@@ -2,7 +2,7 @@
 
 ## 1. Introduction / Overview
 
-The `nfw` CLI is the primary developer-facing tool for creating, managing, and validating NFramework workspaces and services. It serves as the entry point for all framework lifecycle operations, providing template-based project generation, code scaffolding, architecture validation, and local orchestration capabilities.
+The `nfw` CLI is the primary developer-facing tool for creating, managing, and validating NFramework workspaces and services. It serves as the entry point for all framework lifecycle operations, providing generator-based project generation, code scaffolding, architecture validation, and local orchestration capabilities.
 
 The CLI exists to eliminate manual project setup, enforce architectural standards through automation, and provide a consistent developer experience across the polyglot NFramework ecosystem. It transforms complex multi-project scaffolding into single-command operations while maintaining the strict layer boundaries and clean architecture principles that define NFramework services.
 
@@ -35,7 +35,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 ## 4. Target Users
 
 - **Enterprise Architects**: Need enforceable architectural standards across multiple teams.
-- **Tech Leads**: Want repeatable service templates and fewer framework decisions per project.
+- **Tech Leads**: Want repeatable service generators and fewer framework decisions per project.
 - **Application Developers**: Quickly scaffold services, entities, commands, and queries.
 - **Platform Engineers**: Need predictable scaffolding, local orchestration, and cloud-ready service defaults.
 - **DevOps Engineers**: Integrate CLI commands into CI/CD pipelines.
@@ -48,7 +48,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 3. **Actionable Errors**: Every failure must state what went wrong, why, and exactly how to fix it.
 4. **Idempotent Where Possible**: Rerunning commands should be safe and predictable.
 5. **CI-First Design**: All commands must work without interactive input for automation.
-6. **Opinionated Standards**: The CLI enforces NFramework conventions while allowing template-based customization.
+6. **Opinionated Standards**: The CLI enforces NFramework conventions while allowing generator-based customization.
 7. **Deterministic Generation**: Framework behavior such as registration and routing should be generated deterministically, not discovered at runtime.
 
 ## 6. Scope
@@ -57,8 +57,8 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 #### Core Commands
 
-- `nfw templates` — List available starter templates.
-- `nfw new [workspace-name] [--template <id>] [--no-input]` — Create new workspace.
+- `nfw generators` — List available starter generators.
+- `nfw new [workspace-name] [--generator <id>] [--no-input]` — Create new workspace.
 - `nfw add service <name> --lang <go|rust>` — Add service scaffold.
 - `nfw add entity <name> --props <properties>` — Generate entity class only.
 - `nfw add crud <entity-name>` — Generate full CRUD scaffolding (DTOs, commands, queries, handlers, repository contracts, endpoints) for an existing entity.
@@ -82,7 +82,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 - `nfw up` — Local orchestration.
 - `nfw sync` — Protobuf contract synchronization across languages.
-- Remote template catalogs.
+- Remote generator catalogs.
 - Workspace update and migration commands.
 - Advanced configuration and customization commands.
 
@@ -91,7 +91,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 - Graphical user interface for project generation.
 - Runtime service management beyond local development orchestration.
 - Custom language support outside the supported language set.
-- Template editor or builder CLI.
+- Generator editor or builder CLI.
 
 ## 7. User Stories
 
@@ -101,10 +101,10 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 **Acceptance Criteria:**
 
-- `nfw templates` lists available starter templates with identifiers and descriptions.
+- `nfw generators` lists available starter generators with identifiers and descriptions.
 - `nfw new [workspace-name]` creates a workspace root with the expected folders, solution files, and baseline configuration.
 - In an interactive terminal, `nfw new` prompts for any missing required input before generation starts.
-- `nfw new [workspace-name] --template <id> --no-input` selects a starter template without requiring interactive input.
+- `nfw new [workspace-name] --generator <id> --no-input` selects a starter generator without requiring interactive input.
 - The generated workspace can be built with one documented command.
 - The generated workspace test suite can be run with one documented command.
 
@@ -114,7 +114,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 **Acceptance Criteria:**
 
-- `nfw add service <name> --template <id>` creates the standard layer structure from the selected service template.
+- `nfw add service <name> --generator <id>` creates the standard layer structure from the selected service generator.
 - Generated projects reference only allowed dependencies for their layer.
 - The service compiles immediately after generation without manual file edits.
 - The scaffold includes sample health or readiness endpoints.
@@ -163,17 +163,17 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 - The CLI must provide version information.
 - The CLI must support configuration files for user preferences and workspace defaults.
 
-### FR-2: Template Listing
+### FR-2: Generator Listing
 
-- `nfw templates` must display all available starter templates with stable identifiers and descriptions.
-- Output must include template identifier, name, description, and supported languages.
-- Templates must be tagged by category (blank, minimal, full-featured).
+- `nfw generators` must display all available starter generators with stable identifiers and descriptions.
+- Output must include generator identifier, name, description, and supported languages.
+- Generators must be tagged by category (blank, minimal, full-featured).
 
 ### FR-3: Workspace Creation
 
 - `nfw new [workspace-name]` must create a valid NFramework workspace.
 - In an interactive terminal, missing required `nfw new` inputs must be collected through prompts before generation starts.
-- `--template <id>` must select a specific template without prompting for template choice.
+- `--generator <id>` must select a specific generator without prompting for generator choice.
 - `--no-input` must disable all interactive questions and require every remaining required input to be supplied explicitly.
 - The workspace must include: solution file, directory structure, configuration files, documentation.
 - The workspace must be immediately buildable with a single documented command.
@@ -182,7 +182,7 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 
 ### FR-4: Service Addition
 
-- `nfw add service <name> --template <id>` must generate a complete service scaffold.
+- `nfw add service <name> --generator <id>` must generate a complete service scaffold.
 - Generated projects must include the standard layer structure for the target language.
 - Each project must have correct references and allowed dependencies.
 - The service must compile immediately after generation.
@@ -293,10 +293,10 @@ The `nfw` CLI must solve these problems by providing fast, opinionated commands 
 ## 10. Command Reference
 
 ```text
-nfw templates [--lang <language>] [--category <category>]
-    List available starter templates
+nfw generators [--lang <language>] [--category <category>]
+    List available starter generators
 
-nfw new [workspace-name] [--template <id>] [--no-input] [--force]
+nfw new [workspace-name] [--generator <id>] [--no-input] [--force]
     Create a new NFramework workspace
 
 nfw add service <name> --lang <go|rust> [--force]
@@ -356,9 +356,9 @@ nfw --help
 
 ## 12. Design Considerations
 
-### Template System
+### Generator System
 
-Templates should be:
+Generators should be:
 
 - Versioned and independently updateable.
 - Discoverable through a local cache or remote catalog.
@@ -390,10 +390,10 @@ Generated code should be:
 
 ## 13. Open Questions
 
-1. What is the exact template format and composition model?
+1. What is the exact generator format and composition model?
 2. Should the CLI integrate with IDEs (VS Code, JetBrains, etc.)?
 3. How should the CLI handle workspace schema migrations between versions?
-4. What is the strategy for custom templates within an organization?
+4. What is the strategy for custom generators within an organization?
 
 ## 14. Success Metrics
 
@@ -409,7 +409,7 @@ Generated code should be:
 
 - NFramework domain and application abstractions for generated entities and workflows.
 - Source generators for language-specific registration and routing.
-- Template definitions — Workspace and service scaffolds.
+- Generator definitions — Workspace and service scaffolds.
 
 ### External
 

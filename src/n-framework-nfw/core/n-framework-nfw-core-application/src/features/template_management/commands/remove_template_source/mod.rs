@@ -1,2 +1,0 @@
-pub mod remove_template_source_command;
-pub mod remove_template_source_command_handler;

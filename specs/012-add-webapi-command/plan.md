@@ -5,19 +5,19 @@
 
 ## Summary
 
-Implement the `nfw add webapi` command within the Rust CLI to scaffold the Minimal API layer for an existing .NET service. This includes interactive service selection, template rendering for Minimal API configuration (CORS, health checks, OpenAPI, problem details), and updating the `nfw.yaml` configuration with full rollback capability and comment preservation on failure.
+Implement the `nfw add webapi` command within the Rust CLI to scaffold the Minimal API layer for an existing .NET service. This includes interactive service selection, generator rendering for Minimal API configuration (CORS, health checks, OpenAPI, problem details), and updating the `nfw.yaml` configuration with full rollback capability and comment preservation on failure.
 
 ## Technical Context
 
-**Language/Version**: Rust 1.85+ (CLI framework) and .NET 11 (Template output)
-**Primary Dependencies**: `clap`, `serde`, `serde_yaml` (with comment preservation support), `nfw-templates`
-**Storage**: File system (template reading, code generation, config modification)
+**Language/Version**: Rust 1.85+ (CLI framework) and .NET 11 (Generator output)
+**Primary Dependencies**: `clap`, `serde`, `serde_yaml` (with comment preservation support), `nfw-generators`
+**Storage**: File system (generator reading, code generation, config modification)
 **Testing**: `cargo test --workspace` (unit and integration tests)
 **Target Platform**: CLI (Linux, macOS, Windows)
 **Project Type**: CLI command
 **Performance Goals**: Command completes entirely in under 5 seconds (excluding interactive prompt time)
-**Constraints**: Must support full safe rollback on template rendering or file writing failure; must preserve YAML comments.
-**Scale/Scope**: New CLI subcommand with interactive prompt, multi-file template rendering, and configuration file modification.
+**Constraints**: Must support full safe rollback on generator rendering or file writing failure; must preserve YAML comments.
+**Scale/Scope**: New CLI subcommand with interactive prompt, multi-file generator rendering, and configuration file modification.
 
 ## Constitution Check
 
@@ -48,10 +48,10 @@ src/nfw/specs/012-add-webapi-cmd/
 ### Source Code (repository root)
 
 ```text
-src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/template_management/commands/
+src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/
 └── add_webapi/
     ├── add_webapi_command.rs         # The command payload
-    ├── add_webapi_command_handler.rs # App layer: fetches templates, renders them, updates nfw.yaml safely
+    ├── add_webapi_command_handler.rs # App layer: fetches generators, renders them, updates nfw.yaml safely
     └── mod.rs
 
 src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/
@@ -68,11 +68,11 @@ src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/startup/
 src/nfw/tests/integration/n-framework-nfw/features/artifact/
 └── webapi_add_test.rs      # Integration tests covering success and rollback
 
-src/nfw-templates/src/dotnet-service/
-└── webapi/                 # Templates for Minimal API, Swagger, HealthCheck, etc.
+src/nfw-generators/src/dotnet-service/
+└── webapi/                 # Generators for Minimal API, Swagger, HealthCheck, etc.
 ```
 
-**Structure Decision**: Extending the existing architecture. The presentation layer (`n-framework-nfw-cli`) will handle interactive prompts (`cliclack`), spinner states, and error formatting, mirroring `persistence` and `mediator`. It will delegate to the application layer (`n-framework-nfw-core-application`) which is responsible for resolving the template root, reading the workspace configuration (`nfw.yaml`), executing the template engine to render the `webapi` templates, and applying configuration updates with safe rollback on failure.
+**Structure Decision**: Extending the existing architecture. The presentation layer (`n-framework-nfw-cli`) will handle interactive prompts (`cliclack`), spinner states, and error formatting, mirroring `persistence` and `mediator`. It will delegate to the application layer (`n-framework-nfw-core-application`) which is responsible for resolving the generator root, reading the workspace configuration (`nfw.yaml`), executing the generator engine to render the `webapi` generators, and applying configuration updates with safe rollback on failure.
 
 ## Complexity Tracking
 

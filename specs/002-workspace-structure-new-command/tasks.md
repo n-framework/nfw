@@ -43,9 +43,9 @@
 
 ## Phase 3: User Story 1 - Create a New Workspace Baseline (Priority: P1) 🎯 MVP
 
-**Goal**: Generate a deterministic workspace with layered root, template-driven artifact generation, namespace conventions, and YAML baseline configs.
+**Goal**: Generate a deterministic workspace with layered root, generator-driven artifact generation, namespace conventions, and YAML baseline configs.
 
-**Independent Test**: `nfw new BillingPlatform --template official/blank-workspace --no-input` creates required structure (`src/`, `tests/`, `docs/`), template-defined artifacts, and YAML baseline configuration.
+**Independent Test**: `nfw new BillingPlatform --generator official/blank-workspace --no-input` creates required structure (`src/`, `tests/`, `docs/`), generator-defined artifacts, and YAML baseline configuration.
 
 ### Tests for User Story 1
 
@@ -56,8 +56,8 @@
 
 - [X] T013 [P] [US1] Implement workspace blueprint construction service in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/workspace_blueprint_builder.rs`
 - [X] T014 [P] [US1] Implement namespace resolution service in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/namespace_resolver.rs`
-- [X] T015 [US1] Implement filesystem workspace writer for layered root + template-content rendering in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/file_system_workspace_writer.rs`
-- [X] T016 [US1] Implement YAML baseline configuration via template-defined `nfw.yaml` content rendering in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/file_system_workspace_writer.rs`
+- [X] T015 [US1] Implement filesystem workspace writer for layered root + generator-content rendering in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/file_system_workspace_writer.rs`
+- [X] T016 [US1] Implement YAML baseline configuration via generator-defined `nfw.yaml` content rendering in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/workspace_management/services/file_system_workspace_writer.rs`
 - [X] T017 [US1] Implement workspace initialization orchestrator in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/workspace_initialization_service.rs`
 - [X] T018 [US1] Create `new` command application entrypoint in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/workspace/new_workspace.rs`
 
@@ -65,7 +65,7 @@
 
 ---
 
-## Phase 4: User Story 2 - Select Templates in Interactive and Non-Interactive Modes (Priority: P1)
+## Phase 4: User Story 2 - Select Generators in Interactive and Non-Interactive Modes (Priority: P1)
 
 **Goal**: Support prompt-based missing input collection in interactive terminals and strict `--no-input` behavior in automation.
 
@@ -80,7 +80,7 @@
 
 - [X] T021 [P] [US2] Implement interactive prompt abstraction + runtime adapter in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/interactive_prompt_service.rs`
 - [X] T022 [US2] Implement input resolution service (interactive vs non-interactive) in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/input_resolution_service.rs`
-- [X] T023 [US2] Integrate template selection and validation with template-management services in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/template_selection_for_new_service.rs`
+- [X] T023 [US2] Integrate generator selection and validation with generator-management services in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/generator_selection_for_new_service.rs`
 - [X] T024 [US2] Update `new_workspace` command flow to enforce `--no-input` no-prompt path in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/workspace/new_workspace.rs`
 
 **Checkpoint**: US2 works independently and preserves automation safety.
@@ -100,7 +100,7 @@
 
 ### Implementation for User Story 3
 
-- [X] T027 [US3] Extend CLI command spec with `new`, `--template`, and `--no-input` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
+- [X] T027 [US3] Extend CLI command spec with `new`, `--generator`, and `--no-input` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
 - [X] T028 [US3] Register `new` route handler in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs` and map to `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/workspace/new_workspace.rs`
 - [X] T029 [US3] Implement deterministic option-combination validation and actionable errors in `src/nframework-nfw/core/nframework-nfw-application/src/features/workspace_management/services/new_command_validator.rs`
 - [X] T030 [US3] Update CLI startup wiring for new command dependencies in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs` and `src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_bootstrapper.rs`

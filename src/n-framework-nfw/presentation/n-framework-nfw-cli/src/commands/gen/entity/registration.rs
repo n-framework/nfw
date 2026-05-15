@@ -2,7 +2,7 @@ use n_framework_core_cli_abstractions::{CliCommandSpec, CliOptionSpec};
 
 pub fn register() -> CliCommandSpec {
     CliCommandSpec::new("entity")
-        .with_about("Generate an entity with schema and template files")
+        .with_about("Generate an entity with schema and generator files")
         .with_option(
             CliOptionSpec::positional("name", 1)
                 .with_help("Entity name in PascalCase (e.g. Product, OrderItem)"),
@@ -25,7 +25,7 @@ pub fn register() -> CliCommandSpec {
         )
         .with_option(
             CliOptionSpec::new("schema-only", "schema-only")
-                .with_help("Only generate the schema YAML file, skip template execution")
+                .with_help("Only generate the schema YAML file, skip generator execution")
                 .flag(),
         )
         .with_option(

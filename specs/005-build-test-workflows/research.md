@@ -52,12 +52,12 @@
 
 **Rationale**: Smoke tests are fast and deterministic, suitable for PR gates. Benchmarks require consistent hardware for meaningful comparisons.
 
-## 5. Template Cache Management for Tests
+## 5. Generator Cache Management for Tests
 
 **Decision**:
 
-- Smoke tests use pre-populated template cache to avoid network-dependent timing
-- Unit tests mock template operations for fast feedback
+- Smoke tests use pre-populated generator cache to avoid network-dependent timing
+- Unit tests mock generator operations for fast feedback
 - Integration tests use real git clone but are clearly isolated and labeled
 
 **Rationale**: Network operations introduce variability and flakiness. Pre-populated cache ensures deterministic test execution. Unit tests with mocks provide fast feedback during development.
@@ -71,6 +71,6 @@
 | Benchmark format | JSON with timing, stats, environment metadata        |
 | CI smoke tests   | Run on every PR and merge                            |
 | CI benchmarks    | Run on merge to main only                            |
-| Template cache   | Pre-populated for smoke tests, mocked for unit tests |
+| Generator cache   | Pre-populated for smoke tests, mocked for unit tests |
 | Build command    | `make build` (consistent with repo conventions)      |
 | Test command     | `make test` (consistent with repo conventions)       |

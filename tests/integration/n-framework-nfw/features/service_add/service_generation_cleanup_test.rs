@@ -8,15 +8,15 @@ use n_framework_nfw_core_application::features::service_management::commands::ad
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use n_framework_nfw_core_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
-use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_renderer::ServiceTemplateRenderer;
+use n_framework_nfw_core_application::features::service_management::services::abstractions::service_generator_renderer::ServiceGeneratorRenderer;
 use n_framework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
-use n_framework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
+use n_framework_nfw_core_application::features::service_management::services::service_generator_provenance_service::ServiceGeneratorProvenanceService;
 use n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
 
 #[derive(Debug, Clone)]
 struct InterruptingRenderer;
 
-impl ServiceTemplateRenderer for InterruptingRenderer {
+impl ServiceGeneratorRenderer for InterruptingRenderer {
     fn render_service(&self, plan: &ServiceGenerationPlan) -> Result<(), AddServiceError> {
         fs::create_dir_all(&plan.output_root).expect("partial output should be created");
         fs::write(plan.output_root.join("partial.txt"), "partial")
@@ -40,16 +40,16 @@ impl ServiceTemplateRenderer for InterruptingRenderer {
 #[test]
 fn removes_partial_output_when_generation_fails_after_write_start() {
     let workspace_root = support::create_workspace_root("service-cleanup-render");
-    let broken_template_root = workspace_root.join("broken-template");
-    fs::create_dir_all(&broken_template_root).expect("broken template root should be created");
+    let broken_generator_root = workspace_root.join("broken-generator");
+    fs::create_dir_all(&broken_generator_root).expect("broken generator root should be created");
     fs::write(
-        broken_template_root.join("template.yaml"),
+        broken_generator_root.join("nfw.generator.yaml"),
         "id: dotnet-service\nname: Dotnet Service\ndescription: test\nversion: 1.0.0\ntype: service\n",
     )
-    .expect("template metadata should be written");
+    .expect("generator metadata should be written");
 
     let resolution =
-        support::create_template_resolution(&broken_template_root, "official", "dotnet-service");
+        support::create_generator_resolution(&broken_generator_root, "official", "dotnet-service");
     let orchestration = support::build_default_orchestration(&workspace_root, resolution);
 
     let error = support::execute_non_interactive_add_service(
@@ -57,7 +57,7 @@ fn removes_partial_output_when_generation_fails_after_write_start() {
         "Orders",
         "official/dotnet-service",
     )
-    .expect_err("render should fail for missing template content");
+    .expect_err("render should fail for missing generator content");
 
     match error {
         AddServiceError::RenderFailed(_) => {}
@@ -74,13 +74,13 @@ fn removes_partial_output_when_generation_fails_after_write_start() {
 #[test]
 fn removes_partial_output_when_generation_is_interrupted() {
     let workspace_root = support::create_workspace_root("service-cleanup-interrupt");
-    let template_root =
-        support::create_service_template(&workspace_root, "dotnet-service-template", "service");
+    let generator_root =
+        support::create_service_generator(&workspace_root, "dotnet-service-generator", "service");
     let resolution =
-        support::create_template_resolution(&template_root, "official", "dotnet-service");
+        support::create_generator_resolution(&generator_root, "official", "dotnet-service");
     let input_resolution = AddServiceInputResolutionService::new(
-        support::StaticTemplateSelector { resolution },
-        support::FirstTemplatePrompt,
+        support::StaticGeneratorSelector { resolution },
+        support::FirstGeneratorPrompt,
         support::FailingPromptService,
     );
     let orchestration = AddServiceCommandHandler::new(
@@ -89,7 +89,7 @@ fn removes_partial_output_when_generation_is_interrupted() {
         },
         input_resolution,
         InterruptingRenderer,
-        ServiceTemplateProvenanceService::new(WorkspaceMetadataWriter::new()),
+        ServiceGeneratorProvenanceService::new(WorkspaceMetadataWriter::new()),
     );
 
     let command = AddServiceCommand::new(

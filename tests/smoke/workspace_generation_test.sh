@@ -15,11 +15,11 @@ main() {
 	setup_test_dir
 	cd "$TEST_DIR"
 
-	local template_id="official/blank-workspace"
+	local generator_id="official/blank-workspace"
 
-	echo "Testing: nfw new TestWorkspace --template $template_id --no-input"
+	echo "Testing: nfw new TestWorkspace --generator $generator_id --no-input"
 
-	if nfw new TestWorkspace --template "$template_id" --no-input 2>&1; then
+	if nfw new TestWorkspace --generator "$generator_id" --no-input 2>&1; then
 		:
 	else
 		log_fail "nfw new command failed"

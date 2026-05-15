@@ -1,0 +1,94 @@
+use super::*;
+use crate::features::generator_management::models::generator_error::GeneratorError;
+use n_framework_nfw_core_domain::features::generator_management::generator_config::GeneratorConfig;
+use n_framework_nfw_core_domain::features::generator_management::generator_parameters::GeneratorParameters;
+use std::path::{Path, PathBuf};
+use tempfile;
+
+struct SandboxWorkingDir(PathBuf);
+impl WorkingDirectoryProvider for SandboxWorkingDir {
+    fn current_dir(&self) -> Result<PathBuf, String> {
+        Ok(self.0.clone())
+    }
+}
+
+struct MockEngine {
+    fail_execution: bool,
+}
+impl GeneratorEngine for MockEngine {
+    fn execute(
+        &self,
+        _config: &GeneratorConfig,
+        _root: &Path,
+        _output: &Path,
+        _params: &GeneratorParameters,
+    ) -> Result<(), GeneratorError> {
+        if self.fail_execution {
+            Err(GeneratorError::io("mock error", PathBuf::from("mock")))
+        } else {
+            Ok(())
+        }
+    }
+}
+
+#[test]
+fn handle_returns_error_when_engine_fails() {
+    let sandbox = tempfile::tempdir().unwrap();
+    let generator_dir = sandbox.path().join("my-generator");
+    let sub_generator_dir = generator_dir.join("persistence");
+    std::fs::create_dir_all(&sub_generator_dir).unwrap();
+
+    // ensure output root exists for FileTracker
+    std::fs::create_dir_all(sandbox.path().join("src/Svc1")).unwrap();
+
+    let generator_yaml = r#"
+id: my-generator
+generators:
+  persistence: "persistence"
+"#;
+    std::fs::write(generator_dir.join("nfw.generator.yaml"), generator_yaml).unwrap();
+    std::fs::write(sub_generator_dir.join("nfw.generator.yaml"), generator_yaml).unwrap();
+
+    struct LocalMockResolver(PathBuf);
+    impl GeneratorRootResolver for LocalMockResolver {
+        fn resolve(
+            &self,
+            _yaml: &serde_yaml::Value,
+            _id: &str,
+            _root: &Path,
+        ) -> Result<PathBuf, String> {
+            Ok(self.0.clone())
+        }
+    }
+
+    let handler = AddPersistenceCommandHandler::new(
+        SandboxWorkingDir(sandbox.path().to_path_buf()),
+        LocalMockResolver(generator_dir),
+        MockEngine {
+            fail_execution: true,
+        },
+    );
+
+    let nfw_yaml_path = sandbox.path().join("nfw.yaml");
+    std::fs::write(
+        &nfw_yaml_path,
+        "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    generator:\n      id: t1",
+    )
+    .unwrap();
+    let nfw_yaml = serde_yaml::from_str(&std::fs::read_to_string(&nfw_yaml_path).unwrap()).unwrap();
+
+    let cmd = AddPersistenceCommand::new(
+        ServiceInfo::new("Svc1".to_string(), "src/Svc1".to_string(), "t1".to_string()).unwrap(),
+        WorkspaceContext::new(
+            sandbox.path().to_path_buf(),
+            nfw_yaml,
+            n_framework_nfw_infrastructure_workspace_metadata::PreservedComments::default(),
+        )
+        .unwrap(),
+        "WebApi".to_string(),
+    )
+    .unwrap();
+
+    let result = handler.handle(&cmd);
+    assert!(matches!(result, Err(AddArtifactError::ExecutionFailed(_))));
+}

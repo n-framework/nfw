@@ -70,7 +70,7 @@ pub struct AddEntityCommand {
 
 /// Represents the type of entity being generated.
 ///
-/// Different entity types trigger different templates and add specific
+/// Different entity types trigger different generators and add specific
 /// metadata or base classes (e.g., Auditable, SoftDeletable).
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

@@ -6,7 +6,7 @@ use n_framework_nfw_core_application::features::workspace_management::models::ne
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
 use n_framework_nfw_core_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 use n_framework_nfw_infrastructure_filesystem::features::workspace_management::services::file_system_workspace_writer::FileSystemWorkspaceWriter;
-use n_framework_nfw_infrastructure_filesystem::features::template_management::template_engine::FileSystemTemplateEngine;
+use n_framework_nfw_infrastructure_filesystem::features::generator_management::generator_engine::FileSystemGeneratorEngine;
 
 const EXPECTED_NFW_YAML_PREFIX: &str = "\
 #    _  ______                                   __
@@ -20,18 +20,18 @@ const EXPECTED_NFW_YAML_PREFIX: &str = "\
 #[test]
 fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
     let sandbox_root = create_sandbox_directory("workspace-layout");
-    let template_root = create_template_directory(&sandbox_root);
+    let generator_root = create_generator_directory(&sandbox_root);
     let output_path = sandbox_root.join("BillingPlatform");
     let blueprint = WorkspaceBlueprint::new("BillingPlatform");
     let resolution = NewCommandResolution {
         workspace_name: "BillingPlatform".to_owned(),
-        template_id: "official/blank-workspace".to_owned(),
-        template_cache_path: template_root.clone(),
+        generator_id: "official/blank-workspace".to_owned(),
+        generator_cache_path: generator_root.clone(),
         namespace_base: "BillingPlatform".to_owned(),
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
+    let writer = FileSystemWorkspaceWriter::new(FileSystemGeneratorEngine::new());
     writer
         .write_workspace(&blueprint, &resolution)
         .expect("workspace generation should succeed");
@@ -60,7 +60,7 @@ fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
     assert_eq!(
         yaml,
         format!(
-            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  template: official/blank-workspace\n  namespace: BillingPlatform\n",
+            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  generator: official/blank-workspace\n  namespace: BillingPlatform\n",
             EXPECTED_NFW_YAML_PREFIX
         )
     );
@@ -71,7 +71,7 @@ fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
 #[test]
 fn fails_when_target_directory_already_exists_and_is_not_empty() {
     let sandbox_root = create_sandbox_directory("workspace-layout-non-empty");
-    let template_root = create_template_directory(&sandbox_root);
+    let generator_root = create_generator_directory(&sandbox_root);
     let output_path = sandbox_root.join("BillingPlatform");
     fs::create_dir_all(&output_path).expect("target directory should be created");
     fs::write(output_path.join("existing.txt"), "content").expect("seed file should be written");
@@ -79,13 +79,13 @@ fn fails_when_target_directory_already_exists_and_is_not_empty() {
     let blueprint = WorkspaceBlueprint::new("BillingPlatform");
     let resolution = NewCommandResolution {
         workspace_name: "BillingPlatform".to_owned(),
-        template_id: "official/blank-workspace".to_owned(),
-        template_cache_path: template_root,
+        generator_id: "official/blank-workspace".to_owned(),
+        generator_cache_path: generator_root,
         namespace_base: "BillingPlatform".to_owned(),
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
+    let writer = FileSystemWorkspaceWriter::new(FileSystemGeneratorEngine::new());
     let error = writer
         .write_workspace(&blueprint, &resolution)
         .expect_err("workspace generation should fail for non-empty target directory");
@@ -98,20 +98,20 @@ fn fails_when_target_directory_already_exists_and_is_not_empty() {
 }
 
 #[test]
-fn creates_nfw_yaml_when_template_does_not_provide_it() {
+fn creates_nfw_yaml_when_generator_does_not_provide_it() {
     let sandbox_root = create_sandbox_directory("workspace-layout-missing-yaml");
-    let template_root = create_template_directory_without_nfw_yaml(&sandbox_root);
+    let generator_root = create_generator_directory_without_nfw_yaml(&sandbox_root);
     let output_path = sandbox_root.join("BillingPlatform");
     let blueprint = WorkspaceBlueprint::new("BillingPlatform");
     let resolution = NewCommandResolution {
         workspace_name: "BillingPlatform".to_owned(),
-        template_id: "official/blank-workspace".to_owned(),
-        template_cache_path: template_root,
+        generator_id: "official/blank-workspace".to_owned(),
+        generator_cache_path: generator_root,
         namespace_base: "BillingPlatform".to_owned(),
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
+    let writer = FileSystemWorkspaceWriter::new(FileSystemGeneratorEngine::new());
     writer
         .write_workspace(&blueprint, &resolution)
         .expect("workspace generation should succeed");
@@ -121,7 +121,7 @@ fn creates_nfw_yaml_when_template_does_not_provide_it() {
     assert_eq!(
         yaml,
         format!(
-            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  template: official/blank-workspace\n  namespace: BillingPlatform\n",
+            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  generator: official/blank-workspace\n  namespace: BillingPlatform\n",
             EXPECTED_NFW_YAML_PREFIX
         )
     );
@@ -130,20 +130,20 @@ fn creates_nfw_yaml_when_template_does_not_provide_it() {
 }
 
 #[test]
-fn does_not_create_default_root_directories_when_template_omits_them() {
+fn does_not_create_default_root_directories_when_generator_omits_them() {
     let sandbox_root = create_sandbox_directory("workspace-layout-no-default-roots");
-    let template_root = create_template_directory_with_only_nfw_yaml(&sandbox_root);
+    let generator_root = create_generator_directory_with_only_nfw_yaml(&sandbox_root);
     let output_path = sandbox_root.join("BillingPlatform");
     let blueprint = WorkspaceBlueprint::new("BillingPlatform");
     let resolution = NewCommandResolution {
         workspace_name: "BillingPlatform".to_owned(),
-        template_id: "official/blank-workspace".to_owned(),
-        template_cache_path: template_root,
+        generator_id: "official/blank-workspace".to_owned(),
+        generator_cache_path: generator_root,
         namespace_base: "BillingPlatform".to_owned(),
         output_path: output_path.clone(),
     };
 
-    let writer = FileSystemWorkspaceWriter::new(FileSystemTemplateEngine::new());
+    let writer = FileSystemWorkspaceWriter::new(FileSystemGeneratorEngine::new());
     writer
         .write_workspace(&blueprint, &resolution)
         .expect("workspace generation should succeed");
@@ -170,71 +170,71 @@ fn cleanup_sandbox_directory(path: &Path) {
     let _ = fs::remove_dir_all(path);
 }
 
-fn create_template_directory(sandbox_root: &Path) -> PathBuf {
-    let template_root = sandbox_root.join("templates/official/src/blank-workspace");
-    let content_root = template_root.join("content");
+fn create_generator_directory(sandbox_root: &Path) -> PathBuf {
+    let generator_root = sandbox_root.join("generators/official/src/blank-workspace");
+    let content_root = generator_root.join("content");
 
     fs::create_dir_all(content_root.join("src/{{WorkspaceName}}"))
-        .expect("template source directory should be created");
+        .expect("generator source directory should be created");
     fs::create_dir_all(content_root.join("tests"))
-        .expect("template tests directory should be created");
+        .expect("generator tests directory should be created");
     fs::create_dir_all(content_root.join("docs"))
-        .expect("template docs directory should be created");
+        .expect("generator docs directory should be created");
 
     fs::write(
         content_root.join("workspace.manifest"),
         "workspace for {{WorkspaceName}}",
     )
-    .expect("template manifest should be written");
+    .expect("generator manifest should be written");
     fs::write(
         content_root.join("src/{{WorkspaceName}}/service.manifest"),
         "service for {{ServiceName}} in {{Namespace}}",
     )
-    .expect("template service manifest should be written");
+    .expect("generator service manifest should be written");
     fs::write(
         content_root.join("README.md"),
         "# {{WorkspaceName}}\nnamespace: {{Namespace}}\n",
     )
-    .expect("template readme should be written");
+    .expect("generator readme should be written");
     fs::write(
         content_root.join("nfw.yaml"),
-        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: {{WorkspaceName}}\n  template: official/blank-workspace\n  namespace: {{Namespace}}\n",
+        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: {{WorkspaceName}}\n  generator: official/blank-workspace\n  namespace: {{Namespace}}\n",
     )
-    .expect("template config should be written");
+    .expect("generator config should be written");
 
-    template_root
+    generator_root
 }
 
-fn create_template_directory_without_nfw_yaml(sandbox_root: &Path) -> PathBuf {
-    let template_root = sandbox_root.join("templates/official/src/blank-workspace-no-yaml");
-    let content_root = template_root.join("content");
+fn create_generator_directory_without_nfw_yaml(sandbox_root: &Path) -> PathBuf {
+    let generator_root = sandbox_root.join("generators/official/src/blank-workspace-no-yaml");
+    let content_root = generator_root.join("content");
 
     fs::create_dir_all(content_root.join("src/{{WorkspaceName}}"))
-        .expect("template source directory should be created");
+        .expect("generator source directory should be created");
     fs::create_dir_all(content_root.join("tests"))
-        .expect("template tests directory should be created");
+        .expect("generator tests directory should be created");
     fs::create_dir_all(content_root.join("docs"))
-        .expect("template docs directory should be created");
+        .expect("generator docs directory should be created");
 
     fs::write(
         content_root.join("workspace.manifest"),
         "workspace for {{WorkspaceName}}",
     )
-    .expect("template manifest should be written");
+    .expect("generator manifest should be written");
 
-    template_root
+    generator_root
 }
 
-fn create_template_directory_with_only_nfw_yaml(sandbox_root: &Path) -> PathBuf {
-    let template_root = sandbox_root.join("templates/official/src/blank-workspace-only-yaml");
-    let content_root = template_root.join("content");
+fn create_generator_directory_with_only_nfw_yaml(sandbox_root: &Path) -> PathBuf {
+    let generator_root = sandbox_root.join("generators/official/src/blank-workspace-only-yaml");
+    let content_root = generator_root.join("content");
 
-    fs::create_dir_all(&content_root).expect("template content directory should be created");
+    fs::create_dir_all(&content_root).expect("generator content directory should be created");
     fs::write(
         content_root.join("nfw.yaml"),
-        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: __WorkspaceName__\n  template: official/blank-workspace\n  namespace: __Namespace__\n",
+        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: __WorkspaceName__\n  generator: official/blank-workspace\n  namespace: __Namespace__\n",
     )
-    .expect("template config should be written");
+    .expect("generator config should be written");
 
-    template_root
+    generator_root
 }

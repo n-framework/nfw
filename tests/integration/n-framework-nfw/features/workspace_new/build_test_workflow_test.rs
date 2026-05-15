@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-const TEMPLATE_ID: &str = "official/blank-workspace";
+const GENERATOR_ID: &str = "official/blank-workspace";
 
 fn create_sandbox_directory(name: &str) -> PathBuf {
     let tmp_dir = std::env::temp_dir().join(format!("nfw-test-{}", name));
@@ -41,13 +41,13 @@ fn run_cli_command(cmd: &str, args: &[&str], cwd: &PathBuf) -> std::process::Out
         })
 }
 
-// Note: Removed unused create_template_directory function (G9 - Remove Dead Code)
+// Note: Removed unused create_generator_directory function (G9 - Remove Dead Code)
 
 /// Tests that a generated workspace can be built with a single command.
 ///
 /// This validates FR-001 from spec 005-build-test-workflows: "Generated workspaces must build with a single command."
 /// The test:
-/// 1. Creates a workspace using `nfw new` with the blank-workspace template
+/// 1. Creates a workspace using `nfw new` with the blank-workspace generator
 /// 2. Runs `make build` in the generated workspace
 /// 3. Asserts the build succeeds (exit code 0)
 ///
@@ -64,8 +64,8 @@ fn test_build_workflow_succeeds_on_generated_workspace() {
         &[
             "new",
             "TestWorkspace",
-            "--template",
-            TEMPLATE_ID,
+            "--generator",
+            GENERATOR_ID,
             "--no-input",
         ],
         &sandbox_root,
@@ -106,7 +106,7 @@ fn test_build_workflow_succeeds_on_generated_workspace() {
 ///
 /// This validates FR-002 from spec 005-build-test-workflows: "Generated workspaces must test with a single command."
 /// The test:
-/// 1. Creates a workspace using `nfw new` with the blank-workspace template
+/// 1. Creates a workspace using `nfw new` with the blank-workspace generator
 /// 2. Runs `make test` in the generated workspace
 /// 3. Asserts the test run succeeds (exit code 0)
 ///
@@ -123,8 +123,8 @@ fn test_test_workflow_succeeds_on_generated_workspace() {
         &[
             "new",
             "TestWorkspace",
-            "--template",
-            TEMPLATE_ID,
+            "--generator",
+            GENERATOR_ID,
             "--no-input",
         ],
         &sandbox_root,
@@ -183,8 +183,8 @@ fn test_build_failure_identifies_failing_project() {
         &[
             "new",
             "TestWorkspace",
-            "--template",
-            TEMPLATE_ID,
+            "--generator",
+            GENERATOR_ID,
             "--no-input",
         ],
         &sandbox_root,

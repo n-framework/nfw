@@ -5,7 +5,7 @@
 
 ## Summary
 
-Implement CLI smoke tests for template selection, workspace generation, and service scaffolding; define single-command build and test workflows for generated workspaces; and create a benchmark harness validating the <1 second performance target for workspace + service creation on baseline hardware.
+Implement CLI smoke tests for generator selection, workspace generation, and service scaffolding; define single-command build and test workflows for generated workspaces; and create a benchmark harness validating the <1 second performance target for workspace + service creation on baseline hardware.
 
 ## Technical Context
 
@@ -43,7 +43,7 @@ Research questions resolved in [research.md](./research.md):
 2. Benchmark harness design (shell script wrapper with JSON output)
 3. Machine-readable benchmark output format (JSON with timing, stats, environment metadata)
 4. CI integration for smoke tests and benchmarks (PR gates vs main-only)
-5. Template cache management for tests (pre-populated for smoke tests, mocked for unit tests)
+5. Generator cache management for tests (pre-populated for smoke tests, mocked for unit tests)
 
 Outcome: all identified ambiguities resolved and encoded as implementation decisions.
 
@@ -80,7 +80,7 @@ src/nfw/specs/005-build-test-workflows/
 src/nfw/
 ├── tests/
 │   ├── smoke/
-│   │   ├── template_selection_test.sh
+│   │   ├── generator_selection_test.sh
 │   │   ├── workspace_generation_test.sh
 │   │   └── service_scaffolding_test.sh
 │   ├── integration/
@@ -117,7 +117,7 @@ src/nfw/
 Expected task decomposition themes:
 
 1. Smoke test infrastructure setup (temp directories, cleanup, isolation)
-2. Template selection smoke tests (interactive and non-interactive modes)
+2. Generator selection smoke tests (interactive and non-interactive modes)
 3. Workspace generation smoke tests (structure validation, YAML config)
 4. Service scaffolding smoke tests (layer structure, compilability)
 5. Single-command build workflow definition and validation

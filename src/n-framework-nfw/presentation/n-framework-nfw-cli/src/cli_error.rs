@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
+use n_framework_nfw_core_application::features::generator_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use n_framework_nfw_core_domain::features::entity_generation::errors::entity_generation_error::EntityGenerationError;
 

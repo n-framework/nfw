@@ -55,8 +55,8 @@ pub enum EntityGenerationError {
     #[error("entity specs path '{path}' exists but is not a directory")]
     SpecsPathNotDirectory { path: PathBuf },
 
-    #[error("template execution failed: {reason}")]
-    TemplateExecutionError { reason: String },
+    #[error("generator execution failed: {reason}")]
+    GeneratorExecutionError { reason: String },
 
     #[error("interactive prompt failed: {reason}")]
     PromptError { reason: String },

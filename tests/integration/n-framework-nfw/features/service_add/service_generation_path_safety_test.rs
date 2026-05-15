@@ -16,18 +16,18 @@ fn rejects_rendered_paths_that_escape_service_output_root() {
     )
     .expect("workspace metadata should be written");
 
-    let template_root =
-        support::create_service_template(&workspace_root, "dotnet-service-template", "service");
-    fs::create_dir_all(template_root.join("service/content/{{WorkspaceName}}"))
+    let generator_root =
+        support::create_service_generator(&workspace_root, "dotnet-service-generator", "service");
+    fs::create_dir_all(generator_root.join("service/content/{{WorkspaceName}}"))
         .expect("malicious placeholder directory should be created");
     fs::write(
-        template_root.join("service/content/{{WorkspaceName}}/payload.txt"),
+        generator_root.join("service/content/{{WorkspaceName}}/payload.txt"),
         "unsafe path payload",
     )
     .expect("malicious placeholder file should be written");
 
     let resolution =
-        support::create_template_resolution(&template_root, "official", "dotnet-service");
+        support::create_generator_resolution(&generator_root, "official", "dotnet-service");
     let orchestration = support::build_default_orchestration(&workspace_root, resolution);
 
     let error = support::execute_non_interactive_add_service(

@@ -13,9 +13,9 @@
   - MUST match existing standard HTTP verbs (Get, Post, Put, Delete).
   - MUST find the file `Application/Features/{feature}/{name}.cs` that represents the request.
 
-### 2. Generator Template Payload
+### 2. Generator Generator Payload
 
-- **Fields sent to Template Engine**:
+- **Fields sent to Generator Engine**:
   - `operation_type`: (String) e.g. "Get"
   - `name`: (String) e.g. "GetInventoryItem"
   - `feature`: (String) e.g. "Inventory"

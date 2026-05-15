@@ -12,7 +12,7 @@ Select the target service from the interactive prompt. The CLI will generate the
 
 ## Adding via Automation
 
-For CI/CD or template scripts, pass the service name and disable inputs:
+For CI/CD or generator scripts, pass the service name and disable inputs:
 
 ```bash
 nfw add webapi --service Catalog --no-input
@@ -20,4 +20,4 @@ nfw add webapi --service Catalog --no-input
 
 ## Rollback Guarantee
 
-If the generation process encounters any error (e.g., missing template, file permission issue), all generated files are safely cleaned up and your `nfw.yaml` is restored to its original state, including all comments.
+If the generation process encounters any error (e.g., missing generator, file permission issue), all generated files are safely cleaned up and your `nfw.yaml` is restored to its original state, including all comments.

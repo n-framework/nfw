@@ -38,26 +38,26 @@ workspace:
 services:
   TestService:
     path: src/TestService
-    template:
+    generator:
       id: dotnet-service
-template_sources:
-  local: "templates"
+generator_sources:
+  local: "generators"
 "#,
     )
     .expect("failed to write nfw.yaml");
 
-    let root_tpl_dir = sandbox.join("templates").join("dotnet-service");
-    fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
+    let root_tpl_dir = sandbox.join("generators").join("dotnet-service");
+    fs::create_dir_all(&root_tpl_dir).expect("failed to create root generator dir");
     fs::write(
-        root_tpl_dir.join("template.yaml"),
+        root_tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  webapi: webapi\n",
     )
-    .expect("failed to write root template.yaml");
+    .expect("failed to write root generator.yaml");
 
     let tpl_dir = root_tpl_dir.join("webapi");
-    fs::create_dir_all(&tpl_dir).expect("failed to create sub-template dir");
+    fs::create_dir_all(&tpl_dir).expect("failed to create sub-generator dir");
     fs::write(
-        tpl_dir.join("template.yaml"),
+        tpl_dir.join("nfw.generator.yaml"),
         r#"
 id: dotnet-service/webapi
 steps:
@@ -66,7 +66,7 @@ steps:
     destination: "Program.cs"
 "#,
     )
-    .expect("failed to write sub-template template.yaml");
+    .expect("failed to write sub-generator generator.yaml");
     fs::write(
         tpl_dir.join("Program.cs.tera"),
         "// Program.cs for {{ Name }}",
@@ -77,7 +77,7 @@ steps:
 }
 
 #[test]
-fn given_valid_service_when_add_webapi_then_updates_yaml_and_renders_template() {
+fn given_valid_service_when_add_webapi_then_updates_yaml_and_renders_generator() {
     let sandbox = support::create_sandbox_directory("add-webapi-integration");
     setup_webapi_workspace(&sandbox);
 
@@ -120,11 +120,11 @@ fn given_valid_service_when_add_webapi_then_updates_yaml_and_renders_template() 
 }
 
 #[test]
-fn given_template_execution_fails_when_add_webapi_then_rolls_back_yaml() {
+fn given_generator_execution_fails_when_add_webapi_then_rolls_back_yaml() {
     let sandbox = support::create_sandbox_directory("add-webapi-rollback");
     setup_webapi_workspace(&sandbox);
 
-    let tpl_yaml_path = sandbox.join("templates/dotnet-service/webapi/template.yaml");
+    let tpl_yaml_path = sandbox.join("generators/dotnet-service/webapi/nfw.generator.yaml");
     fs::write(
         tpl_yaml_path,
         r#"
@@ -151,7 +151,7 @@ steps:
 
     assert!(
         result.is_err(),
-        "Expected error due to missing template source"
+        "Expected error due to missing generator source"
     );
 
     let nfw_yaml_content = fs::read_to_string(sandbox.join("nfw.yaml")).unwrap();
@@ -212,18 +212,18 @@ services:
   # Service block comment
   TestService:
     path: src/TestService
-    template:
+    generator:
       id: dotnet-service
-template_sources:
-  local: "templates"
+generator_sources:
+  local: "generators"
 "#,
     )
     .expect("failed to write nfw.yaml");
 
-    let root_tpl_dir = sandbox.join("templates").join("dotnet-service");
+    let root_tpl_dir = sandbox.join("generators").join("dotnet-service");
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
-        root_tpl_dir.join("template.yaml"),
+        root_tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  webapi: webapi\n",
     )
     .unwrap();
@@ -231,7 +231,7 @@ template_sources:
     let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
-        tpl_dir.join("template.yaml"),
+        tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service/webapi\nsteps: []",
     )
     .unwrap();
@@ -287,20 +287,20 @@ workspace:
 services:
   TestService:
     path: src/TestService
-    template:
+    generator:
       id: dotnet-service
     modules:
       - webapi
-template_sources:
-  local: "templates"
+generator_sources:
+  local: "generators"
 "#,
     )
     .expect("failed to write nfw.yaml");
 
-    let root_tpl_dir = sandbox.join("templates").join("dotnet-service");
+    let root_tpl_dir = sandbox.join("generators").join("dotnet-service");
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
-        root_tpl_dir.join("template.yaml"),
+        root_tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  webapi: webapi\n",
     )
     .unwrap();
@@ -308,7 +308,7 @@ template_sources:
     let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
-        tpl_dir.join("template.yaml"),
+        tpl_dir.join("nfw.generator.yaml"),
         r#"
 id: dotnet-service/webapi
 steps:

@@ -2,11 +2,11 @@ use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption}
 use crate::cli_error::CliError;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command::AddMediatorCommand;
-use n_framework_nfw_core_application::features::template_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
-pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
-use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
-use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
+use n_framework_nfw_core_application::features::generator_management::commands::add_mediator::add_mediator_command::AddMediatorCommand;
+use n_framework_nfw_core_application::features::generator_management::commands::add_mediator::add_mediator_command_handler::AddMediatorCommandHandler;
+pub use n_framework_nfw_core_application::features::generator_management::models::errors::add_artifact_error::AddArtifactError;
+use n_framework_nfw_core_application::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
+use n_framework_nfw_core_application::features::generator_management::services::generator_engine::GeneratorEngine;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use crate::utils::generate_error_id;
 
@@ -25,8 +25,8 @@ pub struct AddMediatorRequest<'a> {
 impl<W, R, E, P> AddMediatorCliCommand<W, R, E, P>
 where
     W: WorkingDirectoryProvider,
-    R: TemplateRootResolver,
-    E: TemplateEngine,
+    R: GeneratorRootResolver,
+    E: GeneratorEngine,
     P: InteractivePrompt + Logger,
 {
     pub fn new(handler: AddMediatorCommandHandler<W, R, E>, prompt: P) -> Self {

@@ -75,7 +75,7 @@
 
 ### EntityGenerationParameters
 
-**Purpose**: Template rendering parameters passed to template engine
+**Purpose**: Generator rendering parameters passed to generator engine
 
 **Fields**:
 
@@ -84,19 +84,19 @@
 | entity_name | `String` | Name of entity (PascalCase) |
 | namespace | `String` | Target namespace for generated code |
 | id_type | `GeneralType` | ID type as general type |
-| id_type_cli | `String` | ID type as CLI syntax (for template) |
-| properties | `Vec<PropertyTemplate>` | Properties for template rendering |
+| id_type_cli | `String` | ID type as CLI syntax (for generator) |
+| properties | `Vec<PropertyGenerator>` | Properties for generator rendering |
 | base_class | `String` | Selected base class name |
 | service_name | `String` | Target service name |
 | service_path | `PathBuf` | File system path to service |
 
-**Lifecycle**: Created by handler from validated command, passed to template engine
+**Lifecycle**: Created by handler from validated command, passed to generator engine
 
 ---
 
-### PropertyTemplate
+### PropertyGenerator
 
-**Purpose**: Property representation for template rendering
+**Purpose**: Property representation for generator rendering
 
 **Fields**:
 
@@ -194,7 +194,7 @@ validations:
 | SchemaFileNotFound | --from-schema but file missing | 1 |
 | InvalidSchemaYaml | Schema file has invalid YAML | 1 |
 | SchemaWriteError | Cannot write schema file | 1 |
-| TemplateExecutionFailed | Template engine failure | 1 |
+| GeneratorExecutionFailed | Generator engine failure | 1 |
 | DomainLayerNotFound | Domain layer missing | 1 |
 | EntityAlreadyExists | Entity file already exists | 1 |
 | PermissionDenied | Cannot write to directory | 1 |
@@ -266,7 +266,7 @@ EntitySchema
     ↓
 [Generate Schema File] ←──┐
     ↓                      │
-[Invoke Template Engine]    │
+[Invoke Generator Engine]    │
     ↓                      │
 [Write Entity Code]         │
     ↓                      │
@@ -286,7 +286,7 @@ EntitySchema
     ↓
 [Create EntityGenerationParameters]
     ↓
-[Invoke Template Engine]
+[Invoke Generator Engine]
     ↓
 [Write Entity Code]
 ```

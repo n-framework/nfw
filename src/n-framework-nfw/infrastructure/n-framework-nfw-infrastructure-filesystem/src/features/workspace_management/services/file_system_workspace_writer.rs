@@ -1,12 +1,12 @@
+mod generator_copy;
 mod metadata_support;
 mod render_support;
-mod template_copy;
 
-use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
+use n_framework_nfw_core_application::features::generator_management::services::generator_engine::GeneratorEngine;
 use n_framework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
-use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
-use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
+use n_framework_nfw_core_domain::features::generator_management::generator_config::GeneratorConfig;
+use n_framework_nfw_core_domain::features::generator_management::generator_parameters::GeneratorParameters;
 use n_framework_nfw_core_domain::features::workspace_management::workspace_blueprint::WorkspaceBlueprint;
 use std::fs;
 use std::path::Path;
@@ -16,14 +16,14 @@ use crate::features::workspace_management::services::file_system_workspace_write
     normalize_workspace_metadata_file,
 };
 use crate::features::workspace_management::services::file_system_workspace_writer::render_support::stable_project_guid;
-use crate::features::workspace_management::services::file_system_workspace_writer::template_copy::copy_template_content;
+use crate::features::workspace_management::services::file_system_workspace_writer::generator_copy::copy_generator_content;
 
 #[derive(Debug, Clone)]
-pub struct FileSystemWorkspaceWriter<E: TemplateEngine> {
+pub struct FileSystemWorkspaceWriter<E: GeneratorEngine> {
     engine: E,
 }
 
-impl<E: TemplateEngine> FileSystemWorkspaceWriter<E> {
+impl<E: GeneratorEngine> FileSystemWorkspaceWriter<E> {
     pub fn new(engine: E) -> Self {
         Self { engine }
     }
@@ -51,7 +51,7 @@ impl<E: TemplateEngine> FileSystemWorkspaceWriter<E> {
     }
 }
 
-impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
+impl<E: GeneratorEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
     fn write_workspace(
         &self,
         _blueprint: &WorkspaceBlueprint,
@@ -66,21 +66,21 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
             )
         })?;
 
-        // Check for tiered template structure
-        let tiered_root = resolution.template_cache_path.join("new");
-        let template_config_path = tiered_root.join("template.yaml");
+        // Check for tiered generator structure
+        let tiered_root = resolution.generator_cache_path.join("new");
+        let generator_config_path = tiered_root.join("nfw.generator.yaml");
 
-        if template_config_path.is_file() {
-            let config_content = fs::read_to_string(&template_config_path).map_err(|e| {
+        if generator_config_path.is_file() {
+            let config_content = fs::read_to_string(&generator_config_path).map_err(|e| {
                 format!(
-                    "failed to read tiered template config at {}: {e}",
-                    template_config_path.display()
+                    "failed to read tiered generator config at {}: {e}",
+                    generator_config_path.display()
                 )
             })?;
-            let config: TemplateConfig = serde_yaml::from_str(&config_content)
-                .map_err(|e| format!("failed to parse tiered template config: {e}"))?;
+            let config: GeneratorConfig = serde_yaml::from_str(&config_content)
+                .map_err(|e| format!("failed to parse tiered generator config: {e}"))?;
 
-            let parameters = TemplateParameters::new()
+            let parameters = GeneratorParameters::new()
                 .with_name(&resolution.workspace_name)
                 .map_err(|e| e.to_string())?
                 .with_namespace(&resolution.namespace_base)
@@ -89,17 +89,17 @@ impl<E: TemplateEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
             let mut parameters = parameters;
             let _ = parameters.insert("WorkspaceName", &resolution.workspace_name);
 
-            // Note: ProjectGuid is typically used in C# templates, providing it for compatibility
+            // Note: ProjectGuid is typically used in C# generators, providing it for compatibility
             let project_guid =
-                stable_project_guid(&resolution.workspace_name, &resolution.template_id);
+                stable_project_guid(&resolution.workspace_name, &resolution.generator_id);
             let _ = parameters.insert("ProjectGuid", project_guid);
 
             self.engine
                 .execute(&config, &tiered_root, &resolution.output_path, &parameters)
                 .map_err(|e| e.to_string())?;
         } else {
-            copy_template_content(
-                &resolution.template_cache_path,
+            copy_generator_content(
+                &resolution.generator_cache_path,
                 &resolution.output_path,
                 resolution,
             )?;

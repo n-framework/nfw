@@ -9,13 +9,13 @@ Represents canonical generated workspace structure constraints and required arti
 - `root_directories` (set): Required directories at root (`src`, `tests`, `docs`)
 - `baseline_config_files` (list): Required YAML config files with canonical locations
 - `documentation_files` (list): Minimum generated docs (build/test quickstart pointers)
-- `template_artifact_policy` (object): Template-driven artifact generation and placeholder rendering policy
+- `generator_artifact_policy` (object): Generator-driven artifact generation and placeholder rendering policy
 
 ### WorkspaceBlueprint Validation Rules
 
 - Root directories must all exist after generation
 - Baseline config files must be YAML
-- Artifact generation must come from selected template content after placeholder rendering
+- Artifact generation must come from selected generator content after placeholder rendering
 
 ## Entity: NamespaceConvention
 
@@ -40,7 +40,7 @@ Normalized command input after parsing.
 ### NewCommandRequest Fields
 
 - `workspace_name` (string, required)
-- `template_id` (string, optional)
+- `generator_id` (string, optional)
 - `no_input` (boolean)
 - `is_interactive_terminal` (boolean)
 - `provided_values` (map)
@@ -53,19 +53,19 @@ Normalized command input after parsing.
 
 ## Entity: NewCommandResolution
 
-Resolved generation inputs after defaults, prompt answers, and template lookup.
+Resolved generation inputs after defaults, prompt answers, and generator lookup.
 
 ### NewCommandResolution Fields
 
 - `workspace_name` (string)
-- `template_id` (string)
-- `template_cache_path` (path)
+- `generator_id` (string)
+- `generator_cache_path` (path)
 - `namespace_base` (string)
 - `output_path` (path)
 
 ### NewCommandResolution Validation Rules
 
-- Template must exist and be selectable
+- Generator must exist and be selectable
 - Resolution must be complete before filesystem writes
 - Output path must not be a non-empty existing directory
 
@@ -91,13 +91,13 @@ Deterministic routing map from parsed CLI input to handler behavior.
 
 1. `Parsed` -> CLI input parsed into `NewCommandRequest`
 2. `Validated` -> request-level validation complete
-3. `Resolved` -> prompt/default/template resolution complete
+3. `Resolved` -> prompt/default/generator resolution complete
 4. `Generated` -> workspace artifacts written
 5. `Completed` -> success result emitted
 
 Failure transitions:
 
-- `Parsed` -> `FailedValidation` (invalid flags/name/template id shape)
+- `Parsed` -> `FailedValidation` (invalid flags/name/generator id shape)
 - `Resolved` -> `FailedPrecondition` (non-empty target directory)
 - `Generated` -> `FailedRuntime` (filesystem/config write error)
 

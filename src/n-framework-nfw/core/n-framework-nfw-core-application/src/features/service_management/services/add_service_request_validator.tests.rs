@@ -3,16 +3,16 @@ use crate::features::service_management::models::add_service_command_request::Ad
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 
 #[test]
-fn rejects_missing_template_in_non_interactive_mode() {
+fn rejects_missing_generator_in_non_interactive_mode() {
     let validator = AddServiceRequestValidator::new();
     let request = AddServiceCommandRequest::new(Some("Orders".to_owned()), None, true, false);
 
     let error = validator
         .validate_request(&request)
-        .expect_err("missing template should fail in non-interactive mode");
+        .expect_err("missing generator should fail in non-interactive mode");
     assert_eq!(
         error,
-        AddServiceError::MissingRequiredInput("template".to_owned())
+        AddServiceError::MissingRequiredInput("generator".to_owned())
     );
 }
 

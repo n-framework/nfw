@@ -25,7 +25,7 @@
 **Validation Rules**:
 
 - Service must exist in workspace
-- Service must have a valid template configuration
+- Service must have a valid generator configuration
 - Workspace must have valid nfw.yaml
 
 ---
@@ -38,8 +38,8 @@
 
 - `ArtifactGenerationService<W, R, E>` - Core workflow service
 - `WorkingDirectoryProvider` - File system operations
-- `TemplateRootResolver` - Template resolution
-- `TemplateEngine` - Template execution
+- `GeneratorRootResolver` - Generator resolution
+- `GeneratorEngine` - Generator execution
 
 **Key Operations**:
 
@@ -63,8 +63,8 @@
 **Generic Parameters**: `<W, R, E, P>` where:
 
 - `W: WorkingDirectoryProvider`
-- `R: TemplateRootResolver`
-- `E: TemplateEngine`
+- `R: GeneratorRootResolver`
+- `E: GeneratorEngine`
 - `P: InteractivePrompt + Logger`
 
 **Input Structure**:
@@ -111,7 +111,7 @@ pub struct AddPersistenceRequest<'a> {
 |-------|------|-------------|
 | `name` | `String` | Service identifier |
 | `path` | `String` | Relative path from workspace root |
-| `template_id` | `String` | Template identifier (e.g., "dotnet-service") |
+| `generator_id` | `String` | Generator identifier (e.g., "dotnet-service") |
 
 **Source**: Parsed from `nfw.yaml` services mapping.
 
@@ -147,7 +147,7 @@ pub struct AddPersistenceRequest<'a> {
 
 ### AddArtifactContext
 
-**Purpose**: Execution context for template generation.
+**Purpose**: Execution context for generator generation.
 
 **Fields**:
 
@@ -156,20 +156,20 @@ pub struct AddPersistenceRequest<'a> {
 | `workspace_root` | `PathBuf` | Workspace root path |
 | `nfw_yaml` | `YamlValue` | Workspace configuration |
 | `preserved_comments` | `PreservedComments` | YAML comment metadata |
-| `template_root` | `PathBuf` | Path to persistence template directory |
-| `config` | `TemplateConfig` | Parsed template.yaml |
+| `generator_root` | `PathBuf` | Path to persistence generator directory |
+| `config` | `GeneratorConfig` | Parsed generator.yaml |
 | `service_name` | `String` | Target service name |
 | `service_path` | `PathBuf` | Service directory path |
 
-**Creation**: Built by `ArtifactGenerationService::load_template_context()`.
+**Creation**: Built by `ArtifactGenerationService::load_generator_context()`.
 
-**Usage**: Passed to `TemplateEngine::execute()` for rendering.
+**Usage**: Passed to `GeneratorEngine::execute()` for rendering.
 
 ---
 
-### TemplateParameters
+### GeneratorParameters
 
-**Purpose**: Value object passed to templates for variable substitution.
+**Purpose**: Value object passed to generators for variable substitution.
 
 **Standard Parameters** (always included):
 
@@ -179,14 +179,14 @@ pub struct AddPersistenceRequest<'a> {
 | `Namespace` | String | Workspace namespace |
 | `Service` | String | Service name |
 
-**Optional Parameters** (via `--params` or template config):
+**Optional Parameters** (via `--params` or generator config):
 
-- Custom key-value pairs for template-specific needs
+- Custom key-value pairs for generator-specific needs
 
 **Builder Pattern**:
 
 ```rust
-TemplateParameters::new()
+GeneratorParameters::new()
     .with_name("MyService")?
     .with_namespace("MyApp")?
     .with_service("MyService")?
@@ -231,7 +231,7 @@ TemplateParameters::new()
           │
           ▼
 ┌──────────────────┐
-│ Execute templates │
+│ Execute generators │
 │ (write files)     │
 └────────┬──────────┘
           │
@@ -258,10 +258,10 @@ AddArtifactError
 ├── InvalidIdentifier          // Name validation failures
 ├── WorkspaceError             // Workspace-level issues
 ├── ConfigError                // Configuration problems
-├── TemplateNotFound           // Template resolution failures
+├── GeneratorNotFound           // Generator resolution failures
 ├── InvalidParameter           // Parameter validation errors
-├── ExecutionFailed            // Template execution errors
-│   └── TemplateError          // Underlying template errors
+├── ExecutionFailed            // Generator execution errors
+│   └── GeneratorError          // Underlying generator errors
 ├── MissingRequiredModule      // Dependency check failures
 ├── NfwYamlReadError           // File read errors
 ├── NfwYamlParseError          // YAML parsing errors
@@ -270,7 +270,7 @@ AddArtifactError
 
 **Error Propagation**:
 
-- Template errors wrapped in `ExecutionFailed`
+- Generator errors wrapped in `ExecutionFailed`
 - File system errors mapped to specific YAML errors
 - All errors surface to user with actionable messages
 
@@ -298,7 +298,7 @@ ArtifactGenerationService (infrastructure)
          └──► loads → WorkspaceContext
          └──► loads → ServiceInfo
          └──► loads → AddArtifactContext
-         └──► builds → TemplateParameters
+         └──► builds → GeneratorParameters
          └──► modifies → nfw.yaml
 ```
 
@@ -327,7 +327,7 @@ ArtifactGenerationService (infrastructure)
 
 **Allowed Values**: `["mediator", "persistence", ...]`
 
-**Validation**: Module must exist as a template in the configured template sources.
+**Validation**: Module must exist as a generator in the configured generator sources.
 
 ### Namespace Validation
 
@@ -359,20 +359,20 @@ AddPersistenceCommand
          ▼
 AddPersistenceCommandHandler::handle()
          │
-         ├──► load_template_context("persistence")
-         │     ├──► Resolve template root
-         │     ├──► Load template.yaml
-         │     └──► Validate template config
+         ├──► load_generator_context("persistence")
+         │     ├──► Resolve generator root
+         │     ├──► Load generator.yaml
+         │     └──► Validate generator config
          │
          ├──► build_parameters()
          │     ├──► Extract namespace
-         │     ├──► Build TemplateParameters
+         │     ├──► Build GeneratorParameters
          │     └──► Validate identifiers
          │
-         ├──► TemplateEngine::execute()
+         ├──► GeneratorEngine::execute()
          │     ├──► Render DbContext.cs.tera
          │     ├──► Render RepositoryBase.cs.tera
-         │     └───► Render configuration templates
+         │     └───► Render configuration generators
          │
          └──► add_service_module("persistence")
                ├──► Update nfw.yaml
@@ -403,12 +403,12 @@ AddPersistenceCommandHandler::handle()
 
 ### Atomic Update
 
-**Rule**: nfw.yaml is only modified after successful template execution.
+**Rule**: nfw.yaml is only modified after successful generator execution.
 
 **Implementation**:
 
-- Template execution happens BEFORE YAML update
-- If template execution fails, YAML is never written
+- Generator execution happens BEFORE YAML update
+- If generator execution fails, YAML is never written
 - Ensures consistent state
 
 ---
@@ -422,10 +422,10 @@ AddPersistenceCommandHandler::handle()
 ```text
 {sandbox}/
 ├── nfw.yaml           # Fake workspace config
-├── templates/         # Fake template sources
+├── generators/         # Fake generator sources
 │   └── dotnet-service/
 │       └── persistence/
-│           ├── template.yaml
+│           ├── nfw.generator.yaml
 │           ├── DbContext.cs.tera
 │           └── ...
 └── src/
@@ -435,7 +435,7 @@ AddPersistenceCommandHandler::handle()
 **Test Scenarios**:
 
 1. Valid workspace, valid service → Success
-2. Template source missing → TemplateNotFound error
+2. Generator source missing → GeneratorNotFound error
 3. Invalid service name → WorkspaceError
 4. Module already present → Early return with info
 5. YAML with comments → Comments preserved

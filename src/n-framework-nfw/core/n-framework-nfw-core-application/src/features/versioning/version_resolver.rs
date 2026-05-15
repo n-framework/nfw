@@ -80,21 +80,21 @@ where
 
     pub fn min_cli_warning(
         &self,
-        template_min_cli_version: Option<&Version>,
+        generator_min_cli_version: Option<&Version>,
         current_cli_version: &Version,
     ) -> Result<Option<String>, String> {
-        let Some(template_min_cli_version) = template_min_cli_version else {
+        let Some(generator_min_cli_version) = generator_min_cli_version else {
             return Ok(None);
         };
 
         let ordering = self
             .version_provider
-            .compare(current_cli_version, template_min_cli_version)?;
+            .compare(current_cli_version, generator_min_cli_version)?;
 
         if ordering == Ordering::Less {
             return Ok(Some(format!(
-                "template requires CLI version {} but current CLI version is {}; consider upgrading",
-                template_min_cli_version, current_cli_version
+                "generator requires CLI version {} but current CLI version is {}; consider upgrading",
+                generator_min_cli_version, current_cli_version
             )));
         }
 

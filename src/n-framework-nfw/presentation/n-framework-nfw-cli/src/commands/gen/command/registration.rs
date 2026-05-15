@@ -10,11 +10,11 @@ pub fn register() -> CliCommandSpec {
             CliOptionSpec::new("feature", "feature").with_help("The target feature or module"),
         )
         .with_option(CliOptionSpec::new("param", "param").with_help(
-            "Comma-separated parameters for the template (e.g. Key=Value,OtherKey=OtherValue)",
+            "Comma-separated parameters for the generator (e.g. Key=Value,OtherKey=OtherValue)",
         ))
         .with_option(
             CliOptionSpec::new("param-json", "param-json").with_help(
-                "JSON string of parameters for the template (e.g. '{\"Key\": \"Value\"}')",
+                "JSON string of parameters for the generator (e.g. '{\"Key\": \"Value\"}')",
             ),
         )
         .with_option(

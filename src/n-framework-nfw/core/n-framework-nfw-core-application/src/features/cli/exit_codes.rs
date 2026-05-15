@@ -1,7 +1,7 @@
 use crate::features::check::models::errors::CheckError;
 use crate::features::check::models::{ExitOutcome, ValidationSummary};
+use crate::features::generator_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
-use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::workspace_management::models::errors::workspace_new_error::WorkspaceNewError;
 
 #[repr(i32)]
@@ -23,9 +23,9 @@ impl ExitCodes {
             | WorkspaceNewError::MissingWorkspaceName
             | WorkspaceNewError::MissingRequiredInput(_)
             | WorkspaceNewError::InvalidOptionCombination(_) => Self::ValidationError,
-            WorkspaceNewError::TemplateNotFound(_)
-            | WorkspaceNewError::NoWorkspaceTemplatesDiscovered => Self::NotFound,
-            WorkspaceNewError::AmbiguousTemplate(_)
+            WorkspaceNewError::GeneratorNotFound(_)
+            | WorkspaceNewError::NoWorkspaceGeneratorsDiscovered => Self::NotFound,
+            WorkspaceNewError::AmbiguousGenerator(_)
             | WorkspaceNewError::TargetDirectoryNotEmpty(_) => Self::Conflict,
             WorkspaceNewError::PromptFailed(_) | WorkspaceNewError::WriteFailed(_) => {
                 Self::ExternalDependencyFailure
@@ -38,16 +38,16 @@ impl ExitCodes {
         match error {
             AddServiceError::MissingRequiredInput(_)
             | AddServiceError::InvalidServiceName(_)
-            | AddServiceError::InvalidTemplateType { .. }
-            | AddServiceError::TemplateConfigError(_) => Self::ValidationError,
+            | AddServiceError::InvalidGeneratorType { .. }
+            | AddServiceError::GeneratorConfigError(_) => Self::ValidationError,
             AddServiceError::InvalidWorkspaceContext(_)
             | AddServiceError::TargetDirectoryAlreadyExists(_)
-            | AddServiceError::AmbiguousTemplate(_) => Self::Conflict,
-            AddServiceError::TemplateNotFound(_) => Self::NotFound,
+            | AddServiceError::AmbiguousGenerator(_) => Self::Conflict,
+            AddServiceError::GeneratorNotFound(_) => Self::NotFound,
             AddServiceError::PromptFailed(_)
             | AddServiceError::RenderFailed(_)
             | AddServiceError::ProvenanceWriteFailed(_)
-            | AddServiceError::TemplateReadError(_)
+            | AddServiceError::GeneratorReadError(_)
             | AddServiceError::CleanupFailed(_) => Self::ExternalDependencyFailure,
             AddServiceError::DependencyRuleViolation(_)
             | AddServiceError::HealthEndpointsMissing(_)
@@ -63,7 +63,7 @@ impl ExitCodes {
             | AddArtifactError::InvalidParameter(_)
             | AddArtifactError::MissingRequiredModule(_)
             | AddArtifactError::NfwYamlParseError(_) => Self::ValidationError,
-            AddArtifactError::TemplateNotFound(_) => Self::NotFound,
+            AddArtifactError::GeneratorNotFound(_) => Self::NotFound,
             AddArtifactError::ExecutionFailed(_)
             | AddArtifactError::NfwYamlReadError(_)
             | AddArtifactError::NfwYamlWriteError(_) => Self::ExternalDependencyFailure,

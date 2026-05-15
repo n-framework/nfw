@@ -9,14 +9,14 @@ use n_framework_nfw_core_application::features::service_management::commands::ad
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command::AddServiceCommandResult;
 use n_framework_nfw_core_application::features::service_management::commands::add_service::add_service_command_handler::AddServiceCommandHandler;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
-use n_framework_nfw_core_application::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
-use n_framework_nfw_core_application::features::service_management::services::abstractions::service_template_selector::{ServiceTemplateSelectionContext, ServiceTemplateSelector};
+use n_framework_nfw_core_application::features::service_management::models::service_generator_resolution::ServiceGeneratorResolution;
+use n_framework_nfw_core_application::features::service_management::services::abstractions::service_generator_prompt::ServiceGeneratorPrompt;
+use n_framework_nfw_core_application::features::service_management::services::abstractions::service_generator_selector::{ServiceGeneratorSelectionContext, ServiceGeneratorSelector};
 use n_framework_nfw_core_application::features::service_management::services::add_service_input_resolution_service::AddServiceInputResolutionService;
-use n_framework_nfw_core_application::features::service_management::services::service_template_provenance_service::ServiceTemplateProvenanceService;
+use n_framework_nfw_core_application::features::service_management::services::service_generator_provenance_service::ServiceGeneratorProvenanceService;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_domain::features::versioning::version::Version;
-use n_framework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_template_renderer::FileSystemServiceTemplateRenderer;
+use n_framework_nfw_infrastructure_filesystem::features::service_management::services::file_system_service_generator_renderer::FileSystemServiceGeneratorRenderer;
 use n_framework_nfw_infrastructure_filesystem::features::service_management::services::service_generation_cleanup::ServiceGenerationCleanup;
 use n_framework_nfw_infrastructure_yaml::features::workspace_management::services::workspace_metadata_writer::WorkspaceMetadataWriter;
 
@@ -32,33 +32,36 @@ impl WorkingDirectoryProvider for FixedWorkingDirectoryProvider {
 }
 
 #[derive(Debug, Clone)]
-pub struct StaticTemplateSelector {
-    pub resolution: ServiceTemplateResolution,
+pub struct StaticGeneratorSelector {
+    pub resolution: ServiceGeneratorResolution,
 }
 
-impl ServiceTemplateSelector for StaticTemplateSelector {
-    fn resolve_service_template(
+impl ServiceGeneratorSelector for StaticGeneratorSelector {
+    fn resolve_service_generator(
         &self,
-        _template_identifier: &str,
-        _context: ServiceTemplateSelectionContext<'_>,
-    ) -> Result<ServiceTemplateResolution, AddServiceError> {
+        _generator_identifier: &str,
+        _context: ServiceGeneratorSelectionContext<'_>,
+    ) -> Result<ServiceGeneratorResolution, AddServiceError> {
         Ok(self.resolution.clone())
     }
 
-    fn list_service_templates(&self) -> Result<Vec<ServiceTemplateResolution>, AddServiceError> {
+    fn list_service_generators(&self) -> Result<Vec<ServiceGeneratorResolution>, AddServiceError> {
         Ok(vec![self.resolution.clone()])
     }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct FirstTemplatePrompt;
+pub struct FirstGeneratorPrompt;
 
-impl ServiceTemplatePrompt for FirstTemplatePrompt {
-    fn select_template(&self, templates: &[ServiceTemplateResolution]) -> Result<String, String> {
-        templates
+impl ServiceGeneratorPrompt for FirstGeneratorPrompt {
+    fn select_generator(
+        &self,
+        generators: &[ServiceGeneratorResolution],
+    ) -> Result<String, String> {
+        generators
             .first()
-            .map(ServiceTemplateResolution::qualified_template_id)
-            .ok_or_else(|| "no templates available".to_owned())
+            .map(ServiceGeneratorResolution::qualified_generator_id)
+            .ok_or_else(|| "no generators available".to_owned())
     }
 }
 
@@ -165,20 +168,20 @@ impl Logger for FailingPromptService {
 
 pub fn build_default_orchestration(
     workspace_root: &Path,
-    template_resolution: ServiceTemplateResolution,
+    generator_resolution: ServiceGeneratorResolution,
 ) -> AddServiceCommandHandler<
     FixedWorkingDirectoryProvider,
-    StaticTemplateSelector,
-    FirstTemplatePrompt,
+    StaticGeneratorSelector,
+    FirstGeneratorPrompt,
     FailingPromptService,
-    FileSystemServiceTemplateRenderer,
+    FileSystemServiceGeneratorRenderer,
     WorkspaceMetadataWriter,
 > {
     let input_resolution = AddServiceInputResolutionService::new(
-        StaticTemplateSelector {
-            resolution: template_resolution,
+        StaticGeneratorSelector {
+            resolution: generator_resolution,
         },
-        FirstTemplatePrompt,
+        FirstGeneratorPrompt,
         FailingPromptService,
     );
 
@@ -187,26 +190,26 @@ pub fn build_default_orchestration(
             current_directory: workspace_root.to_path_buf(),
         },
         input_resolution,
-        FileSystemServiceTemplateRenderer::new(ServiceGenerationCleanup::new()),
-        ServiceTemplateProvenanceService::new(WorkspaceMetadataWriter::new()),
+        FileSystemServiceGeneratorRenderer::new(ServiceGenerationCleanup::new()),
+        ServiceGeneratorProvenanceService::new(WorkspaceMetadataWriter::new()),
     )
 }
 
 pub fn execute_non_interactive_add_service(
     orchestration_service: &AddServiceCommandHandler<
         FixedWorkingDirectoryProvider,
-        StaticTemplateSelector,
-        FirstTemplatePrompt,
+        StaticGeneratorSelector,
+        FirstGeneratorPrompt,
         FailingPromptService,
-        FileSystemServiceTemplateRenderer,
+        FileSystemServiceGeneratorRenderer,
         WorkspaceMetadataWriter,
     >,
     service_name: &str,
-    template_id: &str,
+    generator_id: &str,
 ) -> Result<AddServiceCommandResult, AddServiceError> {
     let command = AddServiceCommand::new(
         Some(service_name.to_owned()),
-        Some(template_id.to_owned()),
+        Some(generator_id.to_owned()),
         true,
         false,
     );
@@ -214,19 +217,19 @@ pub fn execute_non_interactive_add_service(
     orchestration_service.handle(&command)
 }
 
-pub fn create_template_resolution(
-    template_root: &Path,
+pub fn create_generator_resolution(
+    generator_root: &Path,
     source_name: &str,
-    template_id: &str,
-) -> ServiceTemplateResolution {
-    ServiceTemplateResolution {
+    generator_id: &str,
+) -> ServiceGeneratorResolution {
+    ServiceGeneratorResolution {
         source_name: source_name.to_owned(),
-        template_name: "Dotnet Service".to_owned(),
-        template_id: template_id.to_owned(),
+        generator_name: "Dotnet Service".to_owned(),
+        generator_id: generator_id.to_owned(),
         resolved_version: Version::from_str("1.0.0").expect("version should parse"),
-        template_type: "service".to_owned(),
-        template_cache_path: template_root.to_path_buf(),
-        description: "Service template".to_owned(),
+        generator_type: "service".to_owned(),
+        generator_cache_path: generator_root.to_path_buf(),
+        description: "Service generator".to_owned(),
     }
 }
 
@@ -236,38 +239,43 @@ pub fn create_workspace_root(test_name: &str) -> PathBuf {
     fs::create_dir_all(root.join("src")).expect("workspace src directory should be created");
     fs::write(
         root.join("nfw.yaml"),
-        "#    _  ______                                   __\n#   / |/ / __/______ ___ _  ___ _    _____  ____/ /__\n#  /    / _// __/ _ `/  ' \\/ -_) |/|/ / _ \\/ __/  '_/\n# /_/|_/_/ /_/  \\_,_/_/_/_/\\__/|__,__/\\___/_/ /_/\\_\\\n\n# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  namespace: BillingPlatform\n",
+        "#    _  ______                                   __\n#   / |/ / __/______ ___ _  ___ _    _____  ____/ /__\n#  /    / _// __/ _ `/  ' \\/ -_) |/|/ / _ \\/ __/  '_/\n# /_/|_/_/ /_/  \\_,_/_/_/\\__/|__,__/\\___/_/ /_/\\_\\\n\n# yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  namespace: BillingPlatform\n",
     )
     .expect("workspace metadata should be written");
     root
 }
 
-pub fn create_service_template(root: &Path, template_name: &str, _template_type: &str) -> PathBuf {
-    let template_root = root.join(template_name);
-    let service_root = template_root.join("service");
+pub fn create_service_generator(
+    root: &Path,
+    generator_name: &str,
+    _generator_type: &str,
+) -> PathBuf {
+    let generator_root = root.join(generator_name);
+    let service_root = generator_root.join("service");
     let content_root = service_root.join("content");
 
     fs::create_dir_all(content_root.join("Domain"))
-        .expect("domain template directory should be created");
+        .expect("domain generator directory should be created");
     fs::create_dir_all(content_root.join("Application"))
-        .expect("application template directory should be created");
+        .expect("application generator directory should be created");
     fs::create_dir_all(content_root.join("Infrastructure"))
-        .expect("infrastructure template directory should be created");
-    fs::create_dir_all(content_root.join("Api")).expect("api template directory should be created");
+        .expect("infrastructure generator directory should be created");
+    fs::create_dir_all(content_root.join("Api"))
+        .expect("api generator directory should be created");
 
-    // Root template.yaml — identity metadata with generators pointing to service sub-template
+    // Root generator.yaml — identity metadata with generators pointing to service sub-generator
     fs::write(
-         template_root.join("template.yaml"),
-         format!("id: {template_name}\nname: {template_name}\ndescription: test\nversion: 1.0.0\ngenerators:\n  entity: service\n"),
+         generator_root.join("nfw.generator.yaml"),
+         format!("id: {generator_name}\nname: {generator_name}\ndescription: test\nversion: 1.0.0\ngenerators:\n  entity: service\n"),
      )
-    .expect("root template metadata should be written");
+    .expect("root generator metadata should be written");
 
-    // Service sub-template — owns the rendering steps
+    // Service sub-generator — owns the rendering steps
     fs::write(
-        service_root.join("template.yaml"),
-        format!("id: {template_name}/service\nname: {template_name} service\ndescription: test\nversion: 1.0.0\nsteps:\n  - action: render_folder\n    source: 'content/'\n    destination: '.'\n"),
+        service_root.join("nfw.generator.yaml"),
+        format!("id: {generator_name}/service\nname: {generator_name} service\ndescription: test\nversion: 1.0.0\nsteps:\n  - action: render_folder\n    source: 'content/'\n    destination: '.'\n"),
     )
-    .expect("service template.yaml should be written");
+    .expect("service generator.yaml should be written");
 
     fs::write(
         content_root.join("Domain/{{ServiceName}}.Domain.csproj"),
@@ -299,7 +307,7 @@ pub fn create_service_template(root: &Path, template_name: &str, _template_type:
     )
     .expect("api program should be written");
 
-    template_root
+    generator_root
 }
 
 pub fn create_sandbox_directory(test_name: &str) -> PathBuf {

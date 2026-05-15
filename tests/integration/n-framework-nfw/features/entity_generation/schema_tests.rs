@@ -70,12 +70,12 @@ fn run(sandbox: &Path, opts: HashMap<String, String>) -> Result<(), String> {
 fn schema_conflict_detection_test() {
     let sandbox = support::create_sandbox_directory("gen-entity-schema-conflict");
 
-    support::create_service_template(&sandbox, "basic-api", "service");
+    support::create_service_generator(&sandbox, "basic-api", "service");
 
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
          sandbox.join("nfw.yaml"),
-         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+         "workspace:\n  name: Test\n  namespace: TestApp\ngenerator_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    generator:\n      id: basic-api\n    modules:\n      - persistence\n",
      ).unwrap();
 
     let specs_dir = sandbox.join("src/Application/specs/features/Catalog/entities");
@@ -107,12 +107,12 @@ fn schema_conflict_detection_test() {
 fn schema_only_generation_test() {
     let sandbox = support::create_sandbox_directory("gen-entity-schema-only");
 
-    support::create_service_template(&sandbox, "basic-api", "service");
+    support::create_service_generator(&sandbox, "basic-api", "service");
 
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
          sandbox.join("nfw.yaml"),
-         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+         "workspace:\n  name: Test\n  namespace: TestApp\ngenerator_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    generator:\n      id: basic-api\n    modules:\n      - persistence\n",
      ).unwrap();
 
     let opts = make_opts(
@@ -140,12 +140,12 @@ fn schema_only_generation_test() {
 fn from_schema_generation_test() {
     let sandbox = support::create_sandbox_directory("gen-entity-from-schema");
 
-    support::create_service_template(&sandbox, "basic-api", "service");
+    support::create_service_generator(&sandbox, "basic-api", "service");
 
     fs::create_dir_all(sandbox.join("src/Application/Features/Catalog")).unwrap();
     fs::write(
          sandbox.join("nfw.yaml"),
-         "workspace:\n  name: Test\n  namespace: TestApp\ntemplate_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    template:\n      id: basic-api\n    modules:\n      - persistence\n",
+         "workspace:\n  name: Test\n  namespace: TestApp\ngenerator_sources:\n  local: .\nservices:\n  Application:\n    path: src/Application\n    generator:\n      id: basic-api\n    modules:\n      - persistence\n",
      ).unwrap();
 
     let specs_dir = sandbox.join("src/Application/specs/features/Catalog/entities");

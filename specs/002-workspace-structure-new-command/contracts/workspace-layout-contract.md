@@ -9,13 +9,13 @@ A generated workspace MUST include this layered root structure:
 ├── src/
 ├── tests/
 ├── docs/
-├── <template-generated-artifacts>
+├── <generator-generated-artifacts>
 └── <root-yaml-configuration-files>
 ```
 
-## Template Artifact Rules
+## Generator Artifact Rules
 
-- Generated artifacts MUST come from selected template `content/` tree.
+- Generated artifacts MUST come from selected generator `content/` tree.
 - Placeholder rendering in paths and file contents MUST be deterministic for identical input.
 - The workspace generator MUST NOT hardcode solution file creation.
 

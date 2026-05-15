@@ -12,7 +12,7 @@ pub struct EntityGenerationParameters {
     namespace: String,
     id_type: GeneralType,
     id_type_cli: String,
-    properties: Vec<PropertyTemplate>,
+    properties: Vec<PropertyGenerator>,
     base_class: String,
     service_name: String,
     service_path: PathBuf,
@@ -40,7 +40,7 @@ impl EntityGenerationParameters {
         &self.id_type_cli
     }
 
-    pub fn properties(&self) -> &[PropertyTemplate] {
+    pub fn properties(&self) -> &[PropertyGenerator] {
         &self.properties
     }
 
@@ -65,7 +65,7 @@ pub struct EntityGenerationParametersBuilder {
     namespace: String,
     id_type: GeneralType,
     id_type_cli: String,
-    properties: Vec<PropertyTemplate>,
+    properties: Vec<PropertyGenerator>,
     base_class: String,
     service_name: String,
     service_path: PathBuf,
@@ -92,7 +92,7 @@ impl EntityGenerationParametersBuilder {
         self
     }
 
-    pub fn properties(mut self, value: Vec<PropertyTemplate>) -> Self {
+    pub fn properties(mut self, value: Vec<PropertyGenerator>) -> Self {
         self.properties = value;
         self
     }
@@ -142,14 +142,14 @@ impl EntityGenerationParametersBuilder {
 
 /// Represents a single property within a generation request.
 #[derive(Debug, Clone)]
-pub struct PropertyTemplate {
+pub struct PropertyGenerator {
     name: String,
     general_type: GeneralType,
     nullable: bool,
 }
 
-impl PropertyTemplate {
-    /// Creates a new property template.
+impl PropertyGenerator {
+    /// Creates a new property generator.
     pub fn new(name: String, general_type: GeneralType, nullable: bool) -> Self {
         Self {
             name,

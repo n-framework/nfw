@@ -4,11 +4,11 @@ mod support;
 #[test]
 fn generates_service_under_src_with_expected_layers() {
     let workspace_root = support::create_workspace_root("service-layout");
-    let template_root =
-        support::create_service_template(&workspace_root, "dotnet-service-template", "service");
-    let template_resolution =
-        support::create_template_resolution(&template_root, "official", "dotnet-service");
-    let orchestration = support::build_default_orchestration(&workspace_root, template_resolution);
+    let generator_root =
+        support::create_service_generator(&workspace_root, "dotnet-service-generator", "service");
+    let generator_resolution =
+        support::create_generator_resolution(&generator_root, "official", "dotnet-service");
+    let orchestration = support::build_default_orchestration(&workspace_root, generator_resolution);
 
     let result = support::execute_non_interactive_add_service(
         &orchestration,

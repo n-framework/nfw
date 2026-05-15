@@ -43,16 +43,16 @@
 
 ## Phase 3: User Story 1 - Smoke Test End-to-End Workflows (Priority: P1) 🎯 MVP
 
-**Goal**: Implement CLI smoke tests validating template selection, workspace generation, and service scaffolding in both interactive and non-interactive modes.
+**Goal**: Implement CLI smoke tests validating generator selection, workspace generation, and service scaffolding in both interactive and non-interactive modes.
 
 **Independent Test**: Run `tests/smoke/run_smoke_tests.sh` and verify all scenarios pass with deterministic exit status 0.
 
 ### Tests for User Story 1
 
-- [x] T011 [P] [US1] Implement template selection smoke test (non-interactive mode) in `tests/smoke/template_selection_test.sh`
-  - Validates `nfw new TestWorkspace --template official/blank-workspace --no-input` exits 0
+- [x] T011 [P] [US1] Implement generator selection smoke test (non-interactive mode) in `tests/smoke/generator_selection_test.sh`
+  - Validates `nfw new TestWorkspace --generator official/blank-workspace --no-input` exits 0
   - Validates workspace directory created with `nfw.yaml` at root
-  - Validates template identifier recorded in configuration
+  - Validates generator identifier recorded in configuration
   - Uses isolated temp directory with cleanup trap
   - Validates temp directory is fully cleaned up after test completion (FR-006)
 
@@ -75,7 +75,7 @@
 ### Implementation for User Story 1
 
 - [x] T014 [US1] Wire smoke test runner into `Makefile` as `make smoke-tests` target in `src/nfw/Makefile`
-- [x] T015 [US1] Add smoke test prerequisites check (CLI installed, template cache populated, .NET SDK available) in `tests/smoke/common.sh`
+- [x] T015 [US1] Add smoke test prerequisites check (CLI installed, generator cache populated, .NET SDK available) in `tests/smoke/common.sh`
 - [x] T016 [US1] Add smoke test documentation to `src/nfw/docs/SMOKE_TESTS.md` with usage examples and expected output
 
 **Checkpoint**: US1 is independently functional. Running `make smoke-tests` validates all core CLI workflows.
@@ -91,7 +91,7 @@
 ### Tests for User Story 2
 
 - [x] T017 [P] [US2] Implement build workflow integration test in `tests/integration/nframework-nfw/features/workspace_new/build_test_workflow_test.rs`
-  - Generates workspace via `nfw new` with test template
+  - Generates workspace via `nfw new` with test generator
   - Runs `make build` from workspace root
   - Validates exit code 0 and successful compilation
   - Validates no warnings suppressed
@@ -114,9 +114,9 @@
 
 ### Implementation for User Story 2
 
-- [x] T020 [US2] Verify generated workspace `Makefile` includes `build` and `test` targets — this is a validation task confirming spec `002-workspace-structure-new-command` template content satisfies FR-007/FR-008; if missing, file cross-repo issue against that spec's template repository
-  - **Result**: Blank workspace template does NOT include a Makefile. Only `src/`, `nfw.yaml`, and `README.md` are generated. Cross-repo issue needed.
-- [x] T021 [US2] Verify generated workspace documentation indicates build and test commands — this is a validation task confirming spec `002-workspace-structure-new-command` template README content satisfies FR-011; if missing, file cross-repo issue against that spec's template repository
+- [x] T020 [US2] Verify generated workspace `Makefile` includes `build` and `test` targets — this is a validation task confirming spec `002-workspace-structure-new-command` generator content satisfies FR-007/FR-008; if missing, file cross-repo issue against that spec's generator repository
+  - **Result**: Blank workspace generator does NOT include a Makefile. Only `src/`, `nfw.yaml`, and `README.md` are generated. Cross-repo issue needed.
+- [x] T021 [US2] Verify generated workspace documentation indicates build and test commands — this is a validation task confirming spec `002-workspace-structure-new-command` generator README content satisfies FR-011; if missing, file cross-repo issue against that spec's generator repository
   - **Result**: README does NOT document `make build` or `make test` commands. Only documents `nfw add service`. Cross-repo issue needed.
 
 **Checkpoint**: US2 works independently. Generated workspaces build and test on first run.
@@ -208,7 +208,7 @@
 
 ```bash
 # Parallelizable US1 test tasks
-Task: "T011 [US1] Implement template selection smoke test in tests/smoke/template_selection_test.sh"
+Task: "T011 [US1] Implement generator selection smoke test in tests/smoke/generator_selection_test.sh"
 Task: "T012 [US1] Implement workspace generation smoke test in tests/smoke/workspace_generation_test.sh"
 Task: "T013 [US1] Implement service scaffolding smoke test in tests/smoke/service_scaffolding_test.sh"
 ```

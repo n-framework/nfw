@@ -40,27 +40,27 @@ workspace:
 services:
   TestService:
     path: src/TestService
-    template:
+    generator:
       id: dotnet-service
-template_sources:
-  local: "templates"
+generator_sources:
+  local: "generators"
 "#,
     )
     .expect("failed to write nfw.yaml");
 
-    let root_tpl_dir = sandbox.join("templates").join("dotnet-service");
-    fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
+    let root_tpl_dir = sandbox.join("generators").join("dotnet-service");
+    fs::create_dir_all(&root_tpl_dir).expect("failed to create root generator dir");
     fs::write(
-        root_tpl_dir.join("template.yaml"),
+        root_tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  mediator: mediator\n  webapi: webapi\n",
     )
-    .expect("failed to write root template.yaml");
+    .expect("failed to write root generator.yaml");
 
-    // Scaffold a minimal webapi sub-template so list_presentation_layers can derive the path.
+    // Scaffold a minimal webapi sub-generator so list_presentation_layers can derive the path.
     let webapi_tpl_dir = root_tpl_dir.join("webapi");
-    fs::create_dir_all(&webapi_tpl_dir).expect("failed to create webapi template dir");
+    fs::create_dir_all(&webapi_tpl_dir).expect("failed to create webapi generator dir");
     fs::write(
-        webapi_tpl_dir.join("template.yaml"),
+        webapi_tpl_dir.join("nfw.generator.yaml"),
         r#"
 id: dotnet-service/webapi
 steps:
@@ -69,14 +69,14 @@ steps:
     destination: "src/presentation/{{ Service }}.Presentation.WebApi/Startup.cs"
 "#,
     )
-    .expect("failed to write webapi template.yaml");
+    .expect("failed to write webapi generator.yaml");
     fs::write(webapi_tpl_dir.join("Startup.cs.tera"), "// startup")
         .expect("failed to write webapi tera");
 
     let tpl_dir = root_tpl_dir.join("mediator");
-    fs::create_dir_all(&tpl_dir).expect("failed to create sub-template dir");
+    fs::create_dir_all(&tpl_dir).expect("failed to create sub-generator dir");
     fs::write(
-        tpl_dir.join("template.yaml"),
+        tpl_dir.join("nfw.generator.yaml"),
         r#"
 id: dotnet-service/mediator
 steps:
@@ -85,7 +85,7 @@ steps:
     destination: "{{ Name }}.Mediator.cs"
 "#,
     )
-    .expect("failed to write sub-template template.yaml");
+    .expect("failed to write sub-generator generator.yaml");
     fs::write(tpl_dir.join("reg.cs.tera"), "// registered").expect("failed to write tera");
 
     fs::create_dir_all(
@@ -95,7 +95,7 @@ steps:
 }
 
 #[test]
-fn add_mediator_updates_nfw_yaml_and_renders_template() {
+fn add_mediator_updates_nfw_yaml_and_renders_generator() {
     let sandbox = support::create_sandbox_directory("add-mediator-integration");
     setup_mediator_workspace(&sandbox);
 
@@ -140,12 +140,12 @@ fn add_mediator_updates_nfw_yaml_and_renders_template() {
 }
 
 #[test]
-fn add_mediator_rolls_back_yaml_if_template_execution_fails() {
+fn add_mediator_rolls_back_yaml_if_generator_execution_fails() {
     let sandbox = support::create_sandbox_directory("add-mediator-rollback");
     setup_mediator_workspace(&sandbox);
 
-    // Corrupt the template to force a failure (e.g., non-existent source)
-    let tpl_yaml_path = sandbox.join("templates/dotnet-service/mediator/template.yaml");
+    // Corrupt the generator to force a failure (e.g., non-existent source)
+    let tpl_yaml_path = sandbox.join("generators/dotnet-service/mediator/nfw.generator.yaml");
     fs::write(
         tpl_yaml_path,
         r#"
@@ -172,7 +172,7 @@ steps:
 
     assert!(
         result.is_err(),
-        "Expected error due to missing template source"
+        "Expected error due to missing generator source"
     );
 
     // Verify nfw.yaml was NOT updated
@@ -234,19 +234,19 @@ services:
   # Service block comment
   TestService:
     path: src/TestService
-    template:
+    generator:
       id: dotnet-service
-template_sources:
-  local: "templates"
+generator_sources:
+  local: "generators"
 "#,
     )
     .expect("failed to write nfw.yaml");
 
-    // Setup template
-    let root_tpl_dir = sandbox.join("templates").join("dotnet-service");
+    // Setup generator
+    let root_tpl_dir = sandbox.join("generators").join("dotnet-service");
     fs::create_dir_all(&root_tpl_dir).unwrap();
     fs::write(
-        root_tpl_dir.join("template.yaml"),
+        root_tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service\nname: Dotnet Service\nversion: 1.0.0\ngenerators:\n  mediator: mediator\n  webapi: webapi\n",
     )
     .unwrap();
@@ -254,7 +254,7 @@ template_sources:
     let webapi_tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&webapi_tpl_dir).unwrap();
     fs::write(
-        webapi_tpl_dir.join("template.yaml"),
+        webapi_tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service/webapi\nsteps:\n  - action: render\n    source: \"Startup.cs.tera\"\n    destination: \"src/presentation/{{ Service }}.Presentation.WebApi/Startup.cs\"\n",
     )
     .unwrap();
@@ -263,7 +263,7 @@ template_sources:
     let tpl_dir = root_tpl_dir.join("mediator");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
-        tpl_dir.join("template.yaml"),
+        tpl_dir.join("nfw.generator.yaml"),
         "id: dotnet-service/mediator\nsteps:\n  - action: run_command\n    command: \"echo done\"\n",
     )
     .unwrap();

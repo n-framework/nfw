@@ -44,14 +44,14 @@ Integration Tests:
 
 - `get_workspace_context()` → Loads nfw.yaml with preserved comments
 - `extract_services()` → Parses service definitions from nfw.yaml
-- `load_template_context()` → Resolves template root and loads template.yaml
-- `execute_generation()` → Executes template steps
+- `load_generator_context()` → Resolves generator root and loads nfw.generator.yaml
+- `execute_generation()` → Executes generator steps
 - `add_service_module()` → Atomically adds module to service's modules array
 
 **Rollback Behavior**:
 
-- nfw.yaml is only modified AFTER successful template execution
-- If template execution fails, no YAML changes are made
+- nfw.yaml is only modified AFTER successful generator execution
+- If generator execution fails, no YAML changes are made
 - This ensures atomic operation as required by FR-010
 
 ### 3. AddArtifactError Type
@@ -61,9 +61,9 @@ Integration Tests:
 - `InvalidIdentifier(String)` → Invalid service/module names
 - `WorkspaceError(String)` → General workspace issues
 - `ConfigError(String)` → Configuration problems
-- `TemplateNotFound(String)` → Template resolution failures
+- `GeneratorNotFound(String)` → Generator resolution failures
 - `MissingRequiredModule(String)` → Required module not installed
-- `ExecutionFailed(Box<TemplateError>)` → Template execution errors
+- `ExecutionFailed(Box<GeneratorError>)` → Generator execution errors
 - `NfwYamlReadError/ParseError/WriteError(String)` → YAML handling errors
 
 **Exit Code Mapping**: The CLI handler maps `AddArtifactError` to `ExitCodes` via `ExitCodes::from_add_artifact_error()`.
@@ -100,40 +100,40 @@ pub fn register() -> CliCommandSpec {
 **Test Setup** (from `mediator_add_test.rs`):
 
 - Uses sandbox directories with `support::create_sandbox_directory()`
-- Creates fake nfw.yaml, template files, and service directories
+- Creates fake nfw.yaml, generator files, and service directories
 - Tests run sequentially due to `std::env::current_dir()` mutation
 - Uses `Mutex<()>` lock for serialization
 
 **Test Cases Required**:
 
-1. ✅ Successful addition updates nfw.yaml and renders templates
-2. ✅ Rollback nfw.yaml if template execution fails
+1. ✅ Successful addition updates nfw.yaml and renders generators
+2. ✅ Rollback nfw.yaml if generator execution fails
 3. ✅ Fails if service not found
 4. ✅ Preserves YAML comments
 5. ✅ Detects existing persistence module
 
-### 6. Persistence Template Context
+### 6. Persistence Generator Context
 
-**Template Location**: `src/nfw-templates/src/dotnet-service/persistence/`
+**Generator Location**: `src/nfw-generators/src/dotnet-service/persistence/`
 
-**Expected Template Structure** (to be created separately):
+**Expected Generator Structure** (to be created separately):
 
 ```text
 persistence/
-├── template.yaml     # Template configuration with steps
-├── DbContext.cs.tera  # DbContext generation template
-├── RepositoryBase.cs.tera  # Repository base class template
-└── appsettings.json.tera   # Configuration template
+├── generator.yaml     # Generator configuration with steps
+├── DbContext.cs.tera  # DbContext generation generator
+├── RepositoryBase.cs.tera  # Repository base class generator
+└── appsettings.json.tera   # Configuration generator
 ```
 
-**Template Parameters**:
+**Generator Parameters**:
 
 - `Name`: Service name
 - `Namespace`: Workspace namespace
 - `Service`: Service name
 - Connection string placeholders
 
-**Template Requirements** (from template.yaml spec):
+**Generator Requirements** (from generator.yaml spec):
 
 - `id: dotnet-service/persistence`
 - `required_modules: []` (no dependencies for now)
@@ -149,7 +149,7 @@ persistence/
 **Required Enhancement**:
 The command handler should check for existing "persistence" module BEFORE calling `execute_generation()` to avoid:
 
-- Redundant template execution
+- Redundant generator execution
 - Duplicate module entries
 - Confusing user experience
 
@@ -170,11 +170,11 @@ if modules.contains(&"persistence".to_string()) {
 
 **Rationale**: Consistent with existing `mediator` command naming convention.
 
-### Decision 2: Template Generator Type
+### Decision 2: Generator Generator Type
 
-**Choice**: `"persistence"` (passed to `load_template_context()`)
+**Choice**: `"persistence"` (passed to `load_generator_context()`)
 
-**Rationale**: Matches template directory name and provides clear identification.
+**Rationale**: Matches generator directory name and provides clear identification.
 
 ### Decision 3: Module Name in nfw.yaml
 
@@ -184,7 +184,7 @@ if modules.contains(&"persistence".to_string()) {
 
 ### Decision 4: Error Handling for Existing Persistence
 
-**Choice**: Detect and report early, before template execution
+**Choice**: Detect and report early, before generator execution
 
 **Rationale**:
 
@@ -192,30 +192,30 @@ if modules.contains(&"persistence".to_string()) {
 - Prevents duplicate entries
 - Better user experience (fast feedback)
 
-### Decision 5: Template Parameters
+### Decision 5: Generator Parameters
 
 **Choice**: Standard set (Name, Namespace, Service) without custom parameters
 
 **Rationale**:
 
 - Matches mediator command pattern
-- Templates can derive all needed values
+- Generators can derive all needed values
 - Simpler implementation
-- Extensible via TemplateParameters if needed later
+- Extensible via GeneratorParameters if needed later
 
 ## Open Questions Resolved
 
-### Q: Should templates be created as part of this implementation?
+### Q: Should generators be created as part of this implementation?
 
-**A**: No. The spec is for the CLI command only. Template creation is a separate concern tracked by the nfw-templates repository. The command assumes templates exist and provides clear errors if they don't.
+**A**: No. The spec is for the CLI command only. Generator creation is a separate concern tracked by the nfw-generators repository. The command assumes generators exist and provides clear errors if they don't.
 
 ### Q: Should the command add EF Core package references?
 
-**A**: No. Package management is explicitly out of scope (non-goals). Templates should handle this if needed, or developers add packages manually.
+**A**: No. Package management is explicitly out of scope (non-goals). Generators should handle this if needed, or developers add packages manually.
 
 ### Q: Should there be a `--provider` flag for database selection?
 
-**A**: No. The command is template-agnostic. Database provider selection is handled by the template system based on service template configuration.
+**A**: No. The command is generator-agnostic. Database provider selection is handled by the generator system based on service generator configuration.
 
 ### Q: Should the command validate EF Core version compatibility?
 
@@ -227,14 +227,14 @@ if modules.contains(&"persistence".to_string()) {
 
 ## Alternatives Considered
 
-### Alternative 1: Create templates as part of this spec
+### Alternative 1: Create generators as part of this spec
 
 **Rejected Because**:
 
-- Templates are separate concerns
-- nfw-templates is its own repository
-- CLI command should work independently of template implementation details
-- Templates may evolve independently
+- Generators are separate concerns
+- nfw-generators is its own repository
+- CLI command should work independently of generator implementation details
+- Generators may evolve independently
 
 ### Alternative 2: Add `--force` flag to overwrite existing persistence
 

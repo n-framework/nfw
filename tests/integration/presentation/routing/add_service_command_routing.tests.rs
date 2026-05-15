@@ -11,20 +11,20 @@ fn add_service_help_lists_expected_options() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("nfw add service"));
-    assert!(stdout.contains("--template <template>"));
+    assert!(stdout.contains("--generator <generator>"));
     assert!(stdout.contains("--no-input"));
 
     cleanup_sandbox_directory(&sandbox_home);
 }
 
 #[test]
-fn add_service_non_interactive_requires_template() {
+fn add_service_non_interactive_requires_generator() {
     let sandbox_home = create_sandbox_directory("add-service-no-input-home");
     let output = run_cli_command(&sandbox_home, &["add", "service", "Orders", "--no-input"]);
 
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("required input 'template' is missing"));
+    assert!(stderr.contains("required input 'generator' is missing"));
 
     cleanup_sandbox_directory(&sandbox_home);
 }

@@ -5,8 +5,7 @@ use serde_yaml::Value as YamlValue;
 
 use crate::features::check::models::errors::CheckError;
 use crate::features::check::services::abstractions::WorkspaceMetadataReader;
-
-const WORKSPACE_METADATA_FILE: &str = "nfw.yaml";
+use crate::features::generator_management::constants::{workspace, yaml_keys};
 
 /// File system implementation of WorkspaceMetadataReader.
 pub struct FilesystemWorkspaceMetadataReader;
@@ -28,7 +27,7 @@ impl WorkspaceMetadataReader for FilesystemWorkspaceMetadataReader {
         let mut candidate = start_directory.to_path_buf();
 
         loop {
-            let workspace_file = candidate.join(WORKSPACE_METADATA_FILE);
+            let workspace_file = candidate.join(workspace::METADATA_FILE);
             if workspace_file.is_file() {
                 return Ok(candidate);
             }
@@ -46,7 +45,7 @@ impl WorkspaceMetadataReader for FilesystemWorkspaceMetadataReader {
     }
 
     fn resolve_service_roots(&self, workspace_root: &Path) -> Result<Vec<PathBuf>, String> {
-        let workspace_metadata_path = workspace_root.join(WORKSPACE_METADATA_FILE);
+        let workspace_metadata_path = workspace_root.join(workspace::METADATA_FILE);
         let metadata_content = fs::read_to_string(&workspace_metadata_path).map_err(|error| {
             format!(
                 "failed to read workspace metadata file '{path}': {error}",
@@ -57,7 +56,7 @@ impl WorkspaceMetadataReader for FilesystemWorkspaceMetadataReader {
             .map_err(|error| format!("failed to parse workspace metadata file '{path}': {error}. Ensure the file contains valid YAML.", path = workspace_metadata_path.display()))?;
 
         let Some(services) = metadata
-            .get("services")
+            .get(yaml_keys::SERVICES)
             .and_then(|value| value.as_mapping())
         else {
             return Ok(Vec::new());
@@ -69,7 +68,7 @@ impl WorkspaceMetadataReader for FilesystemWorkspaceMetadataReader {
                 continue;
             };
             let Some(path_value) = service_mapping
-                .get(YamlValue::String("path".to_owned()))
+                .get(YamlValue::String(yaml_keys::PATH.to_owned()))
                 .and_then(|value| value.as_str())
             else {
                 continue;

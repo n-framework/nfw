@@ -1,6 +1,6 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger};
 
-use crate::features::template_management::services::abstractions::template_catalog_discovery_service::TemplateCatalogDiscoveryService;
+use crate::features::generator_management::services::abstractions::generator_catalog_discovery_service::GeneratorCatalogDiscoveryService;
 use crate::features::workspace_management::commands::new_workspace::new_workspace_command::{
     NewWorkspaceCommand, NewWorkspaceCommandResult,
 };
@@ -12,7 +12,7 @@ use crate::features::workspace_management::services::abstractions::workspace_wri
 use crate::features::workspace_management::services::input_resolution_service::InputResolutionService;
 use crate::features::workspace_management::services::namespace_resolver::NamespaceResolver;
 use crate::features::workspace_management::services::new_command_validator::NewCommandValidator;
-use crate::features::workspace_management::services::template_selection_for_new_service::TemplateSelectionForNewService;
+use crate::features::workspace_management::services::generator_selection_for_new_service::GeneratorSelectionForNewService;
 use crate::features::workspace_management::services::workspace_blueprint_builder::WorkspaceBlueprintBuilder;
 
 /// Command handler for creating a new workspace.
@@ -20,7 +20,7 @@ use crate::features::workspace_management::services::workspace_blueprint_builder
 /// This handler orchestrates the workspace creation process:
 /// 1. Validates the command input
 /// 2. Resolves workspace name (from input or prompt)
-/// 3. Resolves template selection (from input or prompt)
+/// 3. Resolves generator selection (from input or prompt)
 /// 4. Resolves namespace and output path
 /// 5. Builds and writes the workspace blueprint
 #[derive(Debug, Clone)]
@@ -28,13 +28,13 @@ pub struct NewWorkspaceCommandHandler<P, V, T, W, D, PS>
 where
     P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
-    T: TemplateCatalogDiscoveryService + Clone,
+    T: GeneratorCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
     PS: InteractivePrompt + Logger + Clone,
 {
     input_resolution_service: InputResolutionService<P, V>,
-    template_selection_service: TemplateSelectionForNewService<T, PS>,
+    generator_selection_service: GeneratorSelectionForNewService<T, PS>,
     workspace_blueprint_builder: WorkspaceBlueprintBuilder,
     namespace_resolver: NamespaceResolver,
     new_command_validator: NewCommandValidator<V>,
@@ -46,7 +46,7 @@ impl<P, V, T, W, D, PS> NewWorkspaceCommandHandler<P, V, T, W, D, PS>
 where
     P: InteractivePrompt + Logger,
     V: WorkspaceNameValidator + Clone,
-    T: TemplateCatalogDiscoveryService + Clone,
+    T: GeneratorCatalogDiscoveryService + Clone,
     W: WorkspaceWriter,
     D: WorkingDirectoryProvider,
     PS: InteractivePrompt + Logger + Clone,
@@ -54,7 +54,7 @@ where
     pub fn new(
         prompt_service: P,
         workspace_name_validator: V,
-        template_selection_service: TemplateSelectionForNewService<T, PS>,
+        generator_selection_service: GeneratorSelectionForNewService<T, PS>,
         workspace_writer: W,
         working_directory_provider: D,
     ) -> Self {
@@ -64,7 +64,7 @@ where
 
         Self {
             input_resolution_service,
-            template_selection_service,
+            generator_selection_service,
             workspace_blueprint_builder: WorkspaceBlueprintBuilder::new(),
             namespace_resolver: NamespaceResolver::new(),
             new_command_validator,
@@ -83,10 +83,12 @@ where
         let workspace_name = self
             .input_resolution_service
             .resolve_workspace_name(&request)?;
-        let template_selection = self.template_selection_service.resolve_template_selection(
-            command.template_id.as_deref(),
-            !command.no_input && command.is_interactive_terminal,
-        )?;
+        let generator_selection = self
+            .generator_selection_service
+            .resolve_generator_selection(
+                command.generator_id.as_deref(),
+                !command.no_input && command.is_interactive_terminal,
+            )?;
 
         let namespace_base = self
             .namespace_resolver
@@ -99,11 +101,11 @@ where
 
         let resolution = NewCommandResolution {
             workspace_name: workspace_name.clone(),
-            template_id: format!(
+            generator_id: format!(
                 "{}/{}",
-                template_selection.source_name, template_selection.template.metadata.id
+                generator_selection.source_name, generator_selection.generator.metadata.id
             ),
-            template_cache_path: template_selection.template.cache_path.clone(),
+            generator_cache_path: generator_selection.generator.cache_path.clone(),
             namespace_base: namespace_base.clone(),
             output_path: output_path.clone(),
         };
@@ -116,7 +118,7 @@ where
         Ok(NewWorkspaceCommandResult {
             workspace_name,
             output_path,
-            template_id: resolution.template_id,
+            generator_id: resolution.generator_id,
             namespace_base,
         })
     }

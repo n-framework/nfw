@@ -3,4 +3,4 @@
 pub mod features;
 
 // Re-export domain validation utilities for use by presentation layer
-pub use n_framework_nfw_core_domain::features::template_management::validation;
+pub use n_framework_nfw_core_domain::features::generator_management::validation;

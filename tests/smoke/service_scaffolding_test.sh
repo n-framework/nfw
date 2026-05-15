@@ -15,10 +15,10 @@ main() {
 	setup_test_dir
 	cd "$TEST_DIR"
 
-	local template_id="official/blank-workspace"
+	local generator_id="official/blank-workspace"
 
 	echo "Creating workspace..."
-	if ! nfw new TestWorkspace --template "$template_id" --no-input 2>&1; then
+	if ! nfw new TestWorkspace --generator "$generator_id" --no-input 2>&1; then
 		log_fail "nfw new command failed"
 		exit 1
 	fi
@@ -26,8 +26,8 @@ main() {
 	cd "$TEST_DIR/TestWorkspace"
 
 	echo "Adding service..."
-	# Use --template flag as per actual CLI syntax
-	if ! nfw add service TestService --template official/dotnet-service --no-input 2>&1; then
+	# Use --generator flag as per actual CLI syntax
+	if ! nfw add service TestService --generator official/dotnet-service --no-input 2>&1; then
 		log_fail "nfw add service command failed"
 		exit 1
 	fi

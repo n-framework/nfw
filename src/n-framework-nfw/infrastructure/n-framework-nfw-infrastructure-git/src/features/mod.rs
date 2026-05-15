@@ -1,1 +1,1 @@
-pub mod template_management;
+pub mod generator_management;

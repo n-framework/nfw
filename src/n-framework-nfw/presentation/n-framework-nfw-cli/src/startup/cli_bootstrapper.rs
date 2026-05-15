@@ -1,7 +1,7 @@
 use crate::startup::cli_service_collection_factory::{
     CliServiceCollection, CliServiceCollectionFactory,
 };
-use n_framework_nfw_core_application::features::template_management::commands::ensure_default_source::ensure_default_source_command::EnsureDefaultSourceCommand;
+use n_framework_nfw_core_application::features::generator_management::commands::ensure_default_source::ensure_default_source_command::EnsureDefaultSourceCommand;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct CliBootstrapper;
@@ -10,7 +10,7 @@ impl CliBootstrapper {
     pub fn bootstrap() -> Result<CliServiceCollection, String> {
         let service_collection = CliServiceCollectionFactory::create();
 
-        // Bootstrap: ensure default template source is registered.
+        // Bootstrap: ensure default generator source is registered.
         // Done after construction so I/O failures return a Result
         // instead of panicking inside the factory.
         service_collection

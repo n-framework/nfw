@@ -13,7 +13,7 @@
 
 ## Path Conventions
 
-- Paths shown below assume single project repository logic in `src/nfw/` and template directory `src/nfw-templates/`
+- Paths shown below assume single project repository logic in `src/nfw/` and generator directory `src/nfw-generators/`
 
 ---
 
@@ -21,11 +21,11 @@
 
 **Purpose**: Command registration, project setup
 
-- [x] T001 Initialize endpoint generator configuration `src/nfw-templates/src/dotnet-service/endpoint/template.yaml`
-- [x] T002 In `src/nfw-templates/src/dotnet-service/template.yaml`, register the new generator under `generators: endpoint: ./endpoint/`
-- [x] T003 Create Tera template for the endpoint in `src/nfw-templates/src/dotnet-service/endpoint/Endpoint.cs.tera` (including Map{OperationType}, ISender, OpenAPI mapping)
+- [x] T001 Initialize endpoint generator configuration `src/nfw-generators/src/dotnet-service/endpoint/nfw.generator.yaml`
+- [x] T002 In `src/nfw-generators/src/dotnet-service/nfw.generator.yaml`, register the new generator under `generators: endpoint: ./endpoint/`
+- [x] T003 Create Tera generator for the endpoint in `src/nfw-generators/src/dotnet-service/endpoint/Endpoint.cs.tera` (including Map{OperationType}, ISender, OpenAPI mapping)
 
-**Checkpoint**: Foundation ready - template and config scaffolded natively.
+**Checkpoint**: Foundation ready - generator and config scaffolded natively.
 
 ---
 
@@ -93,7 +93,7 @@
 
 1. Complete Phase 1: Setup
 2. Complete Phase 2: User Story 1
-3. **STOP and VALIDATE**: Test User Story 1 independently against existing templates
+3. **STOP and VALIDATE**: Test User Story 1 independently against existing generators
 
 ### Incremental Delivery
 

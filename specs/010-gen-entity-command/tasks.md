@@ -53,9 +53,9 @@ nfw CLI workspace structure:
 
 ## Phase 3: User Story 1 - Generate Entity with Properties (Priority: P1) 🎯 MVP
 
-**Goal**: CLI command that creates entity schema files and invokes template engine for code generation
+**Goal**: CLI command that creates entity schema files and invokes generator engine for code generation
 
-**Independent Test**: Run `nfw gen entity Product --props Name:string,Price:decimal --no-input` and verify that (1) schema file is created in entity-specs_path, (2) template engine is invoked, (3) entity code is generated in configured output directory
+**Independent Test**: Run `nfw gen entity Product --props Name:string,Price:decimal --no-input` and verify that (1) schema file is created in entity-specs_path, (2) generator engine is invoked, (3) entity code is generated in configured output directory
 
 ### Integration Tests for User Story 1
 
@@ -88,7 +88,7 @@ nfw CLI workspace structure:
 - [x] T026 [US1] Register gen_entity command in CLI mod.rs in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/mod.rs
 - [x] T027 [US1] Add --props, --service, --id-type, --entity-type, --schema-only, --from-schema, --no-input flags to gen_entity command in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/commands/gen_entity.rs
 
-**Checkpoint**: At this point, User Story 1 should be fully functional - users can run `nfw gen entity` to create schemas and invoke template engine
+**Checkpoint**: At this point, User Story 1 should be fully functional - users can run `nfw gen entity` to create schemas and invoke generator engine
 
 ---
 
@@ -207,7 +207,7 @@ Task: T021 - EntitySchemaReader service (partial)
 2. Complete Phase 2: Foundational (CRITICAL - blocks US1)
 3. Complete Phase 3: User Story 1
 4. **STOP and VALIDATE**: Test `nfw gen entity Product --props Name:string,Price:decimal --no-input` independently
-5. Verify schema creation and template invocation
+5. Verify schema creation and generator invocation
 6. Deploy/demo if ready
 
 ### Incremental Delivery

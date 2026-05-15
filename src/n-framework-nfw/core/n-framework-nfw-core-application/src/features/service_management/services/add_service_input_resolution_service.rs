@@ -1,9 +1,9 @@
 use crate::features::service_management::models::add_service_command_request::AddServiceCommandRequest;
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
-use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
-use crate::features::service_management::services::abstractions::service_template_prompt::ServiceTemplatePrompt;
-use crate::features::service_management::services::abstractions::service_template_selector::{
-    ServiceTemplateSelectionContext, ServiceTemplateSelector,
+use crate::features::service_management::models::service_generator_resolution::ServiceGeneratorResolution;
+use crate::features::service_management::services::abstractions::service_generator_prompt::ServiceGeneratorPrompt;
+use crate::features::service_management::services::abstractions::service_generator_selector::{
+    ServiceGeneratorSelectionContext, ServiceGeneratorSelector,
 };
 use n_framework_core_cli_abstractions::{InteractiveError, InteractivePrompt, Logger};
 use serde_yaml::Value as YamlValue;
@@ -12,25 +12,25 @@ use std::path::Path;
 #[derive(Debug, Clone)]
 pub struct AddServiceInputResolutionService<S, P, Q>
 where
-    S: ServiceTemplateSelector,
-    P: ServiceTemplatePrompt,
+    S: ServiceGeneratorSelector,
+    P: ServiceGeneratorPrompt,
     Q: InteractivePrompt + Logger,
 {
-    template_selector: S,
-    template_prompt: P,
+    generator_selector: S,
+    generator_prompt: P,
     prompt_service: Q,
 }
 
 impl<S, P, Q> AddServiceInputResolutionService<S, P, Q>
 where
-    S: ServiceTemplateSelector,
-    P: ServiceTemplatePrompt,
+    S: ServiceGeneratorSelector,
+    P: ServiceGeneratorPrompt,
     Q: InteractivePrompt + Logger,
 {
-    pub fn new(template_selector: S, template_prompt: P, prompt_service: Q) -> Self {
+    pub fn new(generator_selector: S, generator_prompt: P, prompt_service: Q) -> Self {
         Self {
-            template_selector,
-            template_prompt,
+            generator_selector,
+            generator_prompt,
             prompt_service,
         }
     }
@@ -52,16 +52,16 @@ where
             .map_err(map_prompt_error)
     }
 
-    pub fn resolve_template_selection(
+    pub fn resolve_generator_selection(
         &self,
         request: &AddServiceCommandRequest,
         workspace_root: &Path,
         nfw_yaml: &YamlValue,
-    ) -> Result<ServiceTemplateResolution, AddServiceError> {
-        if let Some(template_id) = request.template_id.as_deref() {
-            return self.template_selector.resolve_service_template(
-                template_id,
-                ServiceTemplateSelectionContext {
+    ) -> Result<ServiceGeneratorResolution, AddServiceError> {
+        if let Some(generator_id) = request.generator_id.as_deref() {
+            return self.generator_selector.resolve_service_generator(
+                generator_id,
+                ServiceGeneratorSelectionContext {
                     workspace_root,
                     nfw_yaml,
                 },
@@ -69,45 +69,47 @@ where
         }
 
         if request.is_non_interactive() {
-            return Err(AddServiceError::MissingRequiredInput("template".to_owned()));
+            return Err(AddServiceError::MissingRequiredInput(
+                "generator".to_owned(),
+            ));
         }
 
         let spinner = if !request.is_non_interactive() && self.prompt_service.is_interactive() {
             Some(
                 self.prompt_service
-                    .spinner("Discovering templates...")
+                    .spinner("Discovering generators...")
                     .map_err(|e| AddServiceError::PromptFailed(e.to_string()))?,
             )
         } else {
             None
         };
 
-        let templates_result = self.template_selector.list_service_templates();
+        let generators_result = self.generator_selector.list_service_generators();
 
         if let Some(spinner) = &spinner {
-            if templates_result.is_ok() {
-                spinner.stop("Templates discovered");
+            if generators_result.is_ok() {
+                spinner.stop("Generators discovered");
             } else {
-                spinner.error("Failed to discover templates");
+                spinner.error("Failed to discover generators");
             }
         }
 
-        let templates = templates_result?;
+        let generators = generators_result?;
 
-        if templates.is_empty() {
-            return Err(AddServiceError::TemplateNotFound(
-                "<service template>".to_owned(),
+        if generators.is_empty() {
+            return Err(AddServiceError::GeneratorNotFound(
+                "<service generator>".to_owned(),
             ));
         }
 
-        let selected_template_id = self
-            .template_prompt
-            .select_template(&templates)
+        let selected_generator_id = self
+            .generator_prompt
+            .select_generator(&generators)
             .map_err(AddServiceError::PromptFailed)?;
 
-        self.template_selector.resolve_service_template(
-            &selected_template_id,
-            ServiceTemplateSelectionContext {
+        self.generator_selector.resolve_service_generator(
+            &selected_generator_id,
+            ServiceGeneratorSelectionContext {
                 workspace_root,
                 nfw_yaml,
             },

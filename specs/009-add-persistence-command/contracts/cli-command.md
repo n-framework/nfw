@@ -70,8 +70,8 @@ None (all parameters passed via options)
 3. Validate target service exists
 4. Check for existing persistence module
     └─ If present: Report and exit (success)
-5. Load persistence template context
-6. Execute template rendering
+5. Load persistence generator context
+6. Execute generator rendering
     ├── Render DbContext.cs
     ├── Render RepositoryBase.cs
     └── Render configuration files
@@ -81,10 +81,10 @@ None (all parameters passed via options)
 
 ### Rollback Behavior
 
-If template execution fails:
+If generator execution fails:
 
 - NO changes to nfw.yaml
-- Partial template files MAY exist (not cleaned up)
+- Partial generator files MAY exist (not cleaned up)
 - Error message indicates failure reason
 - Exit code reflects error type
 
@@ -95,7 +95,7 @@ If template execution fails:
 | 0 | Success (persistence added or already present) |
 | 1 | Generic error |
 | 2 | Workspace error (no nfw.yaml, invalid structure) |
-| 3 | Template not found or execution failed |
+| 3 | Generator not found or execution failed |
 | 4 | Service not found |
 | 5 | Permission error (cannot write files) |
 | 130 | SIGINT (Ctrl+C) |
@@ -140,12 +140,12 @@ Available services:
    - AnotherService
 ```
 
-**Template not found**:
+**Generator not found**:
 
 ```text
-Error: Template not found: Could not resolve template 'dotnet-service/persistence'
+Error: Generator not found: Could not resolve generator 'dotnet-service/persistence'
 
-Ensure the persistence template is available in your configured template sources.
+Ensure the persistence generator is available in your configured generator sources.
 ```
 
 **Permission error**:
@@ -210,7 +210,7 @@ Error: Multiple services found. Please specify --service or run without --no-inp
 
 1. **Workspace exists**: Command must be run within a valid nfw workspace (nfw.yaml present)
 2. **Service exists**: Target service must be defined in nfw.yaml
-3. **Template available**: Persistence template must be accessible
+3. **Generator available**: Persistence generator must be accessible
 4. **Write permissions**: User must have write access to nfw.yaml and service directory
 
 ## Postconditions
@@ -218,14 +218,14 @@ Error: Multiple services found. Please specify --service or run without --no-inp
 **On Success**:
 
 1. Service's `modules` array in nfw.yaml contains `"persistence"`
-2. Template artifacts generated in service directory
+2. Generator artifacts generated in service directory
 3. YAML comments preserved
-4. All generated code compiles (if templates are correct)
+4. All generated code compiles (if generators are correct)
 
 **On Failure**:
 
 1. nfw.yaml unchanged (atomic operation)
-2. Partial template files may exist (not cleaned up)
+2. Partial generator files may exist (not cleaned up)
 3. Error message explains failure reason
 4. Appropriate exit code returned
 
@@ -235,7 +235,7 @@ Error: Multiple services found. Please specify --service or run without --no-inp
 
 - **Detection**: Check service's modules array before execution
 - **Action**: Report info message, exit with code 0
-- **No template execution**
+- **No generator execution**
 - **No YAML modification**
 
 ### Empty services list
@@ -248,10 +248,10 @@ Error: Multiple services found. Please specify --service or run without --no-inp
 - **Error**: "Service 'Invalid Name' not found in workspace."
 - **Exit code**: 4
 
-### Template execution fails
+### Generator execution fails
 
 - **Action**: Rollback YAML changes (no write)
-- **Error**: Specific failure reason from template engine
+- **Error**: Specific failure reason from generator engine
 - **Exit code**: 3
 
 ### Concurrent modifications
@@ -270,8 +270,8 @@ Error: Multiple services found. Please specify --service or run without --no-inp
 The command reads configuration from:
 
 - `nfw.yaml`: Workspace and service definitions
-- `nfw.yaml → template_sources`: Template repository locations
-- `nfw.yaml → services → <service> → template`: Service template ID
+- `nfw.yaml → generator_sources`: Generator repository locations
+- `nfw.yaml → services → <service> → generator`: Service generator ID
 
 The command writes configuration to:
 
@@ -282,21 +282,21 @@ The command writes configuration to:
 **External Dependencies**:
 
 - `nfw.yaml` (workspace configuration)
-- Template sources (local or remote)
+- Generator sources (local or remote)
 - Service directory (file system)
 
 **Internal Dependencies**:
 
 - `ArtifactGenerationService`: Core workflow orchestration
-- `TemplateEngine`: Template execution
+- `GeneratorEngine`: Generator execution
 - `WorkingDirectoryProvider`: File system operations
-- `TemplateRootResolver`: Template resolution
+- `GeneratorRootResolver`: Generator resolution
 - `InteractivePrompt`: User interaction (if not --no-input)
 
 ## Performance Requirements
 
 - **Total execution time**: <5 seconds for typical workspaces
-- **Rollback time**: <1 second on template failure
+- **Rollback time**: <1 second on generator failure
 - **Workspace size**: Support up to 10 services
 
 ## Security Considerations
@@ -310,7 +310,7 @@ The command writes configuration to:
 **Input Validation**:
 
 - Service names validated against regex: `^[a-zA-Z0-9_-]+$`
-- Template IDs validated before use
+- Generator IDs validated before use
 - No code injection from user input
 
 **YAML Safety**:
@@ -324,7 +324,7 @@ The command writes configuration to:
 Integration tests must verify:
 
 1. ✅ Successful addition with valid inputs
-2. ✅ Rollback on template execution failure
+2. ✅ Rollback on generator execution failure
 3. ✅ Service not found error handling
 4. ✅ YAML comment preservation
 5. ✅ Duplicate module detection

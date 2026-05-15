@@ -18,8 +18,7 @@ use crate::features::check::services::process_external_tool_runner::ProcessExter
 use crate::features::check::services::project_reference_validator::ProjectReferenceValidatorService;
 use crate::features::check::services::remediation_hint_service::RemediationHintService;
 use crate::features::check::services::rule_set_loader::RuleSetLoaderService;
-
-const WORKSPACE_METADATA_FILE: &str = "nfw.yaml";
+use crate::features::generator_management::constants::workspace;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ProjectManifestKind {
@@ -186,7 +185,7 @@ impl CheckCommandHandler {
             Ok(roots) => roots,
             Err(error) => {
                 findings.push(self.unreadable_artifact_finding(
-                    workspace_root.join(WORKSPACE_METADATA_FILE),
+                    workspace_root.join(workspace::METADATA_FILE),
                     error,
                 ));
                 return findings;

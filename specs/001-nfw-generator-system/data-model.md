@@ -1,0 +1,555 @@
+# Data Model: Generator System
+
+**Feature**: Generator Metadata Schema, Discovery, and Versioning
+**Date**: 2026-03-29
+
+**Architecture Note**: Generator management entities (GeneratorMetadata, GeneratorSource, GeneratorsService) are in **nfw** package. Generator rendering is handled by **core-generator-rust** package.
+
+## Repository Organization
+
+**nfw** (this repository): Generator management
+
+- GeneratorMetadata, GeneratorSource, GeneratorsService
+- Generator discovery, caching, version resolution
+- `nfw generators` commands
+
+**core-generator-rust** (separate repository): Generator rendering
+
+- PlaceholderRenderer, FileGenerator, GeneratorContext
+- Pure rendering engine - no git, no caching, no discovery
+
+## Entity Definitions
+
+### GeneratorMetadata
+
+Represents the parsed content of a `nfw.generator.yaml` file.
+
+**Location**: `nfw/src/features/generator-management/models/`
+
+```rust
+// NO external dependencies - plain Rust struct
+pub struct GeneratorMetadata {
+    /// Unique identifier (kebab-case)
+    pub id: String,
+
+    /// Human-readable display name
+    pub name: String,
+
+    /// One-line summary
+    pub description: String,
+
+    /// Semantic version (custom type, NOT semver::Version)
+    pub version: Version,
+
+    /// Target language
+    pub language: Language,
+
+    /// Searchable keywords (optional)
+    pub tags: Option<Vec<String>>,
+
+    /// Generator maintainer (optional)
+    pub author: Option<String>,
+
+    /// Minimum CLI version required (optional)
+    pub min_cli_version: Option<Version>,
+
+    /// Canonical repository URL (optional)
+    pub source_url: Option<String>,
+}
+```
+
+**Note**: No `#[serde(...)]` attributes. Serialization handled by YamlParser adapter via `ParseYaml`/`SerializeYaml` traits.
+
+#### Validation Rules
+
+| Field         | Rule                                       | Error Message                            |
+| ------------- | ------------------------------------------ | ---------------------------------------- |
+| `id`          | Matches `^[a-z][a-z0-9-]*$`                | "Generator ID must be kebab-case: {id}"   |
+| `name`        | Not empty, max 100 chars                   | "Generator name required (max 100 chars)" |
+| `description` | Not empty, max 200 chars                   | "Description required (max 200 chars)"   |
+| `version`     | Valid semver (parsed by VersionComparator) | "Invalid semantic version: {version}"    |
+| `language`    | One of: `dotnet`, `go`, `rust`             | "Unsupported language: {language}"       |
+
+---
+
+### Version
+
+Custom semantic version type in domain (NOT the semver crate's type).
+
+**Location**: `src/nfw/src/nframework-nfw/core/nframework-nfw-domain/src/features/versioning/`
+
+```rust
+// NO external dependencies - plain Rust struct
+pub struct Version {
+    /// Major version
+    pub major: u64,
+
+    /// Minor version
+    pub minor: u64,
+
+    /// Patch version
+    pub patch: u64,
+
+    /// Pre-release identifier (e.g., "alpha", "beta.1")
+    pub pre: Option<String>,
+
+    /// Build metadata
+    pub build: Option<String>,
+}
+
+impl Version {
+    /// Create a new stable version
+    pub fn new(major: u64, minor: u64, patch: u64) -> Self {
+        Self {
+            major,
+            minor,
+            patch,
+            pre: None,
+            build: None,
+        }
+    }
+
+    /// Create a pre-release version
+    pub fn pre_release(major: u64, minor: u64, patch: u64, pre: &str) -> Self {
+        Self {
+            major,
+            minor,
+            patch,
+            pre: Some(pre.to_string()),
+            build: None,
+        }
+    }
+
+    /// Check if this is a stable release (no pre-release identifier)
+    pub fn is_stable(&self) -> bool {
+        self.pre.is_none()
+    }
+}
+
+impl Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)?;
+        if let Some(ref pre) = self.pre {
+            write!(f, "-{}", pre)?;
+        }
+        if let Some(ref build) = self.build {
+            write!(f, "+{}", build)?;
+        }
+        Ok(())
+    }
+}
+
+impl FromStr for Version {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Simplified parsing - actual implementation uses VersionComparator adapter
+        // This is a basic fallback; real parsing delegated to adapter
+        Err("Version parsing delegated to VersionComparator adapter".to_string())
+    }
+}
+```
+
+**Note**: Version comparison, parsing, and validation delegated to `VersionComparator` trait. The struct itself is a plain data container.
+
+---
+
+### Language Enum
+
+Supported target languages for generators.
+
+**Location**: `nfw/src/features/generator-management/models/`
+
+```rust
+// NO external dependencies - plain Rust enum
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Language {
+    Dotnet,
+    Go,
+    Rust,
+}
+
+impl Language {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Language::Dotnet => "dotnet",
+            Language::Go => "go",
+            Language::Rust => "rust",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "dotnet" => Some(Language::Dotnet),
+            "go" => Some(Language::Go),
+            "rust" => Some(Language::Rust),
+            _ => None,
+        }
+    }
+}
+
+impl Display for Language {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+```
+
+---
+
+### GeneratorSource
+
+A registered generator source (git repository).
+
+**Location**: `nfw/src/features/generator-management/models/`
+
+```rust
+// NO external dependencies - plain Rust struct
+pub struct GeneratorSource {
+    /// Source identifier (user-defined or derived from URL)
+    pub name: String,
+
+    /// Git repository URL
+    pub url: String,
+
+    /// Whether source is active for discovery
+    pub enabled: bool,
+}
+
+impl GeneratorSource {
+    pub fn new(name: String, url: String) -> Self {
+        Self {
+            name,
+            url,
+            enabled: true,
+        }
+    }
+
+    pub fn disabled(mut self) -> Self {
+        self.enabled = false;
+        self
+    }
+}
+```
+
+#### GeneratorSource Validation Rules
+
+| Field  | Rule                                               | Error Message                               |
+| ------ | -------------------------------------------------- | ------------------------------------------- |
+| `name` | Unique across sources, kebab-case                  | "Source name must be unique and kebab-case" |
+| `url`  | Valid git URL (validated by GitRepository adapter) | "Invalid git URL: {url}"                    |
+
+---
+
+### CachedGenerator
+
+A generator discovered and cached from a source.
+
+**Location**: `nfw/src/features/generator-management/models/`
+
+```rust
+// NO external dependencies - plain Rust struct
+use std::path::PathBuf;
+
+pub struct CachedGenerator {
+    /// Source this generator belongs to
+    pub source_name: String,
+
+    /// Parsed metadata
+    pub metadata: GeneratorMetadata,
+
+    /// Local cache directory path
+    pub cache_path: PathBuf,
+
+    /// When cache was last refreshed (Unix epoch seconds)
+    pub last_refreshed: u64,
+}
+```
+
+---
+
+### GeneratorsService
+
+In-memory index of all discovered generators.
+
+**Location**: `src/nframework-nfw/core/nframework-nfw-application/src/features/generator_management/services/`
+
+```rust
+// NO external dependencies - depends on trait objects only
+use std::collections::HashMap;
+use std::path::PathBuf;
+
+pub struct GeneratorsService {
+    /// All discovered generators indexed by qualified ID
+    generators: HashMap<QualifiedGeneratorId, CachedGenerator>,
+
+    /// Registered sources
+    sources: Vec<GeneratorSource>,
+
+    /// Trait objects for external operations
+    git: Box<dyn traits::GitRepository>,
+    yaml: Box<dyn traits::YamlParser>,
+    fs: Box<dyn traits::FileSystem>,
+    path_resolver: Box<dyn traits::PathResolver>,
+    version_comparator: Box<dyn traits::VersionComparator>,
+    validator: Box<dyn traits::Validator>,
+}
+
+/// Fully-qualified generator identifier (source/generator)
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct QualifiedGeneratorId {
+    pub source: String,
+    pub generator: String,
+}
+
+impl QualifiedGeneratorId {
+    pub fn new(source: String, generator: String) -> Self {
+        Self { source, generator }
+    }
+
+    pub fn unqualified(generator: String) -> Self {
+        Self {
+            source: String::new(),
+            generator,
+        }
+    }
+
+    pub fn is_qualified(&self) -> bool {
+        !self.source.is_empty()
+    }
+}
+
+impl GeneratorsService {
+    pub fn new(
+        git: Box<dyn traits::GitRepository>,
+        yaml: Box<dyn traits::YamlParser>,
+        fs: Box<dyn traits::FileSystem>,
+        path_resolver: Box<dyn traits::PathResolver>,
+        version_comparator: Box<dyn traits::VersionComparator>,
+        validator: Box<dyn traits::Validator>,
+    ) -> Self {
+        Self {
+            generators: HashMap::new(),
+            sources: Vec::new(),
+            git,
+            yaml,
+            fs,
+            path_resolver,
+            version_comparator,
+            validator,
+        }
+    }
+
+    /// Discover all generators from registered sources
+    pub fn discover(&mut self) -> Result<Vec<CachedGenerator>, RegistryError> {
+        // Implementation uses trait objects only
+        // No direct external library calls
+    }
+
+    /// Resolve a generator by qualified or unqualified ID
+    pub fn resolve(&self, id: &QualifiedGeneratorId) -> Option<&CachedGenerator> {
+        // Implementation
+    }
+
+    /// Add a new generator source
+    pub fn add_source(&mut self, source: GeneratorSource) -> Result<(), RegistryError> {
+        // Validates URL via GitRepository trait
+        // Stores source
+    }
+
+    /// Remove a generator source
+    pub fn remove_source(&mut self, name: &str) -> Result<bool, RegistryError> {
+        // Removes source and cleans up cache
+    }
+}
+```
+
+**Lookup Behavior**:
+
+- Unqualified ID (`microservice`): Searches all sources, returns first match
+- Qualified ID (`official/microservice`): Direct lookup in specific source
+- Conflict warning: When multiple sources have same generator ID
+
+---
+
+## Relationships
+
+```text
+GeneratorSource (1) ──────┬── (0..*) CachedGenerator
+                          │
+                          ├── GeneratorMetadata (core, no deps)
+                          ├── cache_path: PathBuf
+                          └── last_refreshed: DateTime
+
+GeneratorsService (1) ─────┬── (0..*) GeneratorSource
+                          │
+                          └── (0..*) CachedGenerator (indexed by QualifiedGeneratorId)
+                              │
+                              └── Uses trait objects:
+                                  ├── GitRepository
+                                  ├── YamlParser
+                                  ├── FileSystem
+                                  ├── PathResolver
+                                  ├── VersionComparator
+                                  └── Validator
+```
+
+---
+
+## State Transitions
+
+### Generator Source Lifecycle
+
+```text
+[Unregistered] ──add──> [Registered & Enabled]
+                        │
+                        │ disable
+                        ▼
+                   [Registered & Disabled]
+                        │
+                        │ remove
+                        ▼
+                    [Unregistered]
+```
+
+### Cache Lifecycle
+
+```text
+[Empty] ──clone──> [Cached] ──refresh──> [Cached (updated)]
+   │                              │
+   │                              │
+   │ corrupt/error                │
+   ▼                              ▼
+[Corrupted] ──reclone──> [Cached (fresh)]
+```
+
+---
+
+## Configuration Schema
+
+### sources.yaml
+
+```yaml
+# Registered generator sources
+sources:
+  - name: official
+    url: https://github.com/n-framework/nfw-generators
+    enabled: true
+
+  - name: my-company
+    url: https://github.com/mycompany/generators
+    enabled: true
+```
+
+**Parsed by**: `FileConfigStore` adapter (uses `YamlParser` adapter)
+
+---
+
+## Generator Repository Structure
+
+### Single Generator Repository
+
+```bash
+my-generator/
+├── nfw.generator.yaml          # Required: Generator metadata
+├── content/               # Required: Generator files
+│   ├── src/
+│   ├── tests/
+│   └── ...
+└── .nfwignore             # Optional: Excludes from generation
+```
+
+### Catalog Repository (Multiple Generators)
+
+```bash
+nfw-generators/
+├── microservice/
+│   ├── nfw.generator.yaml
+│   └── content/
+├── grpc-service/
+│   ├── nfw.generator.yaml
+│   └── content/
+└── worker/
+    ├── nfw.generator.yaml
+    └── content/
+```
+
+---
+
+## Trait Dependencies
+
+### Core Depends On Traits (Not Concretions)
+
+```rust
+// In core - only trait bounds
+use crate::traits::{
+    GitRepository, YamlParser, FileSystem,
+    PathResolver, VersionComparator, Validator,
+};
+
+pub struct GeneratorsService {
+    git: Box<dyn GitRepository>,       // Trait object
+    yaml: Box<dyn YamlParser>,         // Trait object
+    fs: Box<dyn FileSystem>,            // Trait object
+    // etc.
+}
+```
+
+### Adapters Implement Traits
+
+```rust
+// In adapters - concrete implementations use external libs
+use serde_yaml;  // External lib isolated here
+
+pub struct SerdeYamlParser;
+
+impl YamlParser for SerdeYamlParser {
+    fn parse<T>(&self, content: &str) -> Result<T, YamlError> {
+        // serde_yaml::from_str(...)
+        // Convert serde_yaml::Error to YamlError
+    }
+}
+```
+
+---
+
+## Dependency Graph
+
+```text
+[nfw internal versioning module] (NO external dependencies)
+    │
+    └── src/features/
+        └── versioning/ (Version value objects, VersionComparator trait)
+
+[core-cli-rust] (NO external dependencies - CLI abstractions only)
+    │
+    └── Command trait, CliAdapter trait, ClapAdapter
+
+[nfw internal git module] (NO external dependencies - uses system git CLI)
+    │
+    └── GitRepository trait, CliGitRepository implementation
+
+[core-generator-rust] (NO external dependencies - rendering only)
+    │
+    └── PlaceholderRenderer, FileGenerator, GeneratorContext
+
+[nfw] (depends on core-* packages, clap)
+    │
+    └── src/
+        ├── features/
+        │   ├── generator-management/models/ (GeneratorMetadata, GeneratorSource, Language)
+        │   ├── generator-management/value-objects/ (QualifiedGeneratorId)
+        │   └── generator-management/services/ (GeneratorsService)
+        ├── config/ (ConfigStore, FileConfigStore)
+        ├── path/ (PathResolver, PlatformPathResolver)
+        ├── validation/ (Validator, RegexValidator)
+        └── commands/generators/ (Generator list/add/remove commands)
+```
+
+## Package Dependencies
+
+```text
+nfw
+  ↓ + ↓ + ↓ + ↓
+core-cli-rust + core-generator-rust + nfw internal git/versioning modules
+```

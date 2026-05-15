@@ -1,12 +1,13 @@
-use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
+use n_framework_nfw_core_domain::features::generator_management::generator_parameters::GeneratorParameters;
 use std::fs;
 use std::path::Path;
 
 use serde_yaml::Value;
 
+use crate::features::generator_management::constants::{workspace, yaml_keys};
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
 use crate::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
-use crate::features::service_management::models::service_template_resolution::ServiceTemplateResolution;
+use crate::features::service_management::models::service_generator_resolution::ServiceGeneratorResolution;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ServiceGenerationPlanBuilder;
@@ -20,7 +21,7 @@ impl ServiceGenerationPlanBuilder {
         &self,
         service_name: &str,
         workspace_root: &Path,
-        template_resolution: &ServiceTemplateResolution,
+        generator_resolution: &ServiceGeneratorResolution,
     ) -> Result<ServiceGenerationPlan, AddServiceError> {
         let output_root = workspace_root.join("src").join(service_name);
         if output_root.exists() {
@@ -40,9 +41,9 @@ impl ServiceGenerationPlanBuilder {
             ))
         })?;
         let namespace = format!("{workspace_namespace}.{service_name}");
-        let qualified_template_id = template_resolution.qualified_template_id();
+        let qualified_generator_id = generator_resolution.qualified_generator_id();
 
-        let mut parameters = TemplateParameters::new()
+        let mut parameters = GeneratorParameters::new()
             .with_name(service_name)
             .map_err(AddServiceError::InvalidWorkspaceContext)?
             .with_namespace(&namespace)
@@ -58,16 +59,16 @@ impl ServiceGenerationPlanBuilder {
         parameters
             .insert(
                 "ProjectGuid",
-                stable_project_guid(service_name, &qualified_template_id),
+                stable_project_guid(service_name, &qualified_generator_id),
             )
             .expect("valid key");
 
         Ok(ServiceGenerationPlan {
             service_name: service_name.to_owned(),
             output_root,
-            template_cache_path: template_resolution.template_cache_path.clone(),
-            template_id: qualified_template_id,
-            template_version: template_resolution.resolved_version.clone(),
+            generator_cache_path: generator_resolution.generator_cache_path.clone(),
+            generator_id: qualified_generator_id,
+            generator_version: generator_resolution.resolved_version.clone(),
             namespace,
             placeholder_values: parameters,
         })
@@ -76,7 +77,7 @@ impl ServiceGenerationPlanBuilder {
 
 fn read_workspace_namespace(workspace_root: &Path) -> Result<String, String> {
     let yaml = load_workspace_yaml(workspace_root)?;
-    yaml.get("workspace")
+    yaml.get(yaml_keys::WORKSPACE)
         .and_then(|w| w.get("namespace"))
         .and_then(|n| n.as_str())
         .map(ToOwned::to_owned)
@@ -85,7 +86,7 @@ fn read_workspace_namespace(workspace_root: &Path) -> Result<String, String> {
 
 fn read_workspace_name(workspace_root: &Path) -> Result<String, String> {
     let yaml = load_workspace_yaml(workspace_root)?;
-    yaml.get("workspace")
+    yaml.get(yaml_keys::WORKSPACE)
         .and_then(|w| w.get("name"))
         .and_then(|n| n.as_str())
         .map(ToOwned::to_owned)
@@ -93,16 +94,16 @@ fn read_workspace_name(workspace_root: &Path) -> Result<String, String> {
 }
 
 fn load_workspace_yaml(workspace_root: &Path) -> Result<Value, String> {
-    let path = workspace_root.join("nfw.yaml");
+    let path = workspace_root.join(workspace::METADATA_FILE);
     let content = fs::read_to_string(&path)
         .map_err(|e| format!("failed to read {}: {}", path.display(), e))?;
     serde_yaml::from_str::<Value>(&content).map_err(|e| format!("failed to parse nfw.yaml: {}", e))
 }
 
-fn stable_project_guid(service_name: &str, template_id: &str) -> String {
+fn stable_project_guid(service_name: &str, generator_id: &str) -> String {
     let mut state_a: u64 = 0xcbf29ce484222325;
     let mut state_b: u64 = 0x8422_2325_cbf2_9ce4;
-    for byte in service_name.bytes().chain(template_id.bytes()) {
+    for byte in service_name.bytes().chain(generator_id.bytes()) {
         state_a ^= byte as u64;
         state_a = state_a.wrapping_mul(0x100000001b3);
 

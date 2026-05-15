@@ -19,8 +19,10 @@ impl AddServiceRequestValidator {
             return Err(AddServiceError::MissingRequiredInput("name".to_owned()));
         }
 
-        if request.is_non_interactive() && request.template_id.is_none() {
-            return Err(AddServiceError::MissingRequiredInput("template".to_owned()));
+        if request.is_non_interactive() && request.generator_id.is_none() {
+            return Err(AddServiceError::MissingRequiredInput(
+                "generator".to_owned(),
+            ));
         }
 
         Ok(())

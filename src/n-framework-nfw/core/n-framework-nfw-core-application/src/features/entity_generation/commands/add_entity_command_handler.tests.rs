@@ -1,7 +1,7 @@
 use super::*;
-use crate::features::template_management::models::template_error::TemplateError;
-use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
-use crate::features::template_management::services::template_engine::TemplateEngine;
+use crate::features::generator_management::models::generator_error::GeneratorError;
+use crate::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
+use crate::features::generator_management::services::generator_engine::GeneratorEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_domain::features::entity_generation::entities::add_entity_command::{
     AddEntityCommand, EntityGenerationOptions, EntityType,
@@ -10,8 +10,8 @@ use n_framework_nfw_core_domain::features::entity_generation::value_objects::gen
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::property_definition::PropertyDefinition;
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::service_info::ServiceInfo;
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::workspace_context::WorkspaceContext;
-use n_framework_nfw_core_domain::features::template_management::template_config::TemplateConfig;
-use n_framework_nfw_core_domain::features::template_management::template_parameters::TemplateParameters;
+use n_framework_nfw_core_domain::features::generator_management::generator_config::GeneratorConfig;
+use n_framework_nfw_core_domain::features::generator_management::generator_parameters::GeneratorParameters;
 use serde_yaml::Value as YamlValue;
 use std::path::PathBuf;
 use tempfile;
@@ -26,21 +26,21 @@ impl WorkingDirectoryProvider for MockWorkingDir {
 }
 
 struct MockResolver;
-impl TemplateRootResolver for MockResolver {
+impl GeneratorRootResolver for MockResolver {
     fn resolve(&self, _yaml: &YamlValue, _id: &str, _root: &Path) -> Result<PathBuf, String> {
-        Ok(PathBuf::from("/templates"))
+        Ok(PathBuf::from("/generators"))
     }
 }
 
 struct MockEngine;
-impl TemplateEngine for MockEngine {
+impl GeneratorEngine for MockEngine {
     fn execute(
         &self,
-        _config: &TemplateConfig,
+        _config: &GeneratorConfig,
         _root: &Path,
         _output: &Path,
-        _params: &TemplateParameters,
-    ) -> Result<(), TemplateError> {
+        _params: &GeneratorParameters,
+    ) -> Result<(), GeneratorError> {
         Ok(())
     }
 }
@@ -292,15 +292,15 @@ fn map_add_artifact_error_covers_all_variants() {
             "config fail",
         ),
         (
-            AddArtifactError::TemplateNotFound("missing_tpl".to_owned()),
-            "Template not found: missing_tpl",
+            AddArtifactError::GeneratorNotFound("missing_tpl".to_owned()),
+            "Generator not found: missing_tpl",
         ),
         (
             AddArtifactError::InvalidParameter("bad param".to_owned()),
-            "Invalid template parameter: bad param",
+            "Invalid generator parameter: bad param",
         ),
         (
-            AddArtifactError::ExecutionFailed(Box::new(TemplateError::IoError {
+            AddArtifactError::ExecutionFailed(Box::new(GeneratorError::IoError {
                 message: "run fail".to_owned(),
                 path: None,
             })),
@@ -325,7 +325,7 @@ fn map_add_artifact_error_covers_all_variants() {
         let actual_reason = match mapped {
             EntityGenerationError::InvalidEntityName { reason, .. } => reason,
             EntityGenerationError::ConfigError { reason } => reason,
-            EntityGenerationError::TemplateExecutionError { reason } => reason,
+            EntityGenerationError::GeneratorExecutionError { reason } => reason,
             _ => panic!("Unexpected mapping for error: {:?}", mapped),
         };
         assert!(

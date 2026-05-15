@@ -1,6 +1,6 @@
 use crate::cli_error::CliError;
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
-use n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::ServiceInfo;
+use n_framework_nfw_core_application::features::generator_management::services::artifact_generation_service::ServiceInfo;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
 
 pub struct GenRepositoryRequest<'a> {
@@ -83,12 +83,13 @@ where
             ))
             .map_err(|e| CliError::internal(e.to_string()))?;
 
-        let template_context = command.load_template_context(workspace, &service, "repository")?;
+        let generator_context =
+            command.load_generator_context(workspace, &service, "repository")?;
 
-        let gen_cmd = n_framework_nfw_core_application::features::template_management::commands::gen_repository::gen_repository_command::GenRepositoryCommand::new(
+        let gen_cmd = n_framework_nfw_core_application::features::generator_management::commands::gen_repository::gen_repository_command::GenRepositoryCommand::new(
             entity_name,
             Some(feature_name),
-            template_context,
+            generator_context,
         );
 
         command

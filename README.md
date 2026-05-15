@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Buy A Coffee](https://img.shields.io/badge/Buy%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black&style=flat)](https://ahmetcetinkaya.me/donate)
 
-The `nfw` CLI is the command-line entry point for the NFramework toolchain. It creates workspaces from templates, scaffolds services and CRUD flows, and validates architecture boundaries.
+The `nfw` CLI is the command-line entry point for the NFramework toolchain. It creates workspaces from generators, scaffolds services and CRUD flows, and validates architecture boundaries.
 
 ---
 
@@ -20,27 +20,27 @@ make build
 ### Basic Usage
 
 ```bash
-# List available templates
-nfw templates
+# List available generators
+nfw generators
 
 # Create a new workspace
 nfw new my-workspace
 
 # Create non-interactively in CI
-nfw new --no-input my-workspace --template blank-workspace
+nfw new --no-input my-workspace --generator blank-workspace
 ```
 
 ---
 
 ## Commands
 
-### Workspace & Templates
+### Workspace & Generators
 
 ```bash
-nfw templates                                # List available templates
-nfw new [name]                               # Create a new workspace from a template
-nfw new [name] --template <id>               # Create with an explicit template
-nfw new --no-input [name] --template <id>    # Non-interactive (for CI)
+nfw generators                                # List available generators
+nfw new [name]                               # Create a new workspace from a generator
+nfw new [name] --generator <id>               # Create with an explicit generator
+nfw new --no-input [name] --generator <id>    # Non-interactive (for CI)
 ```
 
 ### Service & Code Generation
@@ -71,7 +71,7 @@ nfw check --verbose                          # Validate with detailed diagnostic
 
 ---
 
-### Template Catalog
+### Generator Catalog
 
 | Identifier        | Display Name    | Description               |
 | ----------------- | --------------- | ------------------------- |
@@ -79,11 +79,11 @@ nfw check --verbose                          # Validate with detailed diagnostic
 
 ---
 
-## Templates Source
+## Generators Source
 
-- Debug builds use `packages/nfw-templates` when the submodule exists.
+- Debug builds use `packages/nfw-generators` when the submodule exists.
 - If the debug submodule is missing, debug builds fall back to release behavior.
-- Release builds fetch templates from `github.com/n-framework/nfw-templates` at tag `v{cliVersion}`.
+- Release builds fetch generators from `github.com/n-framework/nfw-generators` at tag `v{cliVersion}`.
 
 ---
 

@@ -25,7 +25,7 @@ description: "Task list for Generate Repository Command feature"
 
 - [x] T001 Create feature branch and verify .specify/feature.json points to correct directory
 - [x] T002 [P] Verify dependencies: clap, serde, serde_yaml in src/nfw/Cargo.toml
-- [x] T003 [P] Verify core-persistence-dotnet submodule is accessible at src/core-persistence-dotnet/ (prerequisite for template rendering)
+- [x] T003 [P] Verify core-persistence-dotnet submodule is accessible at src/core-persistence-dotnet/ (prerequisite for generator rendering)
 
 ---
 
@@ -35,12 +35,12 @@ description: "Task list for Generate Repository Command feature"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [x] T004 Create repository template directory at src/nfw-templates/src/dotnet-service/repository/
-- [x] T005 Create repository template configuration file at src/nfw-templates/src/dotnet-service/repository/template.yaml with steps (render interface, render implementation, inject DI)
-- [x] T006 [P] Create interface template file at src/nfw-templates/src/dotnet-service/repository/content/interface/IEntityRepository.cs.tera
-- [x] T007 [P] Create implementation template file at src/nfw-templates/src/dotnet-service/repository/content/implementation/EntityRepository.cs.tera
-- [x] T008 [P] Create DI registration template file at src/nfw-templates/src/dotnet-service/repository/content/di-registration/registration.tera
-- [x] T009 Add `repository: ./repository/` generator entry to src/nfw-templates/src/dotnet-service/template.yaml under generators section
+- [x] T004 Create repository generator directory at src/nfw-generators/src/dotnet-service/repository/
+- [x] T005 Create repository generator configuration file at src/nfw-generators/src/dotnet-service/repository/nfw.generator.yaml with steps (render interface, render implementation, inject DI)
+- [x] T006 [P] Create interface generator file at src/nfw-generators/src/dotnet-service/repository/content/interface/IEntityRepository.cs.tera
+- [x] T007 [P] Create implementation generator file at src/nfw-generators/src/dotnet-service/repository/content/implementation/EntityRepository.cs.tera
+- [x] T008 [P] Create DI registration generator file at src/nfw-generators/src/dotnet-service/repository/content/di-registration/registration.tera
+- [x] T009 Add `repository: ./repository/` generator entry to src/nfw-generators/src/dotnet-service/nfw.generator.yaml under generators section
 - [x] T010 Create repository command structure in src/nfw/src/commands/gen/repository.rs with CLI argument parsing (entity name, --feature flag)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
@@ -60,16 +60,16 @@ description: "Task list for Generate Repository Command feature"
 - [x] T011 [P] [US1] Integration test: successful repository generation in src/nfw/tests/integration/gen_repository_tests.rs (entity exists, persistence configured)
 - [x] T012 [P] [US1] Integration test: entity not found error in src/nfw/tests/integration/gen_repository_tests.rs
 - [x] T013 [P] [US1] Integration test: persistence not configured error in src/nfw/tests/integration/gen_repository_tests.rs
-- [x] T014 [P] [US1] Validation test: 100% generated files match template spec (SC-003) in src/nfw/tests/integration/gen_repository_tests.rs
-- [x] T015 [P] [US1] Validation test: 100% files in correct locations per template (SC-004) in src/nfw/tests/integration/gen_repository_tests.rs
+- [x] T014 [P] [US1] Validation test: 100% generated files match generator spec (SC-003) in src/nfw/tests/integration/gen_repository_tests.rs
+- [x] T015 [P] [US1] Validation test: 100% files in correct locations per generator (SC-004) in src/nfw/tests/integration/gen_repository_tests.rs
 - [x] T016 [P] [US1] Implement stderr output for all error messages in src/nfw/src/commands/gen/repository.rs (FR-010, Constitution II)
 
 ### Implementation for User Story 1
 
 - [x] T017 [US1] Implement entity existence validation in src/nfw/src/commands/gen/repository.rs (check Domain/Entities/ folder)
 - [x] T018 [US1] Implement persistence configuration validation in src/nfw/src/commands/gen/repository.rs (read nfw.yaml, check persistence section)
-- [x] T019 [US1] Implement template configuration reading in src/nfw/src/commands/gen/repository.rs (parse repository/template.yaml)
-- [x] T020 [US1] Implement template application logic in src/nfw/src/commands/gen/repository.rs (render files, inject DI)
+- [x] T019 [US1] Implement generator configuration reading in src/nfw/src/commands/gen/repository.rs (parse repository/nfw.generator.yaml)
+- [x] T020 [US1] Implement generator application logic in src/nfw/src/commands/gen/repository.rs (render files, inject DI)
 - [x] T021 [US1] Add default feature auto-detection logic in src/nfw/src/commands/gen/repository.rs (find feature containing entity)
 - [x] T022 [US1] Implement error handling for edge cases in src/nfw/src/commands/gen/repository.rs (invalid entity name, missing permissions, etc.)
 
@@ -92,7 +92,7 @@ description: "Task list for Generate Repository Command feature"
 
 - [x] T025 [US2] Implement --feature parameter handling in src/nfw/src/commands/gen/repository.rs
 - [x] T026 [US2] Implement feature folder validation in src/nfw/src/commands/gen/repository.rs (check feature exists)
-- [x] T027 [US2] Update template application to use specified feature path in src/nfw/src/commands/gen/repository.rs
+- [x] T027 [US2] Update generator application to use specified feature path in src/nfw/src/commands/gen/repository.rs
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -130,7 +130,7 @@ description: "Task list for Generate Repository Command feature"
 - [x] T037 [P] Add unit tests for helper functions in src/nfw/tests/unit/repository_command_tests.rs:
   - Test argument parsing (valid/invalid entity names)
   - Test feature auto-detection logic
-  - Test template path substitution ({{ Service }}, {{ Feature }}, {{ Entity }})
+  - Test generator path substitution ({{ Service }}, {{ Feature }}, {{ Entity }})
   - Test error message formatting (stderr output)
 - [x] T038 Run cargo clippy and fix all warnings in src/nfw/
 - [x] T039 Verify constitution compliance: single-step build (`cd src/nfw && make build`), CLI I/O, no suppression, deterministic tests
@@ -168,7 +168,7 @@ description: "Task list for Generate Repository Command feature"
 - All Foundational tasks marked [P] can run in parallel (within Phase 2)
 - Once Foundational phase completes, all user stories can start in parallel (if team capacity allows)
 - All tests for a user story marked [P] can run in parallel
-- Template file creation tasks (T006, T007, T008) can run in parallel
+- Generator file creation tasks (T006, T007, T008) can run in parallel
 
 ---
 
@@ -179,13 +179,13 @@ description: "Task list for Generate Repository Command feature"
 Task: "T011 Integration test: successful repository generation"
 Task: "T012 Integration test: entity not found error"
 Task: "T013 Integration test: persistence not configured error"
-Task: "T014 Validation: files match template spec"
+Task: "T014 Validation: files match generator spec"
 Task: "T015 Validation: files in correct locations"
 
-# Launch all template tasks (already done in Foundational, but shown for reference):
-Task: "T006 Create interface template file"
-Task: "T007 Create implementation template file"
-Task: "T008 Create DI registration template file"
+# Launch all generator tasks (already done in Foundational, but shown for reference):
+Task: "T006 Create interface generator file"
+Task: "T007 Create implementation generator file"
+Task: "T008 Create DI registration generator file"
 ```
 
 ---

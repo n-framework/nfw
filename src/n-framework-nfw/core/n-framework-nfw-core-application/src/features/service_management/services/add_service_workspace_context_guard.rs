@@ -1,8 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use crate::features::generator_management::constants::workspace;
 use crate::features::service_management::models::errors::add_service_error::AddServiceError;
-
-const WORKSPACE_METADATA_FILE: &str = "nfw.yaml";
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct AddServiceWorkspaceContextGuard;
@@ -19,7 +18,7 @@ impl AddServiceWorkspaceContextGuard {
         let mut candidate = current_directory.to_path_buf();
 
         loop {
-            let workspace_file = candidate.join(WORKSPACE_METADATA_FILE);
+            let workspace_file = candidate.join(workspace::METADATA_FILE);
             if workspace_file.is_file() {
                 return Ok(candidate);
             }
@@ -31,8 +30,9 @@ impl AddServiceWorkspaceContextGuard {
             candidate = parent.to_path_buf();
         }
 
-        Err(AddServiceError::InvalidWorkspaceContext(
-            "could not find nfw.yaml in current directory or parent directories".to_owned(),
-        ))
+        Err(AddServiceError::InvalidWorkspaceContext(format!(
+            "could not find {} in current directory or parent directories",
+            workspace::METADATA_FILE
+        )))
     }
 }

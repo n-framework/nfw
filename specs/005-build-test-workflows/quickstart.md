@@ -16,8 +16,8 @@ make smoke-tests
 Run individual smoke test suites:
 
 ```bash
-# Template selection smoke test
-./tests/smoke/template_selection_test.sh
+# Generator selection smoke test
+./tests/smoke/generator_selection_test.sh
 
 # Workspace generation smoke test
 ./tests/smoke/workspace_generation_test.sh
@@ -31,7 +31,7 @@ Expected output on success:
 ```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
-[PASS] Template selection (non-interactive)
+[PASS] Generator selection (non-interactive)
 [PASS] Workspace generation
 [PASS] Service scaffolding
 =========================================
@@ -41,7 +41,7 @@ Smoke Test Suite: Build & Test Workflows
 ### Prerequisites
 
 - `nfw` CLI built and available in PATH
-- Template cache pre-populated (`nfw templates` shows at least one template)
+- Generator cache pre-populated (`nfw generators` shows at least one generator)
 - .NET SDK installed (for service compilation validation)
 - `make` available
 
@@ -51,7 +51,7 @@ After generating a workspace, verify it builds and tests with single commands:
 
 ```bash
 # Generate a workspace
-nfw new TestWorkspace --template <id> --no-input
+nfw new TestWorkspace --generator <id> --no-input
 cd TestWorkspace
 
 # Build all projects
@@ -155,7 +155,7 @@ main() {
     cd "$TEST_DIR"
 
     # Your test logic here
-    nfw new TestWorkspace --template "official/blank-workspace" --no-input
+    nfw new TestWorkspace --generator "official/blank-workspace" --no-input
     assert_directory_exists "TestWorkspace"
 
     log_pass "Feature test passed"
@@ -253,7 +253,7 @@ cleanup_sandbox_directory(&sandbox);
 
 ```rust
 let output = std::process::Command::new("nfw")
-    .args(["new", "Workspace", "--template", "official/blank-workspace"])
+    .args(["new", "Workspace", "--generator", "official/blank-workspace"])
     .current_dir(&sandbox)
     .output()
     .expect("Command should execute");
@@ -273,7 +273,7 @@ assert!(content.contains("expected"), "Should contain expected content");
 
 1. Build CLI: `cargo build --workspace`
 2. Add to PATH: `export PATH="$PATH:$PWD/target/debug"`
-3. Check templates: `nfw templates`
+3. Check generators: `nfw generators`
 4. Check .NET: `dotnet --version`
 
 **Cleanup failures:**

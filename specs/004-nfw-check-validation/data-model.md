@@ -8,7 +8,7 @@
   - `rule_type` (enum): `project_reference | namespace_usage | package_usage`.
   - `source_layer` (string): Layer where rule applies.
   - `target_pattern` (string): Forbidden target reference/namespace/package pattern.
-  - `message_template` (string): Base remediation guidance.
+  - `message_generator` (string): Base remediation guidance.
   - `severity` (enum): `error` for initial scope.
 - Validation rules:
   - `rule_id` must be unique.

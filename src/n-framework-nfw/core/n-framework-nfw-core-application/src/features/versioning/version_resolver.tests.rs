@@ -72,20 +72,20 @@ fn resolves_requested_version_including_pre_release() {
 }
 
 #[test]
-fn warns_when_current_cli_is_older_than_template_minimum() {
+fn warns_when_current_cli_is_older_than_generator_minimum() {
     let resolver = create_resolver();
-    let template_min_cli = Version::from_str("2.0.0").expect("version should parse");
+    let generator_min_cli = Version::from_str("2.0.0").expect("version should parse");
     let current_cli = Version::from_str("1.5.0").expect("version should parse");
 
     let warning = resolver
-        .min_cli_warning(Some(&template_min_cli), &current_cli)
+        .min_cli_warning(Some(&generator_min_cli), &current_cli)
         .expect("compatibility check should succeed");
 
     assert!(warning.is_some());
     assert!(
         warning
             .expect("warning should exist")
-            .contains("template requires CLI version 2.0.0")
+            .contains("generator requires CLI version 2.0.0")
     );
 }
 

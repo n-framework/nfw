@@ -65,7 +65,7 @@ cargo test --package n-framework-nfw-cli persistence_add
 
 ```bash
 cd /home/ac/Code/n-framework/src/nfw
-cargo test --package n-framework-nfw-cli test_add_persistence_updates_nfw_yaml_and_renders_template
+cargo test --package n-framework-nfw-cli test_add_persistence_updates_nfw_yaml_and_renders_generator
 ```
 
 ### Run tests with output
@@ -83,8 +83,8 @@ cargo test --workspace -- --nocapture
      Running unittests src/...
 
 running 5 tests
-test add_persistence_updates_nfw_yaml_and_renders_template ... ok
-test add_persistence_rolls_back_yaml_if_template_execution_fails ... ok
+test add_persistence_updates_nfw_yaml_and_renders_generator ... ok
+test add_persistence_rolls_back_yaml_if_generator_execution_fails ... ok
 test add_persistence_fails_if_service_not_found ... ok
 test add_persistence_preserves_comments_in_nfw_yaml ... ok
 test add_persistence_detects_existing_persistence_module ... ok
@@ -130,7 +130,7 @@ Edit files in:
 
 ```text
 src/nfw/src/n-framework-nfw/
-├── core/n-framework-nfw-core-application/src/features/template_management/
+├── core/n-framework-nfw-core-application/src/features/generator_management/
 │   └── commands/add_persistence/
 └── presentation/n-framework-nfw-cli/src/commands/add/persistence/
 ```
@@ -173,7 +173,7 @@ cd /tmp/test-nfw-workspace
 
 ```bash
 # Create test directory
-mkdir -p /tmp/persistence-test/{templates/dotnet-service/persistence,src/MyService}
+mkdir -p /tmp/persistence-test/{generators/dotnet-service/persistence,src/MyService}
 
 # Create nfw.yaml
 cat > /tmp/persistence-test/nfw.yaml << 'EOF'
@@ -183,14 +183,14 @@ workspace:
 services:
   MyService:
     path: src/MyService
-    template:
+    generator:
       id: dotnet-service
-template_sources:
-  local: "templates"
+generator_sources:
+  local: "generators"
 EOF
 
-# Create template.yaml
-cat > /tmp/persistence-test/templates/dotnet-service/persistence/template.yaml << 'EOF'
+# Create nfw.generator.yaml
+cat > /tmp/persistence-test/generators/dotnet-service/persistence/nfw.generator.yaml << 'EOF'
 id: dotnet-service/persistence
 steps:
   - action: render
@@ -198,8 +198,8 @@ steps:
     destination: Infrastructure/Persistence/{{ Name }}DbContext.cs
 EOF
 
-# Create minimal template
-echo "// DbContext for {{ Name }}" > /tmp/persistence-test/templates/dotnet-service/persistence/DbContext.cs.tera
+# Create minimal generator
+echo "// DbContext for {{ Name }}" > /tmp/persistence-test/generators/dotnet-service/persistence/DbContext.cs.tera
 
 # Run command from test directory
 cd /tmp/persistence-test
@@ -213,7 +213,7 @@ cd /tmp/persistence-test
 cat /tmp/persistence-test/nfw.yaml
 # Should show "persistence" in MyService.modules array
 
-# Check template was rendered
+# Check generator was rendered
 ls -la /tmp/persistence-test/src/MyService/Infrastructure/Persistence/
 # Should show MyServiceDbContext.cs
 ```
@@ -258,16 +258,16 @@ src/nfw/target/debug/deps/libn_framework_nfw_cli-*.rlib
 
 ## Common Issues
 
-### Issue: "Template not found"
+### Issue: "Generator not found"
 
-**Solution**: Ensure persistence template exists in configured template sources.
+**Solution**: Ensure persistence generator exists in configured generator sources.
 
 ```bash
-# Check template sources in nfw.yaml
-grep -A 10 "template_sources:" nfw.yaml
+# Check generator sources in nfw.yaml
+grep -A 10 "generator_sources:" nfw.yaml
 
-# Verify template directory exists
-ls templates/dotnet-service/persistence/
+# Verify generator directory exists
+ls generators/dotnet-service/persistence/
 ```
 
 ### Issue: "Service not found"
@@ -334,7 +334,7 @@ time cargo run --bin n-framework-nfw-cli -- add persistence --service MyService 
 ### Measure rollback time
 
 ```bash
-# Create a failing template (invalid syntax)
+# Create a failing generator (invalid syntax)
 # Run command
 time cargo run --bin n-framework-nfw-cli -- add persistence --service MyService --no-input
 ```

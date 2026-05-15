@@ -8,8 +8,8 @@ use std::fs;
 /// This validates that the service generation produces all required project files
 /// with proper MSBuild project structure for .NET services.
 /// The test:
-/// 1. Creates a workspace and service template
-/// 2. Adds a service using `nfw add service` with dotnet-service template
+/// 1. Creates a workspace and service generator
+/// 2. Adds a service using `nfw add service` with dotnet-service generator
 /// 3. Validates that all expected project files exist (.csproj files)
 /// 4. Validates that project files contain valid MSBuild XML structure
 ///
@@ -19,11 +19,11 @@ use std::fs;
 #[test]
 fn generated_service_contains_build_ready_project_files() {
     let workspace_root = support::create_workspace_root("service-first-build");
-    let template_root =
-        support::create_service_template(&workspace_root, "dotnet-service-template", "service");
-    let template_resolution =
-        support::create_template_resolution(&template_root, "official", "dotnet-service");
-    let orchestration = support::build_default_orchestration(&workspace_root, template_resolution);
+    let generator_root =
+        support::create_service_generator(&workspace_root, "dotnet-service-generator", "service");
+    let generator_resolution =
+        support::create_generator_resolution(&generator_root, "official", "dotnet-service");
+    let orchestration = support::build_default_orchestration(&workspace_root, generator_resolution);
 
     support::execute_non_interactive_add_service(
         &orchestration,

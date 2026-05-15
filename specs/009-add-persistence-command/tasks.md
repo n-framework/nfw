@@ -21,7 +21,7 @@ description: "Task list for nfw add persistence command implementation"
 ## Path Conventions
 
 - **nfw CLI workspace**: `src/nfw/src/n-framework-nfw/`
-- **Application layer**: `core/n-framework-nfw-core-application/src/features/template_management/commands/add_persistence/`
+- **Application layer**: `core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/`
 - **Presentation layer**: `presentation/n-framework-nfw-cli/src/commands/add/persistence/`
 - **Integration tests**: `tests/integration/n-framework-nfw/features/module/`
 
@@ -31,7 +31,7 @@ description: "Task list for nfw add persistence command implementation"
 
 **Purpose**: Create the basic module structure for the add persistence command
 
-- [X] T001 Create add_persistence command module in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/template_management/commands/add_persistence/mod.rs
+- [X] T001 Create add_persistence command module in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/mod.rs
 - [X] T002 Create add_persistence command module in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/mod.rs
 
 ---
@@ -51,29 +51,29 @@ description: "Task list for nfw add persistence command implementation"
 
 ## Phase 3: User Story 1 - Add Persistence to Service (Priority: P1) 🎯 MVP
 
-**Goal**: Enable developers to add the Persistence module to existing services through the CLI, with automatic template rendering and YAML updates.
+**Goal**: Enable developers to add the Persistence module to existing services through the CLI, with automatic generator rendering and YAML updates.
 
-**Independent Test**: Run `nfw add persistence --service <Service>` and verify: (1) persistence module added to nfw.yaml, (2) templates rendered in service directory, (3) YAML comments preserved.
+**Independent Test**: Run `nfw add persistence --service <Service>` and verify: (1) persistence module added to nfw.yaml, (2) generators rendered in service directory, (3) YAML comments preserved.
 
 ### Integration Tests for User Story 1
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
 - [X] T005 [P] [US1] Create test support module in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs with sandbox workspace setup utilities
-- [X] T006 [P] [US1] Write test_add_persistence_updates_nfw_yaml_and_renders_template in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying successful addition
-- [X] T007 [P] [US1] Write test_add_persistence_rolls_back_yaml_if_template_execution_fails in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying atomic rollback
+- [X] T006 [P] [US1] Write test_add_persistence_updates_nfw_yaml_and_renders_generator in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying successful addition
+- [X] T007 [P] [US1] Write test_add_persistence_rolls_back_yaml_if_generator_execution_fails in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying atomic rollback
 - [X] T008 [P] [US1] Write test_add_persistence_fails_if_service_not_found in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying error handling
 - [X] T009 [P] [US1] Write test_add_persistence_preserves_comments_in_nfw_yaml in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying comment preservation
 - [X] T010 [P] [US1] Write test_add_persistence_detects_existing_persistence_module in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying duplicate detection
 
 ### Application Layer Implementation
 
-- [X] T011 [US1] Create AddPersistenceCommand in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/template_management/commands/add_persistence/add_persistence_command.rs with service_info and workspace_context fields
-- [X] T012 [US1] Create AddPersistenceCommandHandler in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/template_management/commands/add_persistence/add_persistence_command_handler.rs with ArtifactGenerationService dependency and handle() method
+- [X] T011 [US1] Create AddPersistenceCommand in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/add_persistence_command.rs with service_info and workspace_context fields
+- [X] T012 [US1] Create AddPersistenceCommandHandler in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/add_persistence_command_handler.rs with ArtifactGenerationService dependency and handle() method
 - [X] T013 [US1] Implement get_workspace_context() method in AddPersistenceCommandHandler delegating to ArtifactGenerationService
 - [X] T014 [US1] Implement extract_services() method in AddPersistenceCommandHandler delegating to ArtifactGenerationService
-- [X] T015 [US1] Implement handle() method in AddPersistenceCommandHandler to load template context, execute templates generating Infrastructure/Persistence layer with DbContext and repository base classes including dependency injection setup (without duplicate detection - added in T016)
-- [X] T016 [US1] Add duplicate module detection check in AddPersistenceCommandHandler.handle() BEFORE template execution to check for existing "persistence" module and return early if present
+- [X] T015 [US1] Implement handle() method in AddPersistenceCommandHandler to load generator context, execute generators generating Infrastructure/Persistence layer with DbContext and repository base classes including dependency injection setup (without duplicate detection - added in T016)
+- [X] T016 [US1] Add duplicate module detection check in AddPersistenceCommandHandler.handle() BEFORE generator execution to check for existing "persistence" module and return early if present
 
 ### Presentation Layer Implementation
 
@@ -90,12 +90,12 @@ description: "Task list for nfw add persistence command implementation"
 
 ### Error Handling and Exit Codes
 
-- [X] T027 [US1] Map AddArtifactError variants to ExitCodes via ExitCodes::from_add_artifact_error() in execute() method covering: InvalidIdentifier→4, WorkspaceError→2, ConfigError→2, TemplateNotFound→3, ExecutionFailed→3, NfwYamlReadError/ParseError/WriteError→2; ensure permission errors map to exit code 5
+- [X] T027 [US1] Map AddArtifactError variants to ExitCodes via ExitCodes::from_add_artifact_error() in execute() method covering: InvalidIdentifier→4, WorkspaceError→2, ConfigError→2, GeneratorNotFound→3, ExecutionFailed→3, NfwYamlReadError/ParseError/WriteError→2; ensure permission errors map to exit code 5
 - [X] T028 [US1] Add error message formatting for workspace errors (no services, service not found) with actionable guidance
-- [X] T029 [US1] Add error message formatting for template errors (template not found, execution failed) with specific failure details
-- [X] T030 [US1] Ensure rollback behavior on template execution failure by catching errors before nfw.yaml modification
+- [X] T029 [US1] Add error message formatting for generator errors (generator not found, execution failed) with specific failure details
+- [X] T030 [US1] Ensure rollback behavior on generator execution failure by catching errors before nfw.yaml modification
 
-**Checkpoint**: At this point, User Story 1 should be fully functional - developers can run `nfw add persistence` to add the persistence module to services with template rendering and atomic rollback.
+**Checkpoint**: At this point, User Story 1 should be fully functional - developers can run `nfw add persistence` to add the persistence module to services with generator rendering and atomic rollback.
 
 ---
 
@@ -112,7 +112,7 @@ description: "Task list for nfw add persistence command implementation"
 - [X] T037 Manual test: Create test workspace and run `nfw add persistence --service TestService --no-input` to verify end-to-end flow
 - [X] T038 Manual test: Verify YAML comment preservation by checking nfw.yaml before and after command execution
 - [X] T039 Performance test: Verify command completes in <5 seconds for typical workspaces (per SC-003)
-- [X] T040 Performance test: Verify rollback completes in <1 second when template execution fails (per SC-004)
+- [X] T040 Performance test: Verify rollback completes in <1 second when generator execution fails (per SC-004)
 - [X] T041 Concurrency test: Verify concurrent command execution handles nfw.yaml conflicts safely (no corruption) per SC-007
 
 ---
@@ -157,7 +157,7 @@ get_workspace_context() (T013)
     ↓
 extract_services() (T014)
     ↓
-handle() with template loading (T015)
+handle() with generator loading (T015)
     ↓
 Duplicate detection (T016)
     ↓
@@ -171,8 +171,8 @@ Presentation layer (T017-T026)
 ```bash
 # Write all integration tests together (they use the same test file structure):
 Task: "Create test support module in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs"
-Task: "Write test_add_persistence_updates_nfw_yaml_and_renders_template"
-Task: "Write test_add_persistence_rolls_back_yaml_if_template_execution_fails"
+Task: "Write test_add_persistence_updates_nfw_yaml_and_renders_generator"
+Task: "Write test_add_persistence_rolls_back_yaml_if_generator_execution_fails"
 Task: "Write test_add_persistence_fails_if_service_not_found"
 Task: "Write test_add_persistence_preserves_comments_in_nfw_yaml"
 Task: "Write test_add_persistence_detects_existing_persistence_module"
@@ -219,9 +219,9 @@ Integration happens through the established mediator pattern interfaces.
 - Reuses existing types: ArtifactGenerationService, AddArtifactError, ServiceInfo, WorkspaceContext
 - Integration tests use sandbox workspaces per the mediator test pattern
 - YAML comment preservation is handled by ArtifactGenerationService (not new code needed)
-- Atomic rollback is ensured by executing templates BEFORE modifying nfw.yaml
+- Atomic rollback is ensured by executing generators BEFORE modifying nfw.yaml
 - Generated files create Infrastructure/Persistence layer with DbContext, repository base classes, and dependency injection setup (same pattern as mediator)
-- nfw-templates repository must include persistence template at `templates/dotnet-service/persistence/` with template.yaml and .tera files for DbContext, repositories, and configuration
+- nfw-generators repository must include persistence generator at `generators/dotnet-service/persistence/` with nfw.generator.yaml and .tera files for DbContext, repositories, and configuration
 - All file paths are absolute from repository root: `/home/ac/Code/n-framework/src/nfw/`
 - Total tasks: 41
 - Test tasks: 6 (integration tests per feature specification requirement)

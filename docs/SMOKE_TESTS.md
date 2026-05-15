@@ -2,7 +2,7 @@
 
 ## Overview
 
-The nfw CLI includes a comprehensive smoke test suite that validates core workflows: template selection, workspace generation, and service scaffolding. Smoke tests are designed to be deterministic, isolated, and fast.
+The nfw CLI includes a comprehensive smoke test suite that validates core workflows: generator selection, workspace generation, and service scaffolding. Smoke tests are designed to be deterministic, isolated, and fast.
 
 ## Running Smoke Tests
 
@@ -11,7 +11,7 @@ The nfw CLI includes a comprehensive smoke test suite that validates core workfl
 Before running smoke tests, ensure:
 
 - `nfw` CLI is built and available in PATH
-- Template cache is populated (`nfw templates` shows at least one template)
+- Generator cache is populated (`nfw generators` shows at least one generator)
 - `.NET SDK` is installed (for service compilation validation)
 - `make` is available
 
@@ -25,8 +25,8 @@ make smoke-tests
 ### Run Individual Tests
 
 ```bash
-# Template selection smoke test
-./tests/smoke/template_selection_test.sh
+# Generator selection smoke test
+./tests/smoke/generator_selection_test.sh
 
 # Workspace generation smoke test
 ./tests/smoke/workspace_generation_test.sh
@@ -49,7 +49,7 @@ bash tests/smoke/run_smoke_tests.sh --verbose
 ```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
-[PASS] Template selection (non-interactive)
+[PASS] Generator selection (non-interactive)
 [PASS] Workspace generation
 [PASS] Service scaffolding
 =========================================
@@ -61,7 +61,7 @@ Smoke Test Suite: Build & Test Workflows
 ```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
-[PASS] Template selection (non-interactive)
+[PASS] Generator selection (non-interactive)
 [FAIL] Workspace generation
   Expected: src/ directory exists
   Actual: src/ not found
@@ -92,14 +92,14 @@ cargo build --workspace
 export PATH="$PATH:$PWD/target/debug"
 ```
 
-### "Template cache is empty or inaccessible"
+### "Generator cache is empty or inaccessible"
 
-**Error**: Template-related failures during smoke tests
+**Error**: Generator-related failures during smoke tests
 
-**Solution**: Populate the template cache:
+**Solution**: Populate the generator cache:
 
 ```bash
-nfw templates refresh
+nfw generators refresh
 ```
 
 ### ".NET SDK not found"
@@ -145,20 +145,20 @@ rm -rf /tmp/nfw-smoke-*
 
 **Solution**:
 
-1. Check network connectivity (template downloads)
-2. Verify template cache is populated
+1. Check network connectivity (generator downloads)
+2. Verify generator cache is populated
 3. Check disk space availability
 4. Run with `--verbose` flag for more details
 
 ## Test Details
 
-### Template Selection Test
+### Generator Selection Test
 
-Validates that `nfw new` with `--template` and `--no-input` flags works correctly:
+Validates that `nfw new` with `--generator` and `--no-input` flags works correctly:
 
 - Workspace directory is created
 - `nfw.yaml` exists at workspace root
-- Template identifier is recorded in configuration
+- Generator identifier is recorded in configuration
 
 ### Workspace Generation Test
 

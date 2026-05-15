@@ -2,14 +2,14 @@
 
 ## Purpose
 
-Defines the expected input, execution behavior, and output contract for CLI smoke tests validating template selection, workspace generation, and service scaffolding.
+Defines the expected input, execution behavior, and output contract for CLI smoke tests validating generator selection, workspace generation, and service scaffolding.
 
 ## Test Execution Contract
 
 ### Environment Requirements
 
 - `nfw` CLI installed and available in PATH
-- Template cache pre-populated with at least one valid template
+- Generator cache pre-populated with at least one valid generator
 - Required toolchain available (Rust for CLI, .NET SDK for service compilation)
 - Temporary directory writable (`TMPDIR` or system default)
 
@@ -34,7 +34,7 @@ Each smoke test MUST:
 | --------- | ---------------------------------------------------------------- |
 | 0         | All smoke test scenarios passed                                  |
 | 1         | One or more smoke test scenarios failed                          |
-| 2         | Environment setup failure (missing toolchain, no template cache) |
+| 2         | Environment setup failure (missing toolchain, no generator cache) |
 
 ### Output Contract
 
@@ -43,7 +43,7 @@ Each smoke test MUST:
 ```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
-[PASS] Template selection (non-interactive)
+[PASS] Generator selection (non-interactive)
 [PASS] Workspace generation
 [PASS] Service scaffolding
 =========================================
@@ -55,7 +55,7 @@ Smoke Test Suite: Build & Test Workflows
 ```bash
 Smoke Test Suite: Build & Test Workflows
 =========================================
-[PASS] Template selection (non-interactive)
+[PASS] Generator selection (non-interactive)
 [FAIL] Workspace generation
   Expected: src/ directory exists
   Actual: src/ not found
@@ -67,19 +67,19 @@ Smoke Test Suite: Build & Test Workflows
 
 ## Test Scenarios
 
-### T1: Template Selection (Non-Interactive)
+### T1: Generator Selection (Non-Interactive)
 
-**Input**: `nfw new TestWorkspace --template <id> --no-input`
+**Input**: `nfw new TestWorkspace --generator <id> --no-input`
 **Validation**:
 
 - Command exits with status 0
 - Workspace directory created
 - `nfw.yaml` exists at workspace root
-- Template identifier recorded in configuration
+- Generator identifier recorded in configuration
 
 ### T2: Workspace Generation
 
-**Input**: `nfw new TestWorkspace --template <id> --no-input`
+**Input**: `nfw new TestWorkspace --generator <id> --no-input`
 **Validation**:
 
 - Command exits with status 0

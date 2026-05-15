@@ -2,13 +2,13 @@ use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption}
 use crate::cli_error::CliError;
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
-use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command::{GenEndpointCommand, HttpMethod};
-use n_framework_nfw_core_application::features::template_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
-pub use n_framework_nfw_core_application::features::template_management::models::errors::add_artifact_error::AddArtifactError;
+use n_framework_nfw_core_application::features::generator_management::commands::gen_endpoint::gen_endpoint_command::{GenEndpointCommand, HttpMethod};
+use n_framework_nfw_core_application::features::generator_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
+pub use n_framework_nfw_core_application::features::generator_management::models::errors::add_artifact_error::AddArtifactError;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
-use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
-use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
-use n_framework_nfw_core_domain::features::template_management::template_config::{TemplateInput, TemplateInputType};
+use n_framework_nfw_core_application::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
+use n_framework_nfw_core_application::features::generator_management::services::generator_engine::GeneratorEngine;
+use n_framework_nfw_core_domain::features::generator_management::generator_config::{GeneratorInput, GeneratorInputType};
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -30,8 +30,8 @@ pub struct GenEndpointRequest<'a> {
 impl<W, R, E, P> GenEndpointCliCommand<W, R, E, P>
 where
     W: WorkingDirectoryProvider,
-    R: TemplateRootResolver,
-    E: TemplateEngine,
+    R: GeneratorRootResolver,
+    E: GeneratorEngine,
     P: InteractivePrompt + Logger,
 {
     pub fn new(handler: GenEndpointCommandHandler<W, R, E>, prompt: P) -> Self {
@@ -80,7 +80,7 @@ where
                     })?
             };
 
-        let context = self.handler.load_template_context(
+        let context = self.handler.load_generator_context(
             "endpoint",
             &selected_service,
             &workspace_context,
@@ -206,8 +206,8 @@ where
     fn resolve_name(
         &self,
         request: &GenEndpointRequest,
-        workspace_context: &n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::WorkspaceContext,
-        selected_service: &n_framework_nfw_core_application::features::template_management::services::artifact_generation_service::ServiceInfo,
+        workspace_context: &n_framework_nfw_core_application::features::generator_management::services::artifact_generation_service::WorkspaceContext,
+        selected_service: &n_framework_nfw_core_application::features::generator_management::services::artifact_generation_service::ServiceInfo,
         feature: Option<&str>,
         op_type: &str,
         mediator_sources: &[String],
@@ -301,14 +301,14 @@ where
                         )
                         .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-                    let template_context = self.handler.load_template_context(
+                    let generator_context = self.handler.load_generator_context(
                         kind_label,
                         selected_service,
                         workspace_context,
                     )?;
 
                     let mut map = serde_json::Map::new();
-                    for input in template_context.config().inputs() {
+                    for input in generator_context.config().inputs() {
                         let value = self.prompt_for_input(input)?;
                         map.insert(input.id().to_string(), value);
                     }
@@ -322,7 +322,7 @@ where
                         &new_name,
                         feature,
                         &params,
-                        &template_context,
+                        &generator_context,
                     )?;
 
                     let _ = self.prompt.log_success(&format!(
@@ -400,7 +400,7 @@ where
     fn resolve_params(
         &self,
         request: &GenEndpointRequest,
-        inputs: &[TemplateInput],
+        inputs: &[GeneratorInput],
     ) -> Result<serde_json::Value, AddArtifactError> {
         let mut map = serde_json::Map::new();
 
@@ -459,7 +459,7 @@ where
 
     pub fn prompt_for_input(
         &self,
-        input: &TemplateInput,
+        input: &GeneratorInput,
     ) -> Result<serde_json::Value, AddArtifactError> {
         let mut prompt_message = input.prompt().to_string();
         if let Some(description) = input.description() {
@@ -467,17 +467,17 @@ where
         }
 
         match input.input_type() {
-            TemplateInputType::Text => self
+            GeneratorInputType::Text => self
                 .prompt
                 .text(&prompt_message, None)
                 .map(serde_json::Value::String)
                 .map_err(|e| AddArtifactError::WorkspaceError(e.to_string())),
-            TemplateInputType::Password => self
+            GeneratorInputType::Password => self
                 .prompt
                 .password(&prompt_message)
                 .map(serde_json::Value::String)
                 .map_err(|e| AddArtifactError::WorkspaceError(e.to_string())),
-            TemplateInputType::Confirm => {
+            GeneratorInputType::Confirm => {
                 let default_bool = input.default().and_then(|v| v.as_bool()).unwrap_or(false);
                 let result = self
                     .prompt
@@ -485,7 +485,7 @@ where
                     .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
                 Ok(serde_json::Value::Bool(result))
             }
-            TemplateInputType::Select => {
+            GeneratorInputType::Select => {
                 let options = input.options().ok_or_else(|| {
                     AddArtifactError::InvalidParameter(format!(
                         "select input '{}' has no options defined",
@@ -504,7 +504,7 @@ where
                     .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
                 Ok(serde_json::Value::String(selected.value().to_string()))
             }
-            TemplateInputType::Multiselect => {
+            GeneratorInputType::Multiselect => {
                 let options = input.options().ok_or_else(|| {
                     AddArtifactError::InvalidParameter(format!(
                         "multiselect input '{}' has no options defined",
@@ -535,7 +535,7 @@ where
                     .collect();
                 Ok(serde_json::Value::Array(selected_values))
             }
-            TemplateInputType::Object => {
+            GeneratorInputType::Object => {
                 let mut obj_map = serde_json::Map::new();
                 let props = input.properties().ok_or_else(|| {
                     AddArtifactError::InvalidParameter(format!(
@@ -550,7 +550,7 @@ where
                 }
                 Ok(serde_json::Value::Object(obj_map))
             }
-            TemplateInputType::List => {
+            GeneratorInputType::List => {
                 let mut list = Vec::new();
                 if let Some(item_schema) = input.items() {
                     loop {

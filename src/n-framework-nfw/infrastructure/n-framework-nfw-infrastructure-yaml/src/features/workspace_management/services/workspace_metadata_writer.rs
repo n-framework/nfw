@@ -5,7 +5,8 @@ use n_framework_nfw_infrastructure_workspace_metadata::{
     ensure_schema_key, extract_preserved_comments, format_nfw_yaml_document,
     remove_workspace_project_guid, reorder_root_keys,
 };
-use n_framework_nfw_core_application::features::service_management::models::service_template_provenance_record::ServiceTemplateProvenanceRecord;
+use n_framework_nfw_core_application::features::generator_management::constants::workspace;
+use n_framework_nfw_core_application::features::service_management::models::service_generator_provenance_record::ServiceGeneratorProvenanceRecord;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_provenance_store::ServiceProvenanceStore;
 use serde_yaml::{Mapping, Value};
 
@@ -22,9 +23,9 @@ impl ServiceProvenanceStore for WorkspaceMetadataWriter {
     fn persist_service_provenance(
         &self,
         workspace_root: &Path,
-        record: &ServiceTemplateProvenanceRecord,
+        record: &ServiceGeneratorProvenanceRecord,
     ) -> Result<(), String> {
-        let workspace_file = workspace_root.join("nfw.yaml");
+        let workspace_file = workspace_root.join(workspace::METADATA_FILE);
         if !workspace_file.is_file() {
             return Err(format!(
                 "workspace metadata file '{}' does not exist",
@@ -62,14 +63,14 @@ impl ServiceProvenanceStore for WorkspaceMetadataWriter {
             .and_then(Value::as_mapping_mut)
             .ok_or_else(|| "'services' must be a YAML mapping".to_owned())?;
 
-        let mut template_mapping = Mapping::new();
-        template_mapping.insert(
+        let mut generator_mapping = Mapping::new();
+        generator_mapping.insert(
             Value::String("id".to_owned()),
-            Value::String(record.template_id.clone()),
+            Value::String(record.generator_id.clone()),
         );
-        template_mapping.insert(
+        generator_mapping.insert(
             Value::String("version".to_owned()),
-            Value::String(record.template_version.clone()),
+            Value::String(record.generator_version.clone()),
         );
 
         let mut service_entry = Mapping::new();
@@ -78,8 +79,8 @@ impl ServiceProvenanceStore for WorkspaceMetadataWriter {
             Value::String(format!("src/{}", record.service_name)),
         );
         service_entry.insert(
-            Value::String("template".to_owned()),
-            Value::Mapping(template_mapping),
+            Value::String("generator".to_owned()),
+            Value::Mapping(generator_mapping),
         );
 
         services_mapping.insert(

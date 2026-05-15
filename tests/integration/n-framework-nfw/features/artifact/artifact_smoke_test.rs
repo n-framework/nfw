@@ -43,24 +43,24 @@ fn make_opts(name: &str, param: Option<&str>, param_json: Option<&str>) -> HashM
     opts
 }
 
-fn setup_template(sandbox: &Path, template_yaml: &str, tera_source: &str) {
+fn setup_generator(sandbox: &Path, generator_yaml: &str, tera_source: &str) {
     fs::write(
         sandbox.join("nfw.yaml"),
-        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  TestService:\n    path: src/TestService\n    template:\n      id: mock-cmd-template\ntemplate_sources:\n  local: \"templates\"\n",
+        "workspace:\n  name: Test\n  namespace: TestApp\nservices:\n  TestService:\n    path: src/TestService\n    generator:\n      id: mock-cmd-generator\ngenerator_sources:\n  local: \"generators\"\n",
     ).expect("failed to write nfw.yaml");
 
-    let root_tpl_dir = sandbox.join("templates").join("mock-cmd-template");
-    fs::create_dir_all(&root_tpl_dir).expect("failed to create root template dir");
+    let root_tpl_dir = sandbox.join("generators").join("mock-cmd-generator");
+    fs::create_dir_all(&root_tpl_dir).expect("failed to create root generator dir");
     fs::write(
-        root_tpl_dir.join("template.yaml"),
-        "id: mock-cmd-template\nname: Mock Cmd\nversion: 1.0.0\ngenerators:\n  command: command\nsteps:\n  - action: run_command\n    command: 'echo root'\n",
+        root_tpl_dir.join("nfw.generator.yaml"),
+        "id: mock-cmd-generator\nname: Mock Cmd\nversion: 1.0.0\ngenerators:\n  command: command\nsteps:\n  - action: run_command\n    command: 'echo root'\n",
     )
-    .expect("failed to write root template.yaml");
+    .expect("failed to write root generator.yaml");
 
     let tpl_dir = root_tpl_dir.join("command");
-    fs::create_dir_all(&tpl_dir).expect("failed to create sub-template dir");
-    fs::write(tpl_dir.join("template.yaml"), template_yaml)
-        .expect("failed to write sub-template template.yaml");
+    fs::create_dir_all(&tpl_dir).expect("failed to create sub-generator dir");
+    fs::write(tpl_dir.join("nfw.generator.yaml"), generator_yaml)
+        .expect("failed to write sub-generator generator.yaml");
     fs::write(tpl_dir.join("cmd.rs.tera"), tera_source).expect("failed to write tera source");
 }
 
@@ -77,12 +77,12 @@ fn run(sandbox: &Path, opts: HashMap<String, String>) -> Result<(), String> {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn artifact_smoke_test_creates_files_from_template() {
+fn artifact_smoke_test_creates_files_from_generator() {
     let sandbox = support::create_sandbox_directory("generate-smoke");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: src/Commands/{{Name}}Command.rs\n",
+        "id: mock-cmd-generator\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: src/Commands/{{Name}}Command.rs\n",
         "// Generated {{Name}} command in namespace {{Namespace}}\n// Param: {{MyParam}}\npub struct {{Name}}Command;\n",
     );
 
@@ -111,9 +111,9 @@ fn artifact_smoke_test_creates_files_from_template() {
 fn artifact_handles_password_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-password");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\ninputs:\n  - id: db-password\n    type: password\n    prompt: Database password\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
+        "id: mock-cmd-generator\ninputs:\n  - id: db-password\n    type: password\n    prompt: Database password\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
         "// secret set\n",
     );
 
@@ -130,9 +130,9 @@ fn artifact_handles_password_input_via_param_json() {
 fn artifact_handles_confirm_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-confirm");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\ninputs:\n  - id: enable_logging\n    type: confirm\n    prompt: Enable logging?\n    default: false\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
+        "id: mock-cmd-generator\ninputs:\n  - id: enable_logging\n    type: confirm\n    prompt: Enable logging?\n    default: false\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
         "// logging: {{ enable_logging }}\n",
     );
 
@@ -149,9 +149,9 @@ fn artifact_handles_confirm_input_via_param_json() {
 fn artifact_handles_select_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-select");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\ninputs:\n  - id: db_driver\n    type: select\n    prompt: Choose database driver\n    options:\n      - postgres\n      - mysql\n      - sqlite\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
+        "id: mock-cmd-generator\ninputs:\n  - id: db_driver\n    type: select\n    prompt: Choose database driver\n    options:\n      - postgres\n      - mysql\n      - sqlite\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
         "// driver: {{ db_driver }}\n",
     );
 
@@ -168,9 +168,9 @@ fn artifact_handles_select_input_via_param_json() {
 fn artifact_handles_multiselect_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-multiselect");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\ninputs:\n  - id: features\n    type: multiselect\n    prompt: Choose features\n    options:\n      - auth\n      - logging\n      - metrics\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
+        "id: mock-cmd-generator\ninputs:\n  - id: features\n    type: multiselect\n    prompt: Choose features\n    options:\n      - auth\n      - logging\n      - metrics\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
         "// features: {% for f in features %}{{ f }} {% endfor %}\n",
     );
 
@@ -191,9 +191,9 @@ fn artifact_handles_multiselect_input_via_param_json() {
 fn artifact_handles_object_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-object");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\ninputs:\n  - id: author\n    type: object\n    prompt: Author info\n    properties:\n      - id: name\n        type: text\n        prompt: Author name\n      - id: email\n        type: text\n        prompt: Author email\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
+        "id: mock-cmd-generator\ninputs:\n  - id: author\n    type: object\n    prompt: Author info\n    properties:\n      - id: name\n        type: text\n        prompt: Author name\n      - id: email\n        type: text\n        prompt: Author email\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
         "// author: {{ author.name }} <{{ author.email }}>\n",
     );
 
@@ -214,9 +214,9 @@ fn artifact_handles_object_input_via_param_json() {
 fn artifact_handles_list_input_via_param_json() {
     let sandbox = support::create_sandbox_directory("gen-list");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\ninputs:\n  - id: tags\n    type: list\n    prompt: Tags\n    items:\n      id: tag\n      type: text\n      prompt: Tag value\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
+        "id: mock-cmd-generator\ninputs:\n  - id: tags\n    type: list\n    prompt: Tags\n    items:\n      id: tag\n      type: text\n      prompt: Tag value\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
         "// tags: {% for t in tags %}{{ t }} {% endfor %}\n",
     );
 
@@ -233,9 +233,9 @@ fn artifact_handles_list_input_via_param_json() {
 fn artifact_fails_on_missing_required_param_in_no_input_mode() {
     let sandbox = support::create_sandbox_directory("gen-missing-param");
 
-    setup_template(
+    setup_generator(
         &sandbox,
-        "id: mock-cmd-template\ninputs:\n  - id: required-input\n    type: text\n    prompt: Required value\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
+        "id: mock-cmd-generator\ninputs:\n  - id: required-input\n    type: text\n    prompt: Required value\nsteps:\n  - action: render\n    source: cmd.rs.tera\n    destination: out.rs\n",
         "// value: {{ required-input }}\n",
     );
 

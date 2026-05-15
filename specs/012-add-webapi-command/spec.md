@@ -19,7 +19,7 @@ As a .NET developer, I want to interactively add a WebAPI module to an existing 
 
 ### User Story 2 - Add WebAPI via Automation (Priority: P1)
 
-As a platform engineer, I want to add a WebAPI module to a specific service using command-line arguments so I can automate service scaffolding in CI/CD or template scripts.
+As a platform engineer, I want to add a WebAPI module to a specific service using command-line arguments so I can automate service scaffolding in CI/CD or generator scripts.
 
 **Why this priority**: Headless/automated execution is critical for platform tooling and non-interactive scripts.
 
@@ -38,12 +38,12 @@ As a developer, I want the command to cleanly roll back changes if generation fa
 
 **Why this priority**: Preserving workspace integrity is crucial for developer trust and avoiding manual cleanup of broken scaffolds.
 
-**Independent Test**: Can be tested by forcing a failure during template rendering and verifying the filesystem and configuration revert to their exact original state.
+**Independent Test**: Can be tested by forcing a failure during generator rendering and verifying the filesystem and configuration revert to their exact original state.
 
 **Acceptance Scenarios**:
 
 1. **Given** a service with custom YAML comments in `nfw.yaml`, **When** the `add webapi` command fails midway, **Then** all partially generated files are removed and `nfw.yaml` is restored exactly, preserving all comments.
-2. **Given** an invalid template configuration, **When** I run `nfw add webapi`, **Then** the command aborts, reports the specific error, and leaves the workspace untouched.
+2. **Given** an invalid generator configuration, **When** I run `nfw add webapi`, **Then** the command aborts, reports the specific error, and leaves the workspace untouched.
 
 ---
 
@@ -65,17 +65,17 @@ As a developer, I want the command to cleanly roll back changes if generation fa
 - **FR-004**: The command MUST support a `--no-input` flag to disable interactive prompts for automation.
 - **FR-005**: The command MUST update the `nfw.yaml` configuration to register the new WebAPI module for the targeted service.
 - **FR-006**: The YAML configuration update MUST preserve existing structural comments upon successful update or rollback.
-- **FR-007**: The command MUST execute template rendering to generate API layer artifacts.
+- **FR-007**: The command MUST execute generator rendering to generate API layer artifacts.
 - **FR-008**: Generated API artifacts MUST include Minimal API startup configuration and route registration extensions.
 - **FR-009**: Generated API artifacts MUST include CORS middleware and problem details middleware.
 - **FR-010**: Generated API artifacts MUST include health check endpoints.
 - **FR-011**: Generated API artifacts MUST include OpenAPI/Swagger configuration.
-- **FR-012**: The command MUST perform an automatic rollback (removing new files and restoring config) if template rendering or configuration updates fail.
+- **FR-012**: The command MUST perform an automatic rollback (removing new files and restoring config) if generator rendering or configuration updates fail.
 - **FR-013**: The command MUST include integration tests covering successful addition, rollback on failure, service validation, and YAML comment preservation.
 
 ### Key Entities
 
-- **WebAPI Artifacts**: The set of source code templates defining the Minimal API entry point, middleware pipeline, routing, and Swagger configuration.
+- **WebAPI Artifacts**: The set of source code generators defining the Minimal API entry point, middleware pipeline, routing, and Swagger configuration.
 - **Service Configuration**: The entry in `nfw.yaml` representing a service and its attached modules.
 
 ## Success Criteria
@@ -90,13 +90,13 @@ As a developer, I want the command to cleanly roll back changes if generation fa
 ## Assumptions
 
 - The target service has a standard NFramework structure (Domain, Application, Infrastructure) that the WebAPI layer can reference.
-- Template rendering engine is already available within the CLI infrastructure to handle the file generation.
+- Generator rendering engine is already available within the CLI infrastructure to handle the file generation.
 - The `nfw.yaml` file exists at the root of the workspace and follows the standard schema.
 
 ## Dependencies
 
 - CLI core routing and prompt infrastructure.
-- Template rendering engine capable of processing the API layer templates.
+- Generator rendering engine capable of processing the API layer generators.
 - YAML parser capable of preserving comments.
 
 ## Non-Goals

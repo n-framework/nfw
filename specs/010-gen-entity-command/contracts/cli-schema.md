@@ -88,7 +88,7 @@ nfw gen entity Product --props Name:string,Price:decimal --no-input
 1. Validates persistence module is present
 2. Parses property definitions
 3. Creates schema file in `specs/entities/Product.yaml`
-4. Invokes template engine
+4. Invokes generator engine
 5. Generates entity code in Domain layer
 
 ### Mode 2: Schema-Only
@@ -104,7 +104,7 @@ nfw gen entity Product --props Name:string,Price:decimal --schema-only --no-inpu
 1. Validates persistence module is present
 2. Parses property definitions
 3. Creates schema file in `specs/entities/Product.yaml`
-4. Skips template invocation and code generation
+4. Skips generator invocation and code generation
 
 **Use Case**: Review or edit schema before code generation
 
@@ -120,7 +120,7 @@ nfw gen entity Product --from-schema --no-input
 
 1. Reads schema file from `specs/entities/Product.yaml`
 2. Validates schema structure
-3. Invokes template engine
+3. Invokes generator engine
 4. Generates entity code in Domain layer
 
 **Use Case**: Regenerate code after manual schema edits
@@ -143,7 +143,7 @@ nfw gen entity Product --from-schema --no-input
 [INFO] Properties: Name (string), Price (decimal)
 [INFO] ID type: int
 [INFO] Creating schema file: specs/entities/Product.yaml
-[INFO] Rendering entity template...
+[INFO] Rendering entity generator...
 [INFO] Generated: src/MyService.Domain/Entities/Product.g.cs
 ✓ Entity generated successfully
 ```
@@ -271,12 +271,12 @@ hint: Use a different entity name or remove the existing file
 ## Performance
 
 - Target completion time: <3 seconds (FR-013)
-- Includes validation, schema creation, template rendering, file I/O
+- Includes validation, schema creation, generator rendering, file I/O
 - Measured on standard developer hardware
 
 ## Dependencies
 
 - Workspace must have valid `nfw.yaml`
 - Target service must have persistence module
-- Entity templates must be configured
-- Template engine must be accessible
+- Entity generators must be configured
+- Generator engine must be accessible

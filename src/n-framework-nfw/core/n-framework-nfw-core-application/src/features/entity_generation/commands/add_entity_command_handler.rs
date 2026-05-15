@@ -9,13 +9,13 @@ use n_framework_nfw_core_domain::features::entity_generation::value_objects::ser
 use n_framework_nfw_core_domain::features::entity_generation::value_objects::workspace_context::WorkspaceContext;
 
 use crate::features::entity_generation::abstractions::entity_schema_store::EntitySchemaStore;
-use crate::features::template_management::models::errors::add_artifact_error::AddArtifactError;
-use crate::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
-use crate::features::template_management::services::artifact_generation_service::{
-    AddArtifactContext, ArtifactGenerationService, ServiceInfo as TemplateServiceInfo,
-    WorkspaceContext as TemplateWorkspaceContext,
+use crate::features::generator_management::models::errors::add_artifact_error::AddArtifactError;
+use crate::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
+use crate::features::generator_management::services::artifact_generation_service::{
+    AddArtifactContext, ArtifactGenerationService, ServiceInfo as GeneratorServiceInfo,
+    WorkspaceContext as GeneratorWorkspaceContext,
 };
-use crate::features::template_management::services::template_engine::TemplateEngine;
+use crate::features::generator_management::services::generator_engine::GeneratorEngine;
 use crate::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use std::path::PathBuf;
 
@@ -28,7 +28,7 @@ const PARAM_ENTITY_TYPE: &str = "EntityType";
 /// This handler coordinates several steps:
 /// 1. Validating the feature directory and persistence module.
 /// 2. Handling schema creation/reading (including `--from-schema`).
-/// 3. Invoking the template engine to generate code artifacts.
+/// 3. Invoking the generator engine to generate code artifacts.
 #[derive(Debug, Clone)]
 pub struct AddEntityCommandHandler<W, R, E, S> {
     artifact_service: ArtifactGenerationService<W, R, E>,
@@ -38,8 +38,8 @@ pub struct AddEntityCommandHandler<W, R, E, S> {
 impl<W, R, E, S> AddEntityCommandHandler<W, R, E, S>
 where
     W: WorkingDirectoryProvider,
-    R: TemplateRootResolver,
-    E: TemplateEngine,
+    R: GeneratorRootResolver,
+    E: GeneratorEngine,
     S: EntitySchemaStore,
 {
     pub fn new(working_dir_provider: W, root_resolver: R, engine: E, schema_store: S) -> Self {
@@ -68,7 +68,7 @@ where
         if let Some(schema_path) = command.from_schema() {
             let schema = self.handle_from_schema(schema_path, command)?;
             if !command.is_schema_only() {
-                self.invoke_template_engine(command, &schema, workspace, service)?;
+                self.invoke_generator_engine(command, &schema, workspace, service)?;
             }
 
             return Ok((schema, schema_path.clone()));
@@ -90,13 +90,13 @@ where
         self.schema_store.write_schema(&specs_dir, &schema)?;
         if command.is_schema_only() {
             tracing::info!(
-                "Schema file created at {}. Skipping template invocation (--schema-only).",
+                "Schema file created at {}. Skipping generator invocation (--schema-only).",
                 schema_file.display()
             );
             return Ok((schema, schema_file));
         }
 
-        self.invoke_template_engine(command, &schema, workspace, service)?;
+        self.invoke_generator_engine(command, &schema, workspace, service)?;
 
         Ok((schema, schema_file))
     }
@@ -113,31 +113,31 @@ where
         }
     }
 
-    pub fn get_workspace_context(&self) -> Result<TemplateWorkspaceContext, AddArtifactError> {
+    pub fn get_workspace_context(&self) -> Result<GeneratorWorkspaceContext, AddArtifactError> {
         self.artifact_service.get_workspace_context()
     }
 
     pub fn extract_services(
         &self,
-        workspace: &TemplateWorkspaceContext,
-    ) -> Result<Vec<TemplateServiceInfo>, AddArtifactError> {
+        workspace: &GeneratorWorkspaceContext,
+    ) -> Result<Vec<GeneratorServiceInfo>, AddArtifactError> {
         self.artifact_service.extract_services(workspace)
     }
 
-    pub fn load_template_context(
+    pub fn load_generator_context(
         &self,
-        workspace: TemplateWorkspaceContext,
-        service: &TemplateServiceInfo,
+        workspace: GeneratorWorkspaceContext,
+        service: &GeneratorServiceInfo,
         generator_type: &str,
     ) -> Result<AddArtifactContext, AddArtifactError> {
         self.artifact_service
-            .load_template_context(workspace, service, generator_type)
+            .load_generator_context(workspace, service, generator_type)
     }
 
     pub fn list_features(
         &self,
-        workspace: &TemplateWorkspaceContext,
-        service: &TemplateServiceInfo,
+        workspace: &GeneratorWorkspaceContext,
+        service: &GeneratorServiceInfo,
     ) -> Result<Vec<String>, AddArtifactError> {
         self.artifact_service.list_features(workspace, service)
     }
@@ -177,7 +177,7 @@ where
         Ok(schema)
     }
 
-    fn invoke_template_engine(
+    fn invoke_generator_engine(
         &self,
         command: &AddEntityCommand,
         schema: &EntitySchema,
@@ -185,7 +185,7 @@ where
         service: &ServiceInfo,
     ) -> Result<(), EntityGenerationError> {
         tracing::debug!(
-            "Invoking template engine for entity '{}'",
+            "Invoking generator engine for entity '{}'",
             command.entity_name()
         );
 
@@ -211,11 +211,11 @@ where
 
         let artifact_context = self
             .artifact_service
-            .load_template_context(app_workspace, &app_service, GlobalConstants::ENTITY_LABEL)
+            .load_generator_context(app_workspace, &app_service, GlobalConstants::ENTITY_LABEL)
             .map_err(|e| {
-                tracing::error!("Failed to load template context: {e}");
-                EntityGenerationError::TemplateExecutionError {
-                    reason: format!("Failed to load template context for entity generator: {e}"),
+                tracing::error!("Failed to load generator context: {e}");
+                EntityGenerationError::GeneratorExecutionError {
+                    reason: format!("Failed to load generator context for entity generator: {e}"),
                 }
             })?;
 
@@ -254,7 +254,7 @@ where
         let command_params = Some(serde_json::Value::Object(params));
 
         tracing::info!(
-            "Executing template generation for entity '{}' in feature '{}' of service '{}'",
+            "Executing generator generation for entity '{}' in feature '{}' of service '{}'",
             command.entity_name(),
             command.feature(),
             service.name()
@@ -269,12 +269,12 @@ where
             )
             .map_err(|e| {
                 tracing::error!(
-                    "Template generation failed for entity '{}': {}",
+                    "Generator generation failed for entity '{}': {}",
                     command.entity_name(),
                     e
                 );
-                EntityGenerationError::TemplateExecutionError {
-                    reason: format!("Template generation failed: {e}"),
+                EntityGenerationError::GeneratorExecutionError {
+                    reason: format!("Generator generation failed: {e}"),
                 }
             })?;
 
@@ -296,19 +296,21 @@ fn map_add_artifact_error(e: AddArtifactError) -> EntityGenerationError {
             EntityGenerationError::WorkspaceError { reason }
         }
         AddArtifactError::ConfigError(reason) => EntityGenerationError::ConfigError { reason },
-        AddArtifactError::TemplateNotFound(name) => EntityGenerationError::TemplateExecutionError {
-            reason: format!("Template not found: {name}"),
-        },
-        AddArtifactError::InvalidParameter(reason) => {
-            EntityGenerationError::TemplateExecutionError {
-                reason: format!("Invalid template parameter: {reason}"),
+        AddArtifactError::GeneratorNotFound(name) => {
+            EntityGenerationError::GeneratorExecutionError {
+                reason: format!("Generator not found: {name}"),
             }
         }
-        AddArtifactError::ExecutionFailed(err) => EntityGenerationError::TemplateExecutionError {
+        AddArtifactError::InvalidParameter(reason) => {
+            EntityGenerationError::GeneratorExecutionError {
+                reason: format!("Invalid generator parameter: {reason}"),
+            }
+        }
+        AddArtifactError::ExecutionFailed(err) => EntityGenerationError::GeneratorExecutionError {
             reason: err.to_string(),
         },
         AddArtifactError::MissingRequiredModule(reason) => {
-            EntityGenerationError::TemplateExecutionError {
+            EntityGenerationError::GeneratorExecutionError {
                 reason: format!("Missing required module: {reason}"),
             }
         }
@@ -322,7 +324,7 @@ fn map_add_artifact_error(e: AddArtifactError) -> EntityGenerationError {
             reason: format!("Failed to write nfw.yaml: {reason}"),
         },
         AddArtifactError::ArtifactAlreadyExists(reason) => {
-            EntityGenerationError::TemplateExecutionError {
+            EntityGenerationError::GeneratorExecutionError {
                 reason: format!("Artifact already exists: {reason}"),
             }
         }

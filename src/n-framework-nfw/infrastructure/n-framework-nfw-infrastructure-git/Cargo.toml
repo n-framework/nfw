@@ -17,11 +17,11 @@ serde_json = "1"
 
 [[test]]
 name = "discovery_test"
-path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/discovery_test.rs"
+path = "../../../../tests/integration/n-framework-nfw/features/generator_discovery/discovery_test.rs"
 
 [[test]]
 name = "e2e_test"
-path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/e2e_test.rs"
+path = "../../../../tests/integration/n-framework-nfw/features/generator_discovery/e2e_test.rs"
 
 [[test]]
 name = "metadata_bench"
@@ -33,16 +33,16 @@ path = "../../../../tests/integration/n-framework-nfw/benches/listing_bench.rs"
 
 [[test]]
 name = "reproducibility_test"
-path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/reproducibility_test.rs"
+path = "../../../../tests/integration/n-framework-nfw/features/generator_discovery/reproducibility_test.rs"
 
 [[test]]
 name = "corrupted_cache_recovery_test"
-path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/corrupted_cache_recovery_test.rs"
+path = "../../../../tests/integration/n-framework-nfw/features/generator_discovery/corrupted_cache_recovery_test.rs"
 
 [[test]]
 name = "authentication_failure_test"
-path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/authentication_failure_test.rs"
+path = "../../../../tests/integration/n-framework-nfw/features/generator_discovery/authentication_failure_test.rs"
 
 [[test]]
 name = "offline_fallback_test"
-path = "../../../../tests/integration/n-framework-nfw/features/template_discovery/offline_fallback_test.rs"
+path = "../../../../tests/integration/n-framework-nfw/features/generator_discovery/offline_fallback_test.rs"

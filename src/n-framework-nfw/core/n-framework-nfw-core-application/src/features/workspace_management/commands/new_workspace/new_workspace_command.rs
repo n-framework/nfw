@@ -9,7 +9,7 @@ use crate::features::workspace_management::models::new_command_request::NewComma
 #[derive(Debug, Clone)]
 pub struct NewWorkspaceCommand {
     pub workspace_name: Option<String>,
-    pub template_id: Option<String>,
+    pub generator_id: Option<String>,
     pub no_input: bool,
     pub is_interactive_terminal: bool,
 }
@@ -17,13 +17,13 @@ pub struct NewWorkspaceCommand {
 impl NewWorkspaceCommand {
     pub fn new(
         workspace_name: Option<String>,
-        template_id: Option<String>,
+        generator_id: Option<String>,
         no_input: bool,
         is_interactive_terminal: bool,
     ) -> Self {
         Self {
             workspace_name,
-            template_id,
+            generator_id,
             no_input,
             is_interactive_terminal,
         }
@@ -33,7 +33,7 @@ impl NewWorkspaceCommand {
     pub fn to_request(&self) -> NewCommandRequest {
         NewCommandRequest::new(
             self.workspace_name.clone(),
-            self.template_id.clone(),
+            self.generator_id.clone(),
             self.no_input,
             self.is_interactive_terminal,
         )
@@ -45,6 +45,6 @@ impl NewWorkspaceCommand {
 pub struct NewWorkspaceCommandResult {
     pub workspace_name: String,
     pub output_path: PathBuf,
-    pub template_id: String,
+    pub generator_id: String,
     pub namespace_base: String,
 }

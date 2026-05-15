@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use n_framework_nfw_core_application::features::cli::configuration::abstractions::nfw_configuration_loader::NfwConfigurationLoader;
 use n_framework_nfw_core_application::features::cli::configuration::abstractions::path_resolver::PathResolver;
 use n_framework_nfw_core_application::features::cli::configuration::nfw_configuration::NfwConfiguration;
-use n_framework_nfw_core_domain::features::template_management::template_source::TemplateSource;
+use n_framework_nfw_core_domain::features::generator_management::generator_source::GeneratorSource;
 
 use crate::features::cli::configuration::models::source_config::SourceConfig;
 use crate::features::cli::configuration::models::sources_file::SourcesFile;
@@ -39,7 +39,7 @@ where
         let config_directory = self.path_resolver.config_dir()?;
         let sources_file_path = self.resolve_sources_file_path()?;
 
-        let template_sources = if !sources_file_path.is_file() {
+        let generator_sources = if !sources_file_path.is_file() {
             Vec::new()
         } else {
             let content = fs::read_to_string(&sources_file_path).map_err(|error| {
@@ -55,16 +55,16 @@ where
                 .into_iter()
                 .map(|source| {
                     if source.enabled {
-                        TemplateSource::new(source.name, source.url)
+                        GeneratorSource::new(source.name, source.url)
                     } else {
-                        TemplateSource::new_disabled(source.name, source.url)
+                        GeneratorSource::new_disabled(source.name, source.url)
                     }
                 })
                 .collect()
         };
 
         Ok(NfwConfiguration::new(
-            template_sources,
+            generator_sources,
             cache_directory,
             config_directory,
         ))
@@ -82,7 +82,7 @@ where
         let sources_file_path = config_directory.join("sources.yaml");
         let sources_file = SourcesFile {
             sources: configuration
-                .template_sources
+                .generator_sources
                 .iter()
                 .map(|source| SourceConfig {
                     name: source.name.clone(),

@@ -31,7 +31,7 @@ CLI arguments accept C#-like primitive type syntax for developer familiarity. Th
 
 - **Developer Experience**: C#-like syntax is familiar to .NET developers who are the primary users
 - **Polyglot Support**: General types in schema enable future multi-language code generation
-- **Separation of Concerns**: CLI handles input parsing; templates handle language-specific type mapping
+- **Separation of Concerns**: CLI handles input parsing; generators handle language-specific type mapping
 
 ### Alternatives Considered
 
@@ -77,23 +77,23 @@ properties:                  # List of property definitions
 
 1. **JSON format**: Rejected - less readable, no comments
 2. **Nested property structure**: Rejected - adds complexity without benefit
-3. **Include database types**: Rejected - templates handle DB type mapping
+3. **Include database types**: Rejected - generators handle DB type mapping
 
-## Template Integration
+## Generator Integration
 
 ### Decision
 
-The CLI command provides entity parameters to the template engine. Templates determine:
+The CLI command provides entity parameters to the generator engine. Generators determine:
 
 - Base class selection (Entity, AuditableEntity, SoftDeletableEntity)
 - Language-specific type mappings (general type → C# type)
 - Validation attributes based on property types
 - Generated code structure and formatting
 
-### Template Parameters
+### Generator Parameters
 
 ```rust
-TemplateParameters {
+GeneratorParameters {
     entity_name: String,
     namespace: String,
     id_type: GeneralType,
@@ -103,7 +103,7 @@ TemplateParameters {
 }
 ```
 
-### Template Responsibilities
+### Generator Responsibilities
 
 1. **Type Mapping**: Map general types to language-specific types
    - `string` → `string`
@@ -119,22 +119,22 @@ TemplateParameters {
    - `AuditableEntity` → `public class Product : AuditableEntity<Guid>`
    - `SoftDeletableEntity` → `public class Product : SoftDeletableEntity<Guid>`
 
-3. **Validation Attributes**: Add attributes based on type and template rules
+3. **Validation Attributes**: Add attributes based on type and generator rules
    - Required attributes for non-nullable properties
    - String length attributes based on naming conventions
    - Range attributes for numeric types
 
 ### Rationale
 
-- **Separation of Concerns**: CLI handles validation; templates handle code generation
-- **Flexibility**: Different templates can provide different behaviors
+- **Separation of Concerns**: CLI handles validation; generators handle code generation
+- **Flexibility**: Different generators can provide different behaviors
 - **Language Independence**: Same schema can generate code for multiple languages
 
 ### Alternatives Considered
 
-1. **CLI generates code directly**: Rejected - breaks template abstraction
-2. **Templates read YAML directly**: Rejected - couples templates to schema format
-3. **Hardcoded type mappings in CLI**: Rejected - limits template flexibility
+1. **CLI generates code directly**: Rejected - breaks generator abstraction
+2. **Generators read YAML directly**: Rejected - couples generators to schema format
+3. **Hardcoded type mappings in CLI**: Rejected - limits generator flexibility
 
 ## Service Module Validation
 
@@ -226,7 +226,7 @@ match parse_property_definition(input) {
 
 ### Alternatives Considered
 
-1. **Support collection types**: Rejected - adds complexity, templates should handle navigation properties
+1. **Support collection types**: Rejected - adds complexity, generators should handle navigation properties
 2. **Support value objects**: Rejected - separate concern, should be own command
 3. **Infer type from name**: Rejected - explicit types are clearer
 
@@ -237,15 +237,15 @@ match parse_property_definition(input) {
 3. **Service Module Validator**: Check persistence module presence
 4. **Schema Generator**: Create YAML files from entity definitions
 5. **Schema Reader**: Parse YAML files for code generation
-6. **Template Integration**: Invoke template engine with parameters
+6. **Generator Integration**: Invoke generator engine with parameters
 7. **CLI Command**: Wire everything together with clap
 
 ## Open Questions Resolved
 
 All questions from the specification have been resolved through this research:
 
-- **Type mapping**: CLI uses C# syntax, schema uses general types, templates handle language-specific types
-- **Base class selection**: Template concern based on `baseClass` field in schema
+- **Type mapping**: CLI uses C# syntax, schema uses general types, generators handle language-specific types
+- **Base class selection**: Generator concern based on `baseClass` field in schema
 - **Schema storage**: Configurable in `nfw.yaml` with sensible default
 - **Persistence module dependency**: Validated before generation with actionable error message
 - **Property type restrictions**: Primitive types only, validated at CLI input

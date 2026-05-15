@@ -78,9 +78,9 @@ check_cli_installed() {
 	log_success "nfw CLI found: $(command -v nfw)"
 }
 
-check_template_cache() {
-	if ! nfw templates &>/dev/null 2>&1; then
-		log_error "Template cache is empty or inaccessible"
+check_generator_cache() {
+	if ! nfw generators &>/dev/null 2>&1; then
+		log_error "Generator cache is empty or inaccessible"
 		exit 2
 	fi
 }
@@ -102,7 +102,7 @@ check_make() {
 check_all_prerequisites() {
 	log_info "Checking prerequisites..."
 	check_cli_installed
-	check_template_cache
+	check_generator_cache
 	check_make
 	log_success "All prerequisites satisfied"
 }

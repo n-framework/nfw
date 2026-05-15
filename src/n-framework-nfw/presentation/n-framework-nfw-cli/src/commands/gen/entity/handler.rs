@@ -5,8 +5,9 @@ use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption}
 use n_framework_nfw_core_application::features::entity_generation::abstractions::entity_schema_store::EntitySchemaStore;
 use n_framework_nfw_core_application::features::entity_generation::commands::add_entity_command_handler::AddEntityCommandHandler;
 use n_framework_nfw_core_application::features::entity_generation::services::property_syntax_parser::PropertySyntaxParser;
-use n_framework_nfw_core_application::features::template_management::services::abstractions::template_root_resolver::TemplateRootResolver;
-use n_framework_nfw_core_application::features::template_management::services::template_engine::TemplateEngine;
+use n_framework_nfw_core_application::features::generator_management::constants::yaml_keys;
+use n_framework_nfw_core_application::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
+use n_framework_nfw_core_application::features::generator_management::services::generator_engine::GeneratorEngine;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_domain::features::entity_generation::entities::add_entity_command::{
     AddEntityCommand, EntityGenerationOptions, EntityType,
@@ -43,8 +44,8 @@ pub struct GenEntityCliCommand<W, R, E, S, P> {
 impl<W, R, E, S, P> GenEntityCliCommand<W, R, E, S, P>
 where
     W: WorkingDirectoryProvider,
-    R: TemplateRootResolver,
-    E: TemplateEngine,
+    R: GeneratorRootResolver,
+    E: GeneratorEngine,
     S: EntitySchemaStore,
     P: InteractivePrompt + Logger,
 {
@@ -235,14 +236,14 @@ where
         workspace: &ArtWorkspaceContext,
         service: &ArtServiceInfo,
     ) -> Result<Vec<String>, CliError> {
-        if let Some(services) = workspace.nfw_yaml().get("services")
+        if let Some(services) = workspace.nfw_yaml().get(yaml_keys::SERVICES)
             && let Some(map) = services.as_mapping()
         {
             for (name_val, details_val) in map {
                 if let Some(name) = name_val.as_str()
                     && name == service.name()
                 {
-                    match details_val.get("modules") {
+                    match details_val.get(yaml_keys::MODULES) {
                         Some(modules_val) => {
                             let seq = modules_val.as_sequence().ok_or_else(|| {
                                 CliError::internal(format!(

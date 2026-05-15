@@ -38,15 +38,15 @@
 - **Rationale**: Ensures predictable naming and avoids collisions across generated services.
 - **Alternatives considered**:
   - Service-only namespace roots (rejected: inconsistent multi-service naming)
-  - Fixed template namespace only (rejected: weak workspace identity)
+  - Fixed generator namespace only (rejected: weak workspace identity)
 
-## Decision 6: Template Artifact Organization
+## Decision 6: Generator Artifact Organization
 
-- **Decision**: Generate files from selected template content with deterministic placeholder rendering; do not impose mandatory `.sln` artifacts at engine level.
-- **Rationale**: Keeps workspace generation template-driven and avoids hardcoded artifact assumptions.
+- **Decision**: Generate files from selected generator content with deterministic placeholder rendering; do not impose mandatory `.sln` artifacts at engine level.
+- **Rationale**: Keeps workspace generation generator-driven and avoids hardcoded artifact assumptions.
 - **Alternatives considered**:
-  - Hardcoded root/per-service solution generation (rejected: duplicates template ownership)
-  - Hybrid hardcoded+template writes (rejected: drift risk and unclear source of truth)
+  - Hardcoded root/per-service solution generation (rejected: duplicates generator ownership)
+  - Hybrid hardcoded+generator writes (rejected: drift risk and unclear source of truth)
 
 ## Decision 7: Configuration Format
 
@@ -54,7 +54,7 @@
 - **Rationale**: Single canonical format simplifies validation, docs, and generated contracts.
 - **Alternatives considered**:
   - YAML + JSON dual support (rejected: higher maintenance and ambiguity)
-  - Template-specific format freedom (rejected: weak consistency guarantees)
+  - Generator-specific format freedom (rejected: weak consistency guarantees)
 
 ## Decision 8: Error Contract
 

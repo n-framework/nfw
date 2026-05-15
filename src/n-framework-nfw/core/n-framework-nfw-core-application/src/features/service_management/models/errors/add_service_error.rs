@@ -5,19 +5,19 @@ pub enum AddServiceError {
     MissingRequiredInput(String),
     InvalidServiceName(String),
     InvalidWorkspaceContext(String),
-    TemplateNotFound(String),
-    InvalidTemplateType {
-        template_id: String,
-        template_type: String,
+    GeneratorNotFound(String),
+    InvalidGeneratorType {
+        generator_id: String,
+        generator_type: String,
     },
-    AmbiguousTemplate(String),
+    AmbiguousGenerator(String),
     PromptFailed(String),
     TargetDirectoryAlreadyExists(String),
     RenderFailed(String),
     DependencyRuleViolation(String),
     HealthEndpointsMissing(String),
-    TemplateReadError(String),
-    TemplateConfigError(String),
+    GeneratorReadError(String),
+    GeneratorConfigError(String),
     ProvenanceWriteFailed(String),
     CleanupFailed(String),
     Interrupted,
@@ -38,25 +38,27 @@ impl Display for AddServiceError {
             Self::InvalidWorkspaceContext(message) => {
                 write!(f, "invalid workspace context: {message}")
             }
-            Self::TemplateNotFound(template) => write!(
+            Self::GeneratorNotFound(generator) => write!(
                 f,
-                "service template '{template}' was not found; use 'nfw templates list'"
+                "service generator '{generator}' was not found; use 'nfw generators list'"
             ),
-            Self::InvalidTemplateType {
-                template_id,
-                template_type,
+            Self::InvalidGeneratorType {
+                generator_id,
+                generator_type,
             } => write!(
                 f,
-                "template '{template_id}' has type '{template_type}', expected 'service'"
+                "generator '{generator_id}' has type '{generator_type}', expected 'service'"
             ),
-            Self::AmbiguousTemplate(template) => {
-                write!(f, "template identifier '{template}' is ambiguous")
+            Self::AmbiguousGenerator(generator) => {
+                write!(f, "generator identifier '{generator}' is ambiguous")
             }
-            Self::PromptFailed(reason) => write!(f, "interactive template prompt failed: {reason}"),
+            Self::PromptFailed(reason) => {
+                write!(f, "interactive generator prompt failed: {reason}")
+            }
             Self::TargetDirectoryAlreadyExists(path) => {
                 write!(f, "target directory '{path}' already exists")
             }
-            Self::RenderFailed(reason) => write!(f, "failed to render service template: {reason}"),
+            Self::RenderFailed(reason) => write!(f, "failed to render service generator: {reason}"),
             Self::DependencyRuleViolation(reason) => {
                 write!(
                     f,
@@ -67,13 +69,16 @@ impl Display for AddServiceError {
                 write!(f, "generated API health endpoints are missing: {reason}")
             }
             Self::ProvenanceWriteFailed(reason) => {
-                write!(f, "failed to persist service template provenance: {reason}")
+                write!(
+                    f,
+                    "failed to persist service generator provenance: {reason}"
+                )
             }
-            Self::TemplateReadError(reason) => {
-                write!(f, "failed to read service template structure: {reason}")
+            Self::GeneratorReadError(reason) => {
+                write!(f, "failed to read service generator structure: {reason}")
             }
-            Self::TemplateConfigError(reason) => {
-                write!(f, "service template configuration is invalid: {reason}")
+            Self::GeneratorConfigError(reason) => {
+                write!(f, "service generator configuration is invalid: {reason}")
             }
             Self::CleanupFailed(reason) => {
                 write!(

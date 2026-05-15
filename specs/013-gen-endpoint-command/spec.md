@@ -71,7 +71,7 @@ As a developer, I want the CLI to validate that the referenced command or query 
 
 - The target service has an API layer (WebAPI) using Minimal APIs (e.g., native endpoint groups).
 - The Application layer uses MediatR for commands and queries, organized by Feature folders.
-- Template rendering engine is available to handle endpoint file generation.
+- Generator rendering engine is available to handle endpoint file generation.
 
 ## Non-Goals
 

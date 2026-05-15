@@ -36,8 +36,8 @@ fn valid_new_command_shape_routes_to_workspace_handler() {
         &[
             "new",
             "billing-platform",
-            "--template",
-            "does-not-exist/template",
+            "--generator",
+            "does-not-exist/generator",
             "--no-input",
         ],
     );
@@ -45,7 +45,7 @@ fn valid_new_command_shape_routes_to_workspace_handler() {
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     let is_expected_workspace_failure = stderr
-        .contains("template 'does-not-exist/template' was not found")
+        .contains("generator 'does-not-exist/generator' was not found")
         || stderr.contains("workspace initialization failed");
     assert!(is_expected_workspace_failure, "stderr was: {stderr}");
     assert!(!stderr.contains("unsupported command"));
@@ -79,16 +79,16 @@ fn write_local_official_source_config(home: &Path) {
     let config_home = home.join(".config").join("nfw");
     fs::create_dir_all(&config_home).expect("nfw config directory should exist");
 
-    // Create a template cache directory in the test sandbox
-    let template_cache = home.join(".cache").join("nfw").join("templates");
-    fs::create_dir_all(&template_cache).expect("template cache directory should exist");
+    // Create a generator cache directory in the test sandbox
+    let generator_cache = home.join(".cache").join("nfw").join("generators");
+    fs::create_dir_all(&generator_cache).expect("generator cache directory should exist");
 
-    // The test validates error handling when a specific template doesn't exist.
+    // The test validates error handling when a specific generator doesn't exist.
     // We create an empty cache directory so the CLI can find the source,
-    // but the specific template won't exist.
+    // but the specific generator won't exist.
     let config = format!(
         "sources:\n  - name: official\n    url: {}\n    enabled: true\n",
-        template_cache.to_string_lossy()
+        generator_cache.to_string_lossy()
     );
     fs::write(config_home.join("sources.yaml"), config)
         .expect("sources.yaml should be written for test sandbox");

@@ -4,7 +4,7 @@
 
 **Input**: Feature specification from `src/nfw/specs/011-gen-repository-command/spec.md`
 
-**Note**: This plan follows the `/speckit.plan` workflow. The CLI (Rust) reads template configuration from `src/nfw-templates` and applies it.
+**Note**: This plan follows the `/speckit.plan` workflow. The CLI (Rust) reads generator configuration from `src/nfw-generators` and applies it.
 
 ## Summary
 
@@ -12,20 +12,20 @@ Implement `nfw gen repository <NAME> [--feature <FEATURE>]` CLI command in Rust 
 
 - Parses CLI arguments using `clap`
 - Validates entity exists, persistence configured in `nfw.yaml`
-- Reads repository template configuration from `src/nfw-templates/src/dotnet-service/repository/`
-- Applies template steps (render, inject, run_command) to generate files
+- Reads repository generator configuration from `src/nfw-generators/src/dotnet-service/repository/`
+- Applies generator steps (render, inject, run_command) to generate files
 - Completes in <2 seconds for valid inputs
 
 ## Technical Context
 
 **Language/Version**: Rust 1.85+ (2024 edition) for CLI  
-**Primary Dependencies**: `clap` (CLI parsing), `serde`/`serde_yaml` (template config parsing)  
-**Storage**: N/A (CLI tool, reads templates from `src/nfw-templates`)  
+**Primary Dependencies**: `clap` (CLI parsing), `serde`/`serde_yaml` (generator config parsing)  
+**Storage**: N/A (CLI tool, reads generators from `src/nfw-generators`)  
 **Testing**: `cargo test --workspace` (Rust integration tests)  
 **Target Platform**: Linux/macOS/Windows (CLI tool)  
 **Project Type**: CLI tool (nfw CLI)  
 **Performance Goals**: <2 seconds command execution for valid inputs  
-**Constraints**: Must validate entity exists, persistence configured in `nfw.yaml`, template config readable  
+**Constraints**: Must validate entity exists, persistence configured in `nfw.yaml`, generator config readable  
 **Scale/Scope**: Single entity repository generation per command invocation  
 
 ## Constitution Check
@@ -39,7 +39,7 @@ Implement `nfw gen repository <NAME> [--feature <FEATURE>]` CLI command in Rust 
 | III. No Suppression | ✅ PASS | No warning suppression, no swallowing exceptions |
 | IV. Deterministic Tests | ✅ PASS | Integration tests use CLI test utilities, no real network |
 | V. Documentation Is Part Of Delivery | ✅ PASS | quickstart.md created |
-| Additional: Repository conventions | ✅ PASS | Template config defines paths, CLI applies them |
+| Additional: Repository conventions | ✅ PASS | Generator config defines paths, CLI applies them |
 
 **GATE RESULT**: ✅ ALL PASSED
 
@@ -51,7 +51,7 @@ Implement `nfw gen repository <NAME> [--feature <FEATURE>]` CLI command in Rust 
 src/nfw/specs/011-gen-repository-command/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (minimal, no clarifications needed)
-├── data-model.md        # Phase 1 output (template config structure)
+├── data-model.md        # Phase 1 output (generator config structure)
 ├── quickstart.md        # Phase 1 output (how to use the CLI command)
 ├── contracts/           # Phase 1 output (CLI contract, not applicable - skip)
 └── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
@@ -65,8 +65,8 @@ src/nfw/
 │   ├── commands/
 │   │   └── gen/
 │   │       └── repository.rs          # NEW: Repository generation command (Rust)
-│   └── template/
-│       └── processor.rs               # EXISTING: Template config reader/applier (Rust)
+│   └── generator/
+│       └── processor.rs               # EXISTING: Generator config reader/applier (Rust)
 ├── tests/
 │   ├── integration/
 │   │   └── gen_repository_tests.rs  # NEW: Integration tests (Rust)
@@ -76,17 +76,17 @@ src/nfw/
     └── 011-gen-repository-command/   # This feature spec
 ```
 
-### Template Store (src/nfw-templates - configuration the CLI reads)
+### Generator Store (src/nfw-generators - configuration the CLI reads)
 
 ```text
-src/nfw-templates/src/dotnet-service/
-├── template.yaml          # MODIFY: Add `repository: ./repository/` to generators (YAML)
-└── repository/           # NEW: Repository template config and files (YAML + .tera templates)
-    ├── template.yaml     # Repository generation steps (YAML - CLI reads this)
-    └── content/         # Template files (CLI renders these)
+src/nfw-generators/src/dotnet-service/
+├── nfw.generator.yaml          # MODIFY: Add `repository: ./repository/` to generators (YAML)
+└── repository/           # NEW: Repository generator config and files (YAML + .tera generators)
+    ├── nfw.generator.yaml     # Repository generation steps (YAML - CLI reads this)
+    └── content/         # Generator files (CLI renders these)
 ```
 
-**Structure Decision**: Follow existing nfw CLI patterns. Template configuration drives all file generation; CLI Rust code does NOT hardcode paths or class names.
+**Structure Decision**: Follow existing nfw CLI patterns. Generator configuration drives all file generation; CLI Rust code does NOT hardcode paths or class names.
 
 ## Complexity Tracking
 
@@ -102,20 +102,20 @@ src/nfw-templates/src/dotnet-service/
 
 Research completed during spec phase. Key decisions already made:
 
-### Decision: Template-Driven Generation
+### Decision: Generator-Driven Generation
 
-- **Rationale**: CLI reads repository template configuration from `src/nfw-templates/src/dotnet-service/repository/template.yaml` and applies steps (render, inject). This follows existing patterns (entity, persistence generators).
+- **Rationale**: CLI reads repository generator configuration from `src/nfw-generators/src/dotnet-service/repository/nfw.generator.yaml` and applies steps (render, inject). This follows existing patterns (entity, persistence generators).
 - **Alternatives considered**: Hardcoding file paths in CLI code → Rejected: Reduces flexibility, harder to maintain.
 
 ### Decision: Entity-Specific File Generation
 
-- **Rationale**: CLI generates entity-specific repository files (e.g., `IUserRepository.cs`, `UserRepository.cs`) by applying templates. Template defines the structure.
+- **Rationale**: CLI generates entity-specific repository files (e.g., `IUserRepository.cs`, `UserRepository.cs`) by applying generators. Generator defines the structure.
 - **Alternatives considered**: Generic repository → Rejected: User requested entity-specific files.
 
-### Decision: DI Registration via Template
+### Decision: DI Registration via Generator
 
-- **Rationale**: CLI injects DI registration into Infrastructure layer's service registration file by applying template configuration.
-- **Alternatives considered**: Hardcoding DI patterns in CLI → Rejected: Violates template-driven approach.
+- **Rationale**: CLI injects DI registration into Infrastructure layer's service registration file by applying generator configuration.
+- **Alternatives considered**: Hardcoding DI patterns in CLI → Rejected: Violates generator-driven approach.
 
 **Output**: [research.md](research.md) (minimal, see above decisions)
 
@@ -125,10 +125,10 @@ Research completed during spec phase. Key decisions already made:
 
 ### Data Model (data-model.md)
 
-Template configuration structure (YAML) that the CLI reads and applies:
+Generator configuration structure (YAML) that the CLI reads and applies:
 
 ```yaml
-# src/nfw-templates/src/dotnet-service/repository/template.yaml
+# src/nfw-generators/src/dotnet-service/repository/nfw.generator.yaml
 id: dotnet-service/repository
 name: Repository Generator
 steps:

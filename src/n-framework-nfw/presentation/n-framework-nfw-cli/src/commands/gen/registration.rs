@@ -8,7 +8,7 @@ use crate::commands::r#gen::repository::registration::register as repository_reg
 
 pub fn register() -> CliCommandSpec {
     CliCommandSpec::new("gen")
-        .with_about("Generate workspace artifacts from templates")
+        .with_about("Generate workspace artifacts from generators")
         .require_subcommand()
         .with_subcommand(command_register())
         .with_subcommand(endpoint_register())

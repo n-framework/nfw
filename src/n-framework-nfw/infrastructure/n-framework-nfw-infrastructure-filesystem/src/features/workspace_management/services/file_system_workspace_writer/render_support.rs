@@ -30,7 +30,7 @@ pub fn render_bytes(bytes: &[u8], resolution: &NewCommandResolution) -> Result<V
 }
 
 fn render_text(text: &str, resolution: &NewCommandResolution) -> Result<String, String> {
-    let project_guid = stable_project_guid(&resolution.workspace_name, &resolution.template_id);
+    let project_guid = stable_project_guid(&resolution.workspace_name, &resolution.generator_id);
 
     // Convert to mustache data format - include both formats for backward compatibility
     let mut data = HashMap::new();
@@ -45,23 +45,23 @@ fn render_text(text: &str, resolution: &NewCommandResolution) -> Result<String, 
     data.insert("ProjectGuid".to_owned(), project_guid.clone());
 
     // Underscore format keys: __TokenName__ (stripped of underscores for mustache lookup)
-    // Note: mustache will match {{TokenName}} in template, so we just need the key to be TokenName
-    // Both formats resolve to the same key since mustache strips {{ }} from the template side
+    // Note: mustache will match {{TokenName}} in generator, so we just need the key to be TokenName
+    // Both formats resolve to the same key since mustache strips {{ }} from the generator side
     // and we use the same clean key names above
 
-    // Compile and render the template
-    let template =
-        mustache::compile_str(text).map_err(|e| format!("failed to compile template: {}", e))?;
+    // Compile and render the generator
+    let generator =
+        mustache::compile_str(text).map_err(|e| format!("failed to compile generator: {}", e))?;
 
-    template
+    generator
         .render_to_string(&data)
-        .map_err(|e| format!("failed to render template: {}", e))
+        .map_err(|e| format!("failed to render generator: {}", e))
 }
 
-pub fn stable_project_guid(workspace_name: &str, template_id: &str) -> String {
+pub fn stable_project_guid(workspace_name: &str, generator_id: &str) -> String {
     let mut state_a: u64 = 0xcbf29ce484222325;
     let mut state_b: u64 = 0x8422_2325_cbf2_9ce4;
-    for byte in workspace_name.bytes().chain(template_id.bytes()) {
+    for byte in workspace_name.bytes().chain(generator_id.bytes()) {
         state_a ^= byte as u64;
         state_a = state_a.wrapping_mul(0x100000001b3);
 

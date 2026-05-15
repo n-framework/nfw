@@ -3,28 +3,28 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use n_framework_nfw_core_application::features::cli::configuration::abstractions::config_store::ConfigStore;
-use n_framework_nfw_core_application::features::template_management::services::abstractions::git_repository::GitRepository;
-use n_framework_nfw_core_application::features::template_management::services::abstractions::template_source_synchronizer::TemplateSourceSynchronizer;
-use n_framework_nfw_core_application::features::template_management::services::abstractions::validator::Validator;
-use n_framework_nfw_core_application::features::template_management::services::template_catalog_parser::TemplateCatalogParser;
-use n_framework_nfw_core_application::features::template_management::services::template_catalog_source_resolver::TemplateCatalogSourceResolver;
-use n_framework_nfw_core_application::features::template_management::services::templates_service::TemplatesService;
-use n_framework_nfw_core_domain::features::template_management::template_source::TemplateSource;
-use n_framework_nfw_infrastructure_filesystem::features::template_management::services::local_templates_catalog_source::LocalTemplatesCatalogSource;
+use n_framework_nfw_core_application::features::generator_management::services::abstractions::git_repository::GitRepository;
+use n_framework_nfw_core_application::features::generator_management::services::abstractions::generator_source_synchronizer::GeneratorSourceSynchronizer;
+use n_framework_nfw_core_application::features::generator_management::services::abstractions::validator::Validator;
+use n_framework_nfw_core_application::features::generator_management::services::generator_catalog_parser::GeneratorCatalogParser;
+use n_framework_nfw_core_application::features::generator_management::services::generator_catalog_source_resolver::GeneratorCatalogSourceResolver;
+use n_framework_nfw_core_application::features::generator_management::services::generators_service::GeneratorsService;
+use n_framework_nfw_core_domain::features::generator_management::generator_source::GeneratorSource;
+use n_framework_nfw_infrastructure_filesystem::features::generator_management::services::local_generators_catalog_source::LocalGeneratorsCatalogSource;
 use n_framework_nfw_infrastructure_versioning::features::versioning::services::semver_version_comparator::SemverVersionComparator;
-use n_framework_nfw_infrastructure_yaml::features::template_management::services::serde_yaml_parser::SerdeYamlParser;
+use n_framework_nfw_infrastructure_yaml::features::generator_management::services::serde_yaml_parser::SerdeYamlParser;
 
 #[derive(Debug, Clone)]
 struct StaticConfigStore {
-    sources: Vec<TemplateSource>,
+    sources: Vec<GeneratorSource>,
 }
 
 impl ConfigStore for StaticConfigStore {
-    fn load_sources(&self) -> Result<Vec<TemplateSource>, String> {
+    fn load_sources(&self) -> Result<Vec<GeneratorSource>, String> {
         Ok(self.sources.clone())
     }
 
-    fn save_sources(&self, _sources: &[TemplateSource]) -> Result<(), String> {
+    fn save_sources(&self, _sources: &[GeneratorSource]) -> Result<(), String> {
         Ok(())
     }
 }
@@ -34,8 +34,8 @@ struct LocalSourceSynchronizer {
     source_root: PathBuf,
 }
 
-impl TemplateSourceSynchronizer for LocalSourceSynchronizer {
-    fn sync_source(&self, _source: &TemplateSource) -> Result<(PathBuf, Option<String>), String> {
+impl GeneratorSourceSynchronizer for LocalSourceSynchronizer {
+    fn sync_source(&self, _source: &GeneratorSource) -> Result<(PathBuf, Option<String>), String> {
         Ok((self.source_root.clone(), None))
     }
 
@@ -104,35 +104,35 @@ impl GitRepository for NoopGitRepository {
 }
 
 #[test]
-fn listing_fifty_templates_stays_under_target_threshold() {
+fn listing_fifty_generators_stays_under_target_threshold() {
     let source_root = create_sandbox_directory();
-    create_templates(&source_root, 50);
+    create_generators(&source_root, 50);
 
     let source_name = "benchmark-source";
     let source_url = "https://example.com/benchmark-source.git";
 
-    let service = create_templates_service(source_root.clone(), source_name, source_url);
+    let service = create_generators_service(source_root.clone(), source_name, source_url);
 
     let started_at = Instant::now();
-    let (templates, warnings) = service.list_templates().expect("list should succeed");
+    let (generators, warnings) = service.list_generators().expect("list should succeed");
     let elapsed = started_at.elapsed();
 
     assert!(warnings.is_empty());
-    assert_eq!(templates.len(), 50);
+    assert_eq!(generators.len(), 50);
     assert!(
         elapsed < Duration::from_millis(500),
-        "listing 50 templates took {:?}, expected < 500ms",
+        "listing 50 generators took {:?}, expected < 500ms",
         elapsed
     );
 }
 
-fn create_templates_service(
+fn create_generators_service(
     source_root: PathBuf,
     source_name: &str,
     source_url: &str,
-) -> TemplatesService<
+) -> GeneratorsService<
     LocalSourceSynchronizer,
-    LocalTemplatesCatalogSource,
+    LocalGeneratorsCatalogSource,
     SerdeYamlParser,
     BenchmarkValidator,
     SemverVersionComparator,
@@ -140,21 +140,21 @@ fn create_templates_service(
     NoopGitRepository,
 > {
     let source_synchronizer = LocalSourceSynchronizer { source_root };
-    let catalog_source = LocalTemplatesCatalogSource::new();
-    let catalog_parser = TemplateCatalogParser::new(
+    let catalog_source = LocalGeneratorsCatalogSource::new();
+    let catalog_parser = GeneratorCatalogParser::new(
         SerdeYamlParser::new(),
         BenchmarkValidator,
         SemverVersionComparator::new(),
     );
-    let catalog_resolver = TemplateCatalogSourceResolver::new(catalog_source, catalog_parser);
+    let catalog_resolver = GeneratorCatalogSourceResolver::new(catalog_source, catalog_parser);
     let config_store = StaticConfigStore {
-        sources: vec![TemplateSource::new(
+        sources: vec![GeneratorSource::new(
             source_name.to_owned(),
             source_url.to_owned(),
         )],
     };
 
-    TemplatesService::new(
+    GeneratorsService::new(
         source_synchronizer,
         catalog_resolver,
         config_store,
@@ -163,22 +163,22 @@ fn create_templates_service(
     )
 }
 
-fn create_templates(root: &Path, count: usize) {
+fn create_generators(root: &Path, count: usize) {
     for index in 0..count {
-        let template_id = format!("template-{index}");
-        let template_directory = root.join(&template_id);
-        let content_directory = template_directory.join("content");
+        let generator_id = format!("generator-{index}");
+        let generator_directory = root.join(&generator_id);
+        let content_directory = generator_directory.join("content");
         fs::create_dir_all(&content_directory).expect("content directory should be created");
 
         fs::write(
-            template_directory.join("template.yaml"),
+            generator_directory.join("nfw.generator.yaml"),
             format!(
-                "id: {template_id}\nname: Template {index}\ndescription: Template {index}\nversion: 1.0.0\nlanguage: rust\n"
+                "id: {generator_id}\nname: Generator {index}\ndescription: Generator {index}\nversion: 1.0.0\nlanguage: rust\n"
             ),
         )
-        .expect("template metadata should be written");
-        fs::write(content_directory.join("README.md"), "# Template\n")
-            .expect("template content should be written");
+        .expect("generator metadata should be written");
+        fs::write(content_directory.join("README.md"), "# Generator\n")
+            .expect("generator content should be written");
     }
 }
 

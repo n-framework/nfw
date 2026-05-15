@@ -6,10 +6,10 @@ use n_framework_nfw_core_application::features::service_management::models::erro
 #[test]
 fn fails_when_current_directory_is_not_inside_workspace() {
     let sandbox_root = support::create_sandbox_directory("service-outside-workspace");
-    let template_root =
-        support::create_service_template(&sandbox_root, "dotnet-service-template", "service");
+    let generator_root =
+        support::create_service_generator(&sandbox_root, "dotnet-service-generator", "service");
     let resolution =
-        support::create_template_resolution(&template_root, "official", "dotnet-service");
+        support::create_generator_resolution(&generator_root, "official", "dotnet-service");
     let orchestration = support::build_default_orchestration(&sandbox_root, resolution);
 
     let error = support::execute_non_interactive_add_service(
