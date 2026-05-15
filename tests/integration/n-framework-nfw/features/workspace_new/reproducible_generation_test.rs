@@ -124,7 +124,7 @@ fn create_generator_directory(sandbox_root: &Path) -> PathBuf {
     .expect("generator readme should be written");
     fs::write(
         content_root.join("nfw.yaml"),
-        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: {{WorkspaceName}}\n  generator: official/blank-workspace\n  namespace: {{Namespace}}\n",
+        "workspace:\n  name: {{WorkspaceName}}\n  generator: official/blank-workspace\n  namespace: {{Namespace}}\n",
     )
     .expect("generator config should be written");
 

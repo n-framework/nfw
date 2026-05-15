@@ -60,8 +60,8 @@ fn generates_expected_workspace_layout_and_yaml_baseline_configuration() {
     assert_eq!(
         yaml,
         format!(
-            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  generator: official/blank-workspace\n  namespace: BillingPlatform\n",
-            EXPECTED_NFW_YAML_PREFIX
+            "{}\nworkspace:\n  name: BillingPlatform\n  generator: official/blank-workspace\n  namespace: BillingPlatform\n",
+            EXPECTED_NFW_YAML_PREFIX.trim_end()
         )
     );
 
@@ -121,8 +121,8 @@ fn creates_nfw_yaml_when_generator_does_not_provide_it() {
     assert_eq!(
         yaml,
         format!(
-            "{}$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\n\nworkspace:\n  name: BillingPlatform\n  generator: official/blank-workspace\n  namespace: BillingPlatform\n",
-            EXPECTED_NFW_YAML_PREFIX
+            "{}\nworkspace:\n  name: BillingPlatform\n  generator: official/blank-workspace\n  namespace: BillingPlatform\n",
+            EXPECTED_NFW_YAML_PREFIX.trim_end()
         )
     );
 
@@ -198,7 +198,7 @@ fn create_generator_directory(sandbox_root: &Path) -> PathBuf {
     .expect("generator readme should be written");
     fs::write(
         content_root.join("nfw.yaml"),
-        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: {{WorkspaceName}}\n  generator: official/blank-workspace\n  namespace: {{Namespace}}\n",
+        "workspace:\n  name: {{WorkspaceName}}\n  generator: official/blank-workspace\n  namespace: {{Namespace}}\n",
     )
     .expect("generator config should be written");
 
@@ -232,7 +232,7 @@ fn create_generator_directory_with_only_nfw_yaml(sandbox_root: &Path) -> PathBuf
     fs::create_dir_all(&content_root).expect("generator content directory should be created");
     fs::write(
         content_root.join("nfw.yaml"),
-        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: __WorkspaceName__\n  generator: official/blank-workspace\n  namespace: __Namespace__\n",
+        "workspace:\n  name: __WorkspaceName__\n  generator: official/blank-workspace\n  namespace: __Namespace__\n",
     )
     .expect("generator config should be written");
 

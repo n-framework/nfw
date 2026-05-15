@@ -14,7 +14,6 @@ fn preserves_all_comments_in_nfw_yaml_when_adding_service() {
 # /_/|_/_/ /_/  \_,_/_/_/_/\__/|__,__/\___/_/ /_/\_\
 
 # yaml-language-server: $schema=https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json
-$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json
 
 # Important workspace configuration
 workspace:

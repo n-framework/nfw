@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use n_framework_nfw_infrastructure_workspace_metadata::{
-    ensure_schema_key, extract_preserved_comments, format_nfw_yaml_document,
+    extract_preserved_comments, format_nfw_yaml_document,
     remove_workspace_project_guid, reorder_root_keys,
 };
 use n_framework_nfw_core_application::features::generator_management::constants::workspace;
@@ -50,7 +50,6 @@ impl ServiceProvenanceStore for WorkspaceMetadataWriter {
         let root_mapping = root
             .as_mapping_mut()
             .ok_or_else(|| "workspace metadata root must be a YAML mapping".to_owned())?;
-        ensure_schema_key(root_mapping);
         remove_workspace_project_guid(root_mapping)?;
 
         let services_key = Value::String("services".to_owned());

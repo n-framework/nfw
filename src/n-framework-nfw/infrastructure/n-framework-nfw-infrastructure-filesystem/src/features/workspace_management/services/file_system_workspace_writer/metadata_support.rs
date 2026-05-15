@@ -1,7 +1,7 @@
 use n_framework_nfw_core_application::features::generator_management::constants::workspace;
 use n_framework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use n_framework_nfw_infrastructure_workspace_metadata::{
-    NFW_SCHEMA_URL, ensure_schema_key, extract_preserved_comments, format_nfw_yaml_document,
+    extract_preserved_comments, format_nfw_yaml_document,
     remove_workspace_project_guid, reorder_root_keys, split_leading_comments_and_body,
 };
 use serde_yaml::Value;
@@ -25,7 +25,7 @@ pub fn ensure_workspace_metadata_file(
     }
 
     let content = format!(
-        "$schema: {NFW_SCHEMA_URL}\nworkspace:\n  name: {}\n  generator: {}\n  namespace: {}\n",
+        "workspace:\n  name: {}\n  generator: {}\n  namespace: {}\n",
         resolution.workspace_name, resolution.generator_id, resolution.namespace_base,
     );
 
@@ -57,7 +57,6 @@ pub fn normalize_workspace_metadata_file(output_root: &Path) -> Result<(), Strin
         .as_mapping_mut()
         .ok_or_else(|| "workspace metadata root must be a YAML mapping".to_owned())?;
 
-    ensure_schema_key(root_mapping);
     remove_workspace_project_guid(root_mapping)?;
     reorder_root_keys(root_mapping);
 

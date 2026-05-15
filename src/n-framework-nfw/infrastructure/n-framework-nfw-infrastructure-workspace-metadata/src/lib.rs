@@ -108,13 +108,6 @@ pub fn extract_preserved_comments(content: &str) -> PreservedComments {
     preserved
 }
 
-pub fn ensure_schema_key(root_mapping: &mut serde_yaml::Mapping) {
-    root_mapping.insert(
-        serde_yaml::Value::String("$schema".to_owned()),
-        serde_yaml::Value::String(NFW_SCHEMA_URL.to_owned()),
-    );
-}
-
 pub fn remove_workspace_project_guid(root_mapping: &mut serde_yaml::Mapping) -> Result<(), String> {
     let workspace_key = serde_yaml::Value::String("workspace".to_owned());
     let Some(workspace_value) = root_mapping.get_mut(&workspace_key) else {
@@ -131,20 +124,17 @@ pub fn remove_workspace_project_guid(root_mapping: &mut serde_yaml::Mapping) -> 
 pub fn reorder_root_keys(root_mapping: &mut serde_yaml::Mapping) {
     let mut reordered = serde_yaml::Mapping::new();
 
-    // 1. Keep $schema at the very top if it exists
-    move_key_if_exists(root_mapping, &mut reordered, "$schema");
-
-    // 2. Extract services if it exists to move it to the bottom later
+    // 1. Extract services if it exists to move it to the bottom later
     let services_key = serde_yaml::Value::String("services".to_owned());
     let services_value = root_mapping.remove(&services_key);
 
-    // 3. Move all other existing keys in their original order
+    // 2. Move all other existing keys in their original order
     let remaining = std::mem::take(root_mapping);
     for (key, value) in remaining {
         reordered.insert(key, value);
     }
 
-    // 4. Finally, add services at the absolute bottom
+    // 3. Finally, add services at the absolute bottom
     if let Some(value) = services_value {
         reordered.insert(services_key, value);
     }
@@ -158,8 +148,7 @@ pub fn add_top_level_section_spacing(content: &str) -> String {
 
     for line in content.lines() {
         let is_top_level_key = line.ends_with(':') && !line.starts_with(' ');
-        let is_schema = line.starts_with("$schema:");
-        let requires_leading_empty_line = is_top_level_key && !is_schema;
+        let requires_leading_empty_line = is_top_level_key;
 
         if requires_leading_empty_line && !formatted.is_empty() && !previous_was_empty {
             formatted.push('\n');
@@ -247,15 +236,4 @@ pub fn format_nfw_yaml_document(content: &str, preserved_comments: &PreservedCom
     format!(
         "{NFW_YAML_BANNER_COMMENTS}\n{header_comment_block}\n{NFW_SCHEMA_DIRECTIVE_COMMENT}\n{formatted_body_with_comments}"
     )
-}
-
-fn move_key_if_exists(
-    source: &mut serde_yaml::Mapping,
-    destination: &mut serde_yaml::Mapping,
-    key: &str,
-) {
-    let key_value = serde_yaml::Value::String(key.to_owned());
-    if let Some(value) = source.remove(&key_value) {
-        destination.insert(key_value, value);
-    }
 }

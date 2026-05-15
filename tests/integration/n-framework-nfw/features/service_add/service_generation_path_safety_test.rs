@@ -12,7 +12,7 @@ fn rejects_rendered_paths_that_escape_service_output_root() {
         .expect("workspace src directory should be created");
     fs::write(
         workspace_root.join("nfw.yaml"),
-        "$schema: https://raw.githubusercontent.com/n-framework/nfw/main/schemas/nfw.schema.json\nworkspace:\n  name: ../escaped\n  namespace: BillingPlatform\n",
+        "workspace:\n  name: ../escaped\n  namespace: BillingPlatform\n",
     )
     .expect("workspace metadata should be written");
 
