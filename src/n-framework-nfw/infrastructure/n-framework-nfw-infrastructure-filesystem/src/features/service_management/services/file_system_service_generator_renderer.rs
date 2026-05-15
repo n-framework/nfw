@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 use tracing;
+use n_framework_nfw_core_application::features::generator_management::constants::generator;
 use n_framework_nfw_core_application::features::service_management::models::errors::add_service_error::AddServiceError;
 use n_framework_nfw_core_application::features::service_management::models::service_generation_plan::ServiceGenerationPlan;
 use n_framework_nfw_core_application::features::service_management::services::abstractions::service_generator_renderer::ServiceGeneratorRenderer;
@@ -34,11 +35,11 @@ impl Default for FileSystemServiceGeneratorRenderer {
 
 impl ServiceGeneratorRenderer for FileSystemServiceGeneratorRenderer {
     fn render_service(&self, plan: &ServiceGenerationPlan) -> Result<(), AddServiceError> {
-        let base_config_path = plan.generator_cache_path.join("nfw.generator.yaml");
+        let base_config_path = plan.generator_cache_path.join(generator::METADATA_FILE);
         let mut service_folder = String::from("service");
 
         // Dynamic Sub-generator Resolution Algorithm:
-        // 1. Check if the root generator cache contains a base `generator.yaml`.
+        // 1. Check if the root generator cache contains a base generator config.
         // 2. If it exists, parse it and look up the `generators.service` key to find the exact sub-folder for the service generator.
         // 3. Fall back to the default `service` folder if not specified or if parsing the base generator fails.
         if base_config_path.exists() {
@@ -70,7 +71,7 @@ impl ServiceGeneratorRenderer for FileSystemServiceGeneratorRenderer {
         }
 
         let service_root = plan.generator_cache_path.join(&service_folder);
-        let service_config_path = service_root.join("nfw.generator.yaml");
+        let service_config_path = service_root.join(generator::WORKFLOW_FILE);
 
         if !service_config_path.exists() {
             return Err(AddServiceError::RenderFailed(format!(

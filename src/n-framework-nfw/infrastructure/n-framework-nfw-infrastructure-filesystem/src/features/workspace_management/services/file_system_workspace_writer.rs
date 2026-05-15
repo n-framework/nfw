@@ -2,6 +2,8 @@ mod generator_copy;
 mod metadata_support;
 mod render_support;
 
+use n_framework_nfw_core_application::features::generator_management::constants::generator;
+
 use n_framework_nfw_core_application::features::generator_management::services::generator_engine::GeneratorEngine;
 use n_framework_nfw_core_application::features::workspace_management::models::new_command_resolution::NewCommandResolution;
 use n_framework_nfw_core_application::features::workspace_management::services::abstractions::workspace_writer::WorkspaceWriter;
@@ -68,7 +70,7 @@ impl<E: GeneratorEngine> WorkspaceWriter for FileSystemWorkspaceWriter<E> {
 
         // Check for tiered generator structure
         let tiered_root = resolution.generator_cache_path.join("new");
-        let generator_config_path = tiered_root.join("nfw.generator.yaml");
+        let generator_config_path = tiered_root.join(generator::WORKFLOW_FILE);
 
         if generator_config_path.is_file() {
             let config_content = fs::read_to_string(&generator_config_path).map_err(|e| {

@@ -272,7 +272,7 @@ pub fn create_service_generator(
 
     // Service sub-generator — owns the rendering steps
     fs::write(
-        service_root.join("nfw.generator.yaml"),
+        service_root.join("nfw.workflow.yaml"),
         format!("id: {generator_name}/service\nname: {generator_name} service\ndescription: test\nversion: 1.0.0\nsteps:\n  - action: render_folder\n    source: 'content/'\n    destination: '.'\n"),
     )
     .expect("service generator.yaml should be written");

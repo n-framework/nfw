@@ -3,8 +3,10 @@ use std::path::Path;
 
 use serde_yaml::Value;
 
+use crate::features::generator_management::constants::generator;
+
 pub fn read_generator_type(generator_cache_path: &Path) -> Result<String, String> {
-    let metadata_path = generator_cache_path.join("nfw.generator.yaml");
+    let metadata_path = generator_cache_path.join(generator::METADATA_FILE);
     let content = fs::read_to_string(&metadata_path)
         .map_err(|error| format!("failed to read '{}': {error}", metadata_path.display()))?;
     let value = serde_yaml::from_str::<Value>(&content).map_err(|error| {

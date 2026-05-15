@@ -57,7 +57,7 @@ generator_sources:
     let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).expect("failed to create sub-generator dir");
     fs::write(
-        tpl_dir.join("nfw.generator.yaml"),
+        tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/webapi
 steps:
@@ -66,7 +66,7 @@ steps:
     destination: "Program.cs"
 "#,
     )
-    .expect("failed to write sub-generator generator.yaml");
+    .expect("failed to write sub-generator workflow.yaml");
     fs::write(
         tpl_dir.join("Program.cs.tera"),
         "// Program.cs for {{ Name }}",
@@ -124,7 +124,7 @@ fn given_generator_execution_fails_when_add_webapi_then_rolls_back_yaml() {
     let sandbox = support::create_sandbox_directory("add-webapi-rollback");
     setup_webapi_workspace(&sandbox);
 
-    let tpl_yaml_path = sandbox.join("generators/dotnet-service/webapi/nfw.generator.yaml");
+    let tpl_yaml_path = sandbox.join("generators/dotnet-service/webapi/nfw.workflow.yaml");
     fs::write(
         tpl_yaml_path,
         r#"
@@ -231,7 +231,7 @@ generator_sources:
     let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
-        tpl_dir.join("nfw.generator.yaml"),
+        tpl_dir.join("nfw.workflow.yaml"),
         "id: dotnet-service/webapi\nsteps: []",
     )
     .unwrap();
@@ -308,7 +308,7 @@ generator_sources:
     let tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
-        tpl_dir.join("nfw.generator.yaml"),
+        tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/webapi
 steps:

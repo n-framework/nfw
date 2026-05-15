@@ -60,7 +60,7 @@ generator_sources:
     fs::create_dir_all(&tpl_dir).expect("failed to create sub-generator dir");
 
     fs::write(
-         tpl_dir.join("nfw.generator.yaml"),
+         tpl_dir.join("nfw.workflow.yaml"),
          r#"
 id: dotnet-service/endpoint
 required_modules: ["webapi"]
@@ -82,7 +82,7 @@ steps:
     let cmd_tpl_dir = root_tpl_dir.join("command");
     fs::create_dir_all(&cmd_tpl_dir).expect("failed to create command generator dir");
     fs::write(
-        cmd_tpl_dir.join("nfw.generator.yaml"),
+        cmd_tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/command
 required_modules: ["mediator"]
@@ -96,7 +96,7 @@ steps:
     let query_tpl_dir = root_tpl_dir.join("query");
     fs::create_dir_all(&query_tpl_dir).expect("failed to create query generator dir");
     fs::write(
-        query_tpl_dir.join("nfw.generator.yaml"),
+        query_tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/query
 required_modules: ["mediator"]
@@ -306,7 +306,7 @@ fn gen_endpoint_fails_if_generator_resolution_fails() {
             // Corrupt the generator by removing the steps
             let tpl_dir = sandbox.join("generators/dotnet-service/endpoint");
             fs::write(
-                tpl_dir.join("nfw.generator.yaml"),
+                tpl_dir.join("nfw.workflow.yaml"),
                 "id: dotnet-service/endpoint\nrequired_modules: [\"webapi\"]\nmediator_sources: [\"command\", \"query\"]\nsteps: [{ action: render, source: 't', destination: '{{ Feature }}/d' }]",
             )
             .unwrap();

@@ -8,7 +8,7 @@ use n_framework_nfw_infrastructure_workspace_metadata::{
     PreservedComments, extract_preserved_comments, format_nfw_yaml_document,
 };
 
-use crate::features::generator_management::constants::{workspace, yaml_keys};
+use crate::features::generator_management::constants::{generator, workspace, yaml_keys};
 use crate::features::generator_management::models::errors::add_artifact_error::AddArtifactError;
 use crate::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
 use crate::features::generator_management::services::generator_engine::GeneratorEngine;
@@ -473,7 +473,8 @@ where
                 ))
             })?;
 
-        let base_config = self.load_and_validate_generator_config(&base_root)?;
+        let base_config =
+            self.load_and_validate_generator_config(&base_root, generator::METADATA_FILE)?;
 
         let generators = base_config.generators().ok_or_else(|| {
             AddArtifactError::ConfigError(format!(
@@ -487,7 +488,9 @@ where
 
         for sub_folder in generators.values() {
             let generator_root = base_root.join(sub_folder.as_str());
-            let config = match self.load_and_validate_generator_config(&generator_root) {
+            let config = match self
+                .load_and_validate_generator_config(&generator_root, generator::WORKFLOW_FILE)
+            {
                 Ok(c) => c,
                 Err(_) => continue,
             };
@@ -607,7 +610,8 @@ where
                 ))
             })?;
 
-        let base_config = self.load_and_validate_generator_config(&base_root)?;
+        let base_config =
+            self.load_and_validate_generator_config(&base_root, generator::METADATA_FILE)?;
 
         let sub_folder = base_config
             .generators()
@@ -622,7 +626,8 @@ where
 
         let generator_root = base_root.join(sub_folder);
 
-        let config = self.load_and_validate_generator_config(&generator_root)?;
+        let config =
+            self.load_and_validate_generator_config(&generator_root, generator::WORKFLOW_FILE)?;
 
         Ok(AddArtifactContext {
             workspace,
@@ -739,8 +744,9 @@ where
     fn load_and_validate_generator_config(
         &self,
         generator_root: &Path,
+        filename: &str,
     ) -> Result<GeneratorConfig, AddArtifactError> {
-        let path = generator_root.join("nfw.generator.yaml");
+        let path = generator_root.join(filename);
         let content = fs::read_to_string(&path).map_err(|e| {
             tracing::error!(
                 "Failed to read generator config at {}: {}",

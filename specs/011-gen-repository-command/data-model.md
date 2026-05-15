@@ -13,7 +13,7 @@ This document describes the **generator configuration structure** that the nfw C
 ### Configuration Format (YAML) That CLI Parses
 
 ```yaml
-# yaml-language-server: $schema=../../../generator.schema.json
+# yaml-language-server: $schema=../../generator.schema.json
 id: dotnet-service/repository
 name: Repository Generator
 description: Generates repository files based on generator configuration
@@ -25,22 +25,22 @@ tags:
 inputs:
   - id: Feature
     type: text
-    prompt: "Feature name"
-    default: ""
+    prompt: 'Feature name'
+    default: ''
   - id: Entity
     type: text
-    prompt: "Entity name"
-    default: ""
+    prompt: 'Entity name'
+    default: ''
 steps:
   - action: render
-    source: "content/interface/IEntityRepository.cs.tera"
-    destination: "src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Repositories/I{{ Entity }}Repository.cs"
+    source: 'content/interface/IEntityRepository.cs.tera'
+    destination: 'src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Repositories/I{{ Entity }}Repository.cs'
   - action: render
-    source: "content/implementation/EntityRepository.cs.tera"
-    destination: "src/infrastructure/{{ Service }}.Infrastructure.Persistence/Features/{{ Feature }}/Repositories/{{ Entity }}Repository.cs"
+    source: 'content/implementation/EntityRepository.cs.tera'
+    destination: 'src/infrastructure/{{ Service }}.Infrastructure.Persistence/Features/{{ Feature }}/Repositories/{{ Entity }}Repository.cs'
   - action: inject
-    source: "content/di-registration/registration.tera"
-    destination: "src/infrastructure/{{ Service }}.Infrastructure.Persistence/ServiceRegistration.cs"
+    source: 'content/di-registration/registration.tera'
+    destination: 'src/infrastructure/{{ Service }}.Infrastructure.Persistence/ServiceRegistration.cs'
     injection_target:
       type: region
       value: repository-registrations
@@ -48,11 +48,11 @@ steps:
 
 ## Generator Placeholders That CLI Substitutes
 
-| Placeholder | Description | Example Value | How CLI Gets It |
-|-------------|-------------|---------------|-------------------|
-| `{{ Service }}` | Service name | `MyService` | Reads from `nfw.yaml` |
+| Placeholder     | Description         | Example Value      | How CLI Gets It                        |
+| --------------- | ------------------- | ------------------ | -------------------------------------- |
+| `{{ Service }}` | Service name        | `MyService`        | Reads from `nfw.yaml`                  |
 | `{{ Feature }}` | Feature folder name | `user`, `payments` | From `--feature` flag or auto-detected |
-| `{{ Entity }}` | Entity name | `User`, `Order` | From CLI positional argument |
+| `{{ Entity }}`  | Entity name         | `User`, `Order`    | From CLI positional argument           |
 
 ## Configuration Validation That CLI Performs
 
@@ -82,10 +82,10 @@ src/nfw-generators/src/dotnet-service/repository/
 
 The CLI reads `nfw.yaml` for:
 
-| Field | Purpose | Example |
-|-------|----------|---------|
-| `persistence` section | Validates persistence is configured | Required for command to proceed |
-| `service.name` | Substitutes `{{ Service }}` placeholder | `MyService` |
+| Field                 | Purpose                                 | Example                         |
+| --------------------- | --------------------------------------- | ------------------------------- |
+| `persistence` section | Validates persistence is configured     | Required for command to proceed |
+| `service.name`        | Substitutes `{{ Service }}` placeholder | `MyService`                     |
 
 ## CLI Command Structure
 

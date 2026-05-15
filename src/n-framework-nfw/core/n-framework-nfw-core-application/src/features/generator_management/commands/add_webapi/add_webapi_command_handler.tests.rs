@@ -94,7 +94,7 @@ generators:
   webapi: "webapi"
 "#;
     std::fs::write(generator_dir.join("nfw.generator.yaml"), generator_yaml).unwrap();
-    std::fs::write(sub_generator_dir.join("nfw.generator.yaml"), generator_yaml).unwrap();
+    std::fs::write(sub_generator_dir.join("nfw.workflow.yaml"), generator_yaml).unwrap();
 
     (sandbox, generator_dir)
 }
@@ -308,7 +308,7 @@ fn handle_error_on_missing_sub_generator() {
 
     // remove sub generator to trigger loading failure
     let sub_generator_dir = generator_dir.join("webapi");
-    std::fs::remove_file(sub_generator_dir.join("nfw.generator.yaml")).unwrap();
+    std::fs::remove_file(sub_generator_dir.join("nfw.workflow.yaml")).unwrap();
 
     let nfw_yaml_path = sandbox.path().join("nfw.yaml");
     std::fs::write(&nfw_yaml_path, "workspace:\n  namespace: MyProj\nservices:\n  Svc1:\n    path: src/Svc1\n    generator:\n      id: t1").unwrap();
@@ -562,7 +562,7 @@ generators:
   webapi: "."
 "#;
     std::fs::write(
-        generator_dir.join("webapi").join("nfw.generator.yaml"),
+        generator_dir.join("webapi").join("nfw.workflow.yaml"),
         generator_yaml,
     )
     .unwrap();

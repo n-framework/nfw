@@ -101,7 +101,7 @@ steps:
         let cmd_dir = base.join("command");
         std::fs::create_dir_all(&cmd_dir).unwrap();
         std::fs::write(
-            cmd_dir.join("nfw.generator.yaml"),
+            cmd_dir.join("nfw.workflow.yaml"),
             "id: test/command\nname: Command\nsteps:\n  - action: render\n    source: Command.cs.tera\n    destination: 'src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Commands/{{ Name }}/{{ Name }}Command.cs'\n",
         )
         .unwrap();
@@ -109,7 +109,7 @@ steps:
         let qry_dir = base.join("query");
         std::fs::create_dir_all(&qry_dir).unwrap();
         std::fs::write(
-            qry_dir.join("nfw.generator.yaml"),
+            qry_dir.join("nfw.workflow.yaml"),
             "id: test/query\nname: Query\nsteps:\n  - action: render\n    source: Query.cs.tera\n    destination: 'src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Queries/{{ Name }}/{{ Name }}Query.cs'\n",
         )
         .unwrap();
@@ -515,7 +515,7 @@ services:
         let cmd_dir = tpl_base.join("command");
         std::fs::create_dir_all(&cmd_dir).unwrap();
         std::fs::write(
-            cmd_dir.join("nfw.generator.yaml"),
+            cmd_dir.join("nfw.workflow.yaml"),
             "id: test/command\nrequired_modules: [\"mediator\"]\nsteps: []\n",
         )
         .unwrap();

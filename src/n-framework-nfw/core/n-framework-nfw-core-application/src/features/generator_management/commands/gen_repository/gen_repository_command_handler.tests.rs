@@ -78,7 +78,7 @@ mod tests {
         let entity_dir = base.join("entity");
         fs::create_dir_all(&entity_dir).unwrap();
         fs::write(
-            entity_dir.join("nfw.generator.yaml"),
+            entity_dir.join("nfw.workflow.yaml"),
             "id: test/entity\nname: Entity\nsteps:\n  - action: render\n    source: Entity.cs.tera\n    destination: 'src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Entities/{{ Name }}.cs'\n",
         )
         .unwrap();
@@ -87,7 +87,7 @@ mod tests {
         let repo_dir = base.join("repository");
         fs::create_dir_all(&repo_dir).unwrap();
         fs::write(
-            repo_dir.join("nfw.generator.yaml"),
+            repo_dir.join("nfw.workflow.yaml"),
             "id: test/repository\nname: Repository\nsteps:\n  - action: render\n    source: Repository.cs.tera\n    destination: 'src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Persistence/Repositories/{{ Name }}Repository.cs'\n",
         )
         .unwrap();

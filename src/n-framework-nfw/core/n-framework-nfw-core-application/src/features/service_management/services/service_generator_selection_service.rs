@@ -3,6 +3,7 @@ use crate::features::service_management::models::service_generator_resolution::S
 use crate::features::service_management::services::abstractions::service_generator_selector::{
     ServiceGeneratorSelectionContext, ServiceGeneratorSelector,
 };
+use crate::features::generator_management::constants::generator;
 use crate::features::generator_management::models::raw_generator_metadata::RawGeneratorMetadata;
 use crate::features::generator_management::services::abstractions::generator_catalog_discovery_service::GeneratorCatalogDiscoveryService;
 use crate::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
@@ -67,7 +68,7 @@ where
             });
         }
 
-        let metadata_path = generator_root.join("nfw.generator.yaml");
+        let metadata_path = generator_root.join(generator::METADATA_FILE);
         let yaml = fs::read_to_string(&metadata_path).map_err(|e| {
             AddServiceError::GeneratorReadError(format!("failed to read generator.yaml: {e}"))
         })?;

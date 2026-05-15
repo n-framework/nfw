@@ -1,7 +1,10 @@
 /// Generator-related constants used across the generator management system
 pub mod generator {
-    /// Name of the generator metadata file
+    /// Name of the generator metadata file (root anatomy)
     pub const METADATA_FILE: &str = "nfw.generator.yaml";
+
+    /// Name of the generator workflow file (sub-generator steps)
+    pub const WORKFLOW_FILE: &str = "nfw.workflow.yaml";
 
     /// Name of the generator content directory
     pub const CONTENT_DIR: &str = "content";

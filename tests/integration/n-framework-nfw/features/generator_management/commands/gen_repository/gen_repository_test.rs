@@ -59,7 +59,7 @@ generator_sources:
     fs::create_dir_all(entity_tpl_dir.join("content"))
         .expect("failed to create entity generator dir");
     fs::write(
-        entity_tpl_dir.join("nfw.generator.yaml"),
+        entity_tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/entity
 steps:
@@ -84,7 +84,7 @@ steps:
         .expect("failed to create sub-generator dir");
 
     fs::write(
-        tpl_dir.join("nfw.generator.yaml"),
+        tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/repository
 steps:

@@ -59,7 +59,7 @@ fn setup_generator(sandbox: &Path, generator_yaml: &str, tera_source: &str) {
 
     let tpl_dir = root_tpl_dir.join("command");
     fs::create_dir_all(&tpl_dir).expect("failed to create sub-generator dir");
-    fs::write(tpl_dir.join("nfw.generator.yaml"), generator_yaml)
+    fs::write(tpl_dir.join("nfw.workflow.yaml"), generator_yaml)
         .expect("failed to write sub-generator generator.yaml");
     fs::write(tpl_dir.join("cmd.rs.tera"), tera_source).expect("failed to write tera source");
 }

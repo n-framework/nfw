@@ -186,7 +186,7 @@ generators:
   persistence: "persistence"
 "#;
     fs::write(generator_dir.join("nfw.generator.yaml"), generator_yaml).unwrap();
-    fs::write(sub_generator_dir.join("nfw.generator.yaml"), generator_yaml).unwrap();
+    fs::write(sub_generator_dir.join("nfw.workflow.yaml"), generator_yaml).unwrap();
 
     let nfw_yaml = r#"
 workspace:

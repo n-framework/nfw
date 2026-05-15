@@ -84,7 +84,7 @@ fn generates_entity_successfully() {
     let tpl_dir = root_tpl_dir.join("entity");
     fs::create_dir_all(&tpl_dir).expect("failed to create entity generator dir");
     fs::write(
-        tpl_dir.join("nfw.generator.yaml"),
+        tpl_dir.join("nfw.workflow.yaml"),
         "id: mock-entity-generator/entity\nname: Entity\nsteps:\n  - action: render\n    source: 'Entity.Nfw.g.cs.tera'\n    destination: 'src/{{ Service }}.Core.Domain/Features/{{ Feature }}/Entities/{{ Name }}.Nfw.g.cs'\n  - action: render\n    source: 'Entity.cs.tera'\n    destination: 'src/{{ Service }}.Core.Domain/Features/{{ Feature }}/Entities/{{ Name }}.cs'\n",
     ).expect("failed to write generator.yaml");
 

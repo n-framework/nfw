@@ -60,7 +60,7 @@ generator_sources:
     let webapi_tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&webapi_tpl_dir).expect("failed to create webapi generator dir");
     fs::write(
-        webapi_tpl_dir.join("nfw.generator.yaml"),
+        webapi_tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/webapi
 steps:
@@ -76,7 +76,7 @@ steps:
     let tpl_dir = root_tpl_dir.join("mediator");
     fs::create_dir_all(&tpl_dir).expect("failed to create sub-generator dir");
     fs::write(
-        tpl_dir.join("nfw.generator.yaml"),
+        tpl_dir.join("nfw.workflow.yaml"),
         r#"
 id: dotnet-service/mediator
 steps:
@@ -145,7 +145,7 @@ fn add_mediator_rolls_back_yaml_if_generator_execution_fails() {
     setup_mediator_workspace(&sandbox);
 
     // Corrupt the generator to force a failure (e.g., non-existent source)
-    let tpl_yaml_path = sandbox.join("generators/dotnet-service/mediator/nfw.generator.yaml");
+    let tpl_yaml_path = sandbox.join("generators/dotnet-service/mediator/nfw.workflow.yaml");
     fs::write(
         tpl_yaml_path,
         r#"
@@ -254,7 +254,7 @@ generator_sources:
     let webapi_tpl_dir = root_tpl_dir.join("webapi");
     fs::create_dir_all(&webapi_tpl_dir).unwrap();
     fs::write(
-        webapi_tpl_dir.join("nfw.generator.yaml"),
+        webapi_tpl_dir.join("nfw.workflow.yaml"),
         "id: dotnet-service/webapi\nsteps:\n  - action: render\n    source: \"Startup.cs.tera\"\n    destination: \"src/presentation/{{ Service }}.Presentation.WebApi/Startup.cs\"\n",
     )
     .unwrap();
@@ -263,7 +263,7 @@ generator_sources:
     let tpl_dir = root_tpl_dir.join("mediator");
     fs::create_dir_all(&tpl_dir).unwrap();
     fs::write(
-        tpl_dir.join("nfw.generator.yaml"),
+        tpl_dir.join("nfw.workflow.yaml"),
         "id: dotnet-service/mediator\nsteps:\n  - action: run_command\n    command: \"echo done\"\n",
     )
     .unwrap();
