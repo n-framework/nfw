@@ -41,7 +41,7 @@ impl RemoveSourceCliCommand<()> {
             .execute(
                 _command
                     .option("name")
-                    .ok_or_else(|| "[exit:1] Option 'name' is required".to_string())?,
+                    .ok_or_else(|| "[exit:1] Generator source name is required".to_string())?,
             )
     }
 }

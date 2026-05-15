@@ -42,10 +42,10 @@ impl AddSourceCliCommand<()> {
         AddSourceCliCommand::new(context.add_generator_source_command_handler.clone()).execute(
             command
                 .option("name")
-                .ok_or_else(|| "[exit:1] Option 'name' is required".to_string())?,
+                .ok_or_else(|| "[exit:1] Generator source name is required".to_string())?,
             command
                 .option("url")
-                .ok_or_else(|| "[exit:1] Option 'url' is required".to_string())?,
+                .ok_or_else(|| "[exit:1] Generator source URL is required".to_string())?,
         )
     }
 }
