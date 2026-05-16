@@ -39,7 +39,7 @@ As a developer using the `nfw` CLI, I want the tool to prompt me interactively i
 
 ### User Story 3 - Optional Parameters (Priority: P2)
 
-As an automated build script or power user, I want to supply all options via command-line flags (e.g. `--no-api`) so that I can bypass interactive prompts.
+As an automated build script or power user, I want to supply all options via command-line parameters (e.g. `--param no-api=true`) so that I can bypass interactive prompts.
 
 **Why this priority**: Required for CI/CD environments and power-user speed.
 
@@ -47,7 +47,7 @@ As an automated build script or power user, I want to supply all options via com
 
 **Acceptance Scenarios**:
 
-1. **Given** I am in a non-interactive shell or use the `--no-api` flag, **When** I run `nfw gen crud Product --no-api`, **Then** the CLI generates the handlers and contracts but skips generating the API endpoint files.
+1. **Given** I am in a non-interactive shell or provide parameters via `--param`, **When** I run `nfw gen crud Product --param no-api=true`, **Then** the CLI generates the handlers and contracts but skips generating the API endpoint files.
 
 ---
 
@@ -72,7 +72,7 @@ As an automated build script or power user, I want to supply all options via com
   - API Endpoints (Minimal API mappings)
 - **FR-003**: The command MUST automatically create the feature folder structure (e.g., `Application/Features/[Entity]`).
 - **FR-004**: The command MUST place generated files into the correct NFramework architectural layers (Domain, Application, Presentation/Api).
-- **FR-005**: The command MUST support optional parameters (e.g., `--no-api`, `--secured`) to customize generation.
+- **FR-005**: The command MUST support optional parameters (e.g., `--param no-api=true`, `--param secured=true`) to customize generation.
 - **FR-006**: The command MUST provide interactive prompts for generation options if run in an interactive terminal and not supplied via flags.
 - **FR-007**: The generated code MUST compile successfully as a unit without requiring manual developer edits.
 - **FR-008**: The command MUST include integration tests that cover the execution of the full CRUD flow generation.
@@ -100,7 +100,7 @@ As an automated build script or power user, I want to supply all options via com
 ## Clarifications
 
 - Q: What happens if the entity class itself hasn't been created yet using `nfw add entity`? → A: The CLI interactively prompts to create the entity (calling `nfw add entity` under the hood). If in non-interactive mode, it fails fast with a clear error message.
-- Q: Which specific optional parameters are required? → A: Following standard CLI generator patterns: `--no-api` (skip endpoints), `--secured` (add auth markers), `--cached` (add cache markers).
+- Q: Which specific optional parameters are required? → A: Following standard CLI generator patterns using `--param`: `no-api=true` (skip endpoints), `secured=true` (add auth markers), `cached=true` (add cache markers), `force=true` (overwrite existing).
 - Q: How should we test that the generated code compiles? → A: The integration tests will invoke `dotnet build` or equivalent on the temporary generated workspace to verify successful compilation.
 
 ## Non-Goals
