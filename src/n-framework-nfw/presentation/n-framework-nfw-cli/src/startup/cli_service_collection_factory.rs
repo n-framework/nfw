@@ -17,6 +17,7 @@ use n_framework_nfw_core_application::features::generator_management::commands::
 use n_framework_nfw_core_application::features::generator_management::commands::add_persistence::add_persistence_command_handler::AddPersistenceCommandHandler;
 use n_framework_nfw_core_application::features::generator_management::commands::gen_mediator_command::gen_mediator_command_command_handler::GenMediatorCommandCommandHandler;
 use n_framework_nfw_core_application::features::generator_management::commands::gen_mediator_query::gen_mediator_query_command_handler::GenMediatorQueryCommandHandler;
+use n_framework_nfw_core_application::features::generator_management::commands::gen_crud::gen_crud_command_handler::GenCrudCommandHandler;
 use n_framework_nfw_core_application::features::generator_management::commands::gen_endpoint::gen_endpoint_command_handler::GenEndpointCommandHandler;
 use n_framework_nfw_core_application::features::generator_management::commands::gen_repository::gen_repository_command_handler::GenRepositoryCommandHandler;
 use n_framework_nfw_infrastructure_filesystem::features::generator_management::services::file_system_generator_root_resolver::FileSystemGeneratorRootResolver;
@@ -92,6 +93,11 @@ impl CliServiceCollectionFactory {
                 n_framework_nfw_infrastructure_filesystem::features::generator_management::generator_engine::FileSystemGeneratorEngine::new(),
             ),
             gen_repository_command_handler: GenRepositoryCommandHandler::new(
+                StandardWorkingDirectoryProvider::new(),
+                FileSystemGeneratorRootResolver::new(),
+                n_framework_nfw_infrastructure_filesystem::features::generator_management::generator_engine::FileSystemGeneratorEngine::new(),
+            ),
+            gen_crud_command_handler: GenCrudCommandHandler::new(
                 StandardWorkingDirectoryProvider::new(),
                 FileSystemGeneratorRootResolver::new(),
                 n_framework_nfw_infrastructure_filesystem::features::generator_management::generator_engine::FileSystemGeneratorEngine::new(),

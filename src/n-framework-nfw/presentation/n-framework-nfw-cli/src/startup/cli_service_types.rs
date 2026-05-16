@@ -111,6 +111,13 @@ pub type CliGenRepositoryCommandHandler = GenRepositoryCommandHandler<
     FileSystemGeneratorEngine,
 >;
 
+use n_framework_nfw_core_application::features::generator_management::commands::gen_crud::gen_crud_command_handler::GenCrudCommandHandler;
+pub type CliGenCrudCommandHandler = GenCrudCommandHandler<
+    CliWorkingDirectoryProvider,
+    FileSystemGeneratorRootResolver,
+    FileSystemGeneratorEngine,
+>;
+
 pub type CliGenEndpointCommandHandler = GenEndpointCommandHandler<
     CliWorkingDirectoryProvider,
     FileSystemGeneratorRootResolver,
@@ -150,5 +157,6 @@ pub struct CliServiceCollection {
     pub gen_repository_command_handler: CliGenRepositoryCommandHandler,
     pub gen_endpoint_command_handler: CliGenEndpointCommandHandler,
     pub gen_entity_command_handler: CliAddEntityCommandHandler,
+    pub gen_crud_command_handler: CliGenCrudCommandHandler,
     pub generator_engine: FileSystemGeneratorEngine,
 }
