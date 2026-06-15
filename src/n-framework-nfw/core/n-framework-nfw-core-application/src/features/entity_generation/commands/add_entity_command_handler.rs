@@ -226,7 +226,7 @@ where
             );
             prop_map.insert(
                 "type".to_string(),
-                serde_json::Value::String(prop.general_type().to_string()),
+                serde_json::Value::String(prop.general_type().to_csharp_type().to_string()),
             );
             prop_map.insert(
                 "nullable".to_string(),
@@ -242,7 +242,7 @@ where
         );
         params.insert(
             PARAM_ID_TYPE.to_string(),
-            serde_json::Value::String(command.id_type().to_string()),
+            serde_json::Value::String(command.id_type().to_csharp_type().to_string()),
         );
         params.insert(
             PARAM_ENTITY_TYPE.to_string(),

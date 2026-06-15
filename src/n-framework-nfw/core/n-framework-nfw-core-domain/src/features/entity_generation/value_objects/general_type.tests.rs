@@ -9,14 +9,18 @@ fn from_cli_type_maps_string() {
 }
 
 #[test]
-fn from_cli_type_maps_int_and_long_to_integer() {
+fn from_cli_type_maps_int_to_integer() {
     assert_eq!(
         GeneralType::from_cli_type("int"),
         Some(GeneralType::Integer)
     );
+}
+
+#[test]
+fn from_cli_type_maps_long_to_big_integer() {
     assert_eq!(
         GeneralType::from_cli_type("long"),
-        Some(GeneralType::Integer)
+        Some(GeneralType::BigInteger)
     );
 }
 
@@ -86,6 +90,7 @@ fn display_roundtrips_through_from_str() {
     let types = vec![
         GeneralType::String,
         GeneralType::Integer,
+        GeneralType::BigInteger,
         GeneralType::Decimal,
         GeneralType::Boolean,
         GeneralType::DateTime,
