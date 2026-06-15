@@ -9,9 +9,11 @@ use n_framework_nfw_core_application::features::workspace_management::services::
 use n_framework_nfw_core_application::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
 use n_framework_nfw_core_application::features::generator_management::services::generator_engine::GeneratorEngine;
 
+use n_framework_nfw_core_application::features::entity_generation::abstractions::entity_schema_store::EntitySchemaStore;
+
 #[derive(Debug, Clone)]
-pub struct GenCrudCliCommand<W, R, E, P> {
-    handler: GenCrudCommandHandler<W, R, E>,
+pub struct GenCrudCliCommand<W, R, E, S, P> {
+    handler: GenCrudCommandHandler<W, R, E, S>,
     prompt: P,
 }
 
@@ -24,14 +26,15 @@ pub struct GenCrudRequest<'a> {
     pub is_interactive_terminal: bool,
 }
 
-impl<W, R, E, P> GenCrudCliCommand<W, R, E, P>
+impl<W, R, E, S, P> GenCrudCliCommand<W, R, E, S, P>
 where
     W: WorkingDirectoryProvider,
     R: GeneratorRootResolver,
     E: GeneratorEngine,
+    S: EntitySchemaStore,
     P: InteractivePrompt + Logger,
 {
-    pub fn new(handler: GenCrudCommandHandler<W, R, E>, prompt: P) -> Self {
+    pub fn new(handler: GenCrudCommandHandler<W, R, E, S>, prompt: P) -> Self {
         Self { handler, prompt }
     }
 
@@ -183,11 +186,11 @@ where
             Some(resolved_params)
         };
 
-        // Needs to load dummy context for the command structure - we will load the real ones during orchestration in Phase 3
+        // Load context specifically for the "crud" generator
         let context = self.handler.load_generator_context(
             workspace_context.clone(),
             &selected_service,
-            "command", // Dummy context for now
+            "crud",
         )?;
 
         let command = GenCrudCommand::new(&entity_name, feature, params_opt, context);
@@ -197,14 +200,13 @@ where
             .spinner(&format!("Generating CRUD for '{}'...", entity_name))
             .map_err(|e| AddArtifactError::WorkspaceError(e.to_string()))?;
 
-        // TODO: Phase 3 - Orchestration implementation
-        let _res = self.handler.handle(&command).map_err(|e| {
+        self.handler.handle(&command).map_err(|e| {
             spinner.error(&format!("Failed to generate CRUD: {}", e));
             e
-        });
+        })?;
 
         spinner.success(&format!(
-            "CRUD for '{}' generated successfully (Stub)",
+            "CRUD for '{}' generated successfully.",
             entity_name
         ));
 
@@ -397,7 +399,7 @@ where
     }
 }
 
-impl GenCrudCliCommand<(), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
+impl GenCrudCliCommand<(), (), (), (), n_framework_core_cli_cliclack::CliclackPromptService> {
     pub fn handle(
         command: &dyn n_framework_core_cli_abstractions::Command,
         context: &CliServiceCollection,

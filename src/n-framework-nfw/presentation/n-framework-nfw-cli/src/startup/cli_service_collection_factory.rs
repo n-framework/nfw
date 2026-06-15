@@ -101,6 +101,7 @@ impl CliServiceCollectionFactory {
                 StandardWorkingDirectoryProvider::new(),
                 FileSystemGeneratorRootResolver::new(),
                 n_framework_nfw_infrastructure_filesystem::features::generator_management::generator_engine::FileSystemGeneratorEngine::new(),
+                n_framework_nfw_infrastructure_filesystem::features::entity_generation::adapters::file_system_entity_schema_store::FileSystemEntitySchemaStore::new(),
             ),
             gen_entity_command_handler: n_framework_nfw_core_application::features::entity_generation::commands::add_entity_command_handler::AddEntityCommandHandler::new(
                 StandardWorkingDirectoryProvider::new(),

@@ -116,6 +116,7 @@ pub type CliGenCrudCommandHandler = GenCrudCommandHandler<
     CliWorkingDirectoryProvider,
     FileSystemGeneratorRootResolver,
     FileSystemGeneratorEngine,
+    n_framework_nfw_infrastructure_filesystem::features::entity_generation::adapters::file_system_entity_schema_store::FileSystemEntitySchemaStore,
 >;
 
 pub type CliGenEndpointCommandHandler = GenEndpointCommandHandler<

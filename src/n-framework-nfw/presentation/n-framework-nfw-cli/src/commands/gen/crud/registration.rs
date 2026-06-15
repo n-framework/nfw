@@ -4,7 +4,7 @@ pub fn register() -> CliCommandSpec {
     CliCommandSpec::new("crud")
         .with_about("Generate complete CRUD scaffolding for an entity")
         .with_option(
-            CliOptionSpec::positional("entity-name", 1)
+            CliOptionSpec::positional("name", 1)
                 .with_help("The name of the target entity (e.g., Product)"),
         )
         .with_option(

@@ -1041,8 +1041,8 @@ where
                 .and_then(|v| v.as_str())
                 .unwrap_or(&service.name);
 
-            // We need a segment that looks like `{{ Service }}.Something` or `{{ Namespace }}.Something`
-            // to derive the naming convention.
+            // We need a segment that looks like `{{ Service }}.Something`, `{{ Namespace }}.Something`,
+            // or `{{ Name }}.Something` to derive the naming convention.
             let segments: Vec<&str> = raw.split('/').collect();
 
             let (service_dot_idx, effective_name) = {
@@ -1054,9 +1054,14 @@ where
                     (s.contains("{{ Namespace }}.") || s.contains("{{Namespace}}."))
                         && s.len() > "{{ Namespace }}.".len()
                 });
-                match (idx_svc, idx_ns) {
-                    (Some(i), _) => (i, service.name.as_str()),
-                    (None, Some(i)) => (i, namespace),
+                let idx_name = segments.iter().position(|s| {
+                    (s.contains("{{ Name }}.") || s.contains("{{Name}}."))
+                        && s.len() > "{{ Name }}.".len()
+                });
+                match (idx_svc, idx_ns, idx_name) {
+                    (Some(i), _, _) => (i, service.name.as_str()),
+                    (_, Some(i), _) => (i, namespace),
+                    (_, _, Some(i)) => (i, service.name.as_str()),
                     _ => continue,
                 }
             };
@@ -1071,6 +1076,8 @@ where
                 .or_else(|| seg.strip_prefix("{{Service}}"))
                 .or_else(|| seg.strip_prefix("{{ Namespace }}"))
                 .or_else(|| seg.strip_prefix("{{Namespace}}"))
+                .or_else(|| seg.strip_prefix("{{ Name }}"))
+                .or_else(|| seg.strip_prefix("{{Name}}"))
                 .unwrap_or("");
             let prefix_to_strip = if let Some(last_dot) = dot_suffix.rfind('.') {
                 format!("{}{}", effective_name, &dot_suffix[..=last_dot])
