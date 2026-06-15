@@ -1,19 +1,21 @@
 use n_framework_core_cli_abstractions::{InteractivePrompt, Logger, SelectOption};
 use crate::cli_error::CliError;
+use crate::commands::r#gen::entity::handler::{GenEntityCliCommand, GenEntityRequest};
 use crate::startup::cli_service_collection_factory::CliServiceCollection;
 use n_framework_nfw_core_application::features::cli::exit_codes::ExitCodes;
+use n_framework_nfw_core_application::features::entity_generation::abstractions::entity_schema_store::EntitySchemaStore;
+use n_framework_nfw_core_application::features::entity_generation::commands::add_entity_command_handler::AddEntityCommandHandler;
 use n_framework_nfw_core_application::features::generator_management::commands::gen_crud::gen_crud_command::GenCrudCommand;
 use n_framework_nfw_core_application::features::generator_management::commands::gen_crud::gen_crud_command_handler::GenCrudCommandHandler;
 pub use n_framework_nfw_core_application::features::generator_management::models::errors::add_artifact_error::AddArtifactError;
-use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 use n_framework_nfw_core_application::features::generator_management::services::abstractions::generator_root_resolver::GeneratorRootResolver;
 use n_framework_nfw_core_application::features::generator_management::services::generator_engine::GeneratorEngine;
-
-use n_framework_nfw_core_application::features::entity_generation::abstractions::entity_schema_store::EntitySchemaStore;
+use n_framework_nfw_core_application::features::workspace_management::services::abstractions::working_directory_provider::WorkingDirectoryProvider;
 
 #[derive(Debug, Clone)]
 pub struct GenCrudCliCommand<W, R, E, S, P> {
     handler: GenCrudCommandHandler<W, R, E, S>,
+    entity_handler: AddEntityCommandHandler<W, R, E, S>,
     prompt: P,
 }
 
@@ -28,14 +30,22 @@ pub struct GenCrudRequest<'a> {
 
 impl<W, R, E, S, P> GenCrudCliCommand<W, R, E, S, P>
 where
-    W: WorkingDirectoryProvider,
-    R: GeneratorRootResolver,
-    E: GeneratorEngine,
-    S: EntitySchemaStore,
-    P: InteractivePrompt + Logger,
+    W: WorkingDirectoryProvider + Clone,
+    R: GeneratorRootResolver + Clone,
+    E: GeneratorEngine + Clone,
+    S: EntitySchemaStore + Clone,
+    P: InteractivePrompt + Logger + Clone,
 {
-    pub fn new(handler: GenCrudCommandHandler<W, R, E, S>, prompt: P) -> Self {
-        Self { handler, prompt }
+    pub fn new(
+        handler: GenCrudCommandHandler<W, R, E, S>,
+        entity_handler: AddEntityCommandHandler<W, R, E, S>,
+        prompt: P,
+    ) -> Self {
+        Self {
+            handler,
+            entity_handler,
+            prompt,
+        }
     }
 
     pub fn execute(&self, request: GenCrudRequest) -> Result<(), CliError> {
@@ -116,11 +126,27 @@ where
                 )));
             }
 
-            // TODO: In Phase 3, we will orchestrate the 'nfw gen entity' command here.
-            let _ = self.prompt.log_warning(&format!(
-                "Entity creation for '{}' will be orchestrated here in Phase 3.",
+            let _ = self.prompt.log_info(&format!(
+                "Launching entity creation for '{}'...",
                 entity_name
             ));
+
+            let entity_cli = GenEntityCliCommand::new(
+                self.entity_handler.clone(),
+                self.prompt.clone(),
+            );
+            entity_cli.execute(GenEntityRequest {
+                name: Some(&entity_name),
+                feature: request.feature,
+                properties: None,
+                id_type: None,
+                entity_type: None,
+                service: None,
+                from_schema: None,
+                schema_only: false,
+                no_input: request.no_input,
+                is_interactive_terminal: request.is_interactive_terminal,
+            })?;
         }
 
         let existing_features = self
@@ -409,6 +435,7 @@ impl GenCrudCliCommand<(), (), (), (), n_framework_core_cli_cliclack::CliclackPr
 
         GenCrudCliCommand::new(
             context.gen_crud_command_handler.clone(),
+            context.gen_entity_command_handler.clone(),
             n_framework_core_cli_cliclack::CliclackPromptService::new(),
         )
         .execute(GenCrudRequest {
