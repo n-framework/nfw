@@ -164,7 +164,7 @@ where
                         );
                         prop_map.insert(
                             "type".to_string(),
-                            serde_json::Value::String(prop.general_type().to_string()),
+                            serde_json::Value::String(prop.general_type().to_csharp_type().to_string()),
                         );
                         prop_map.insert(
                             "nullable".to_string(),
@@ -180,7 +180,7 @@ where
                         );
                         obj.insert(
                             "IdType".to_string(),
-                            serde_json::Value::String(schema.id_type().to_string()),
+                            serde_json::Value::String(schema.id_type().to_csharp_type().to_string()),
                         );
                         obj.insert(
                             "EntityType".to_string(),
