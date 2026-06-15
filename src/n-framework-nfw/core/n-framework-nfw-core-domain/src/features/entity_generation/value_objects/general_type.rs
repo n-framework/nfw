@@ -63,8 +63,18 @@ impl GeneralType {
 
     pub fn supported_cli_types() -> &'static [&'static str] {
         &[
-            "string", "int", "long", "decimal", "double", "float", "bool", "datetime",
-            "datetimeoffset", "guid", "byte[]", "short",
+            "string",
+            "int",
+            "long",
+            "decimal",
+            "double",
+            "float",
+            "bool",
+            "datetime",
+            "datetimeoffset",
+            "guid",
+            "byte[]",
+            "short",
         ]
     }
 }
