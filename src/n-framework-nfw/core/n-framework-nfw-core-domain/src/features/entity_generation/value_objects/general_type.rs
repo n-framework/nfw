@@ -8,6 +8,7 @@ pub enum GeneralType {
     #[default]
     String,
     Integer,
+    BigInteger,
     Decimal,
     Boolean,
     DateTime,
@@ -20,7 +21,8 @@ impl GeneralType {
     pub fn from_cli_type(cli_type: &str) -> Option<Self> {
         match cli_type.to_lowercase().as_str() {
             "string" => Some(Self::String),
-            "int" | "long" => Some(Self::Integer),
+            "int" => Some(Self::Integer),
+            "long" => Some(Self::BigInteger),
             "decimal" | "double" | "float" => Some(Self::Decimal),
             "bool" => Some(Self::Boolean),
             "datetime" | "datetimeoffset" => Some(Self::DateTime),
@@ -34,7 +36,8 @@ impl GeneralType {
     pub fn to_csharp_type(&self) -> &'static str {
         match self {
             Self::String => "string",
-            Self::Integer => "long",
+            Self::Integer => "int",
+            Self::BigInteger => "long",
             Self::Decimal => "decimal",
             Self::Boolean => "bool",
             Self::DateTime => "DateTimeOffset",
@@ -47,7 +50,8 @@ impl GeneralType {
     pub fn to_rust_type(&self) -> &'static str {
         match self {
             Self::String => "String",
-            Self::Integer => "i64",
+            Self::Integer => "i32",
+            Self::BigInteger => "i64",
             Self::Decimal => "Decimal",
             Self::Boolean => "bool",
             Self::DateTime => "DateTime<Utc>",
@@ -59,18 +63,8 @@ impl GeneralType {
 
     pub fn supported_cli_types() -> &'static [&'static str] {
         &[
-            "string",
-            "int",
-            "long",
-            "decimal",
-            "double",
-            "float",
-            "bool",
-            "datetime",
-            "datetimeoffset",
-            "guid",
-            "byte[]",
-            "short",
+            "string", "int", "long", "decimal", "double", "float", "bool", "datetime",
+            "datetimeoffset", "guid", "byte[]", "short",
         ]
     }
 }
@@ -80,6 +74,7 @@ impl fmt::Display for GeneralType {
         match self {
             Self::String => write!(f, "string"),
             Self::Integer => write!(f, "integer"),
+            Self::BigInteger => write!(f, "big_integer"),
             Self::Decimal => write!(f, "decimal"),
             Self::Boolean => write!(f, "boolean"),
             Self::DateTime => write!(f, "datetime"),
@@ -97,6 +92,7 @@ impl FromStr for GeneralType {
         match s {
             "string" => Ok(Self::String),
             "integer" => Ok(Self::Integer),
+            "big_integer" => Ok(Self::BigInteger),
             "decimal" => Ok(Self::Decimal),
             "boolean" => Ok(Self::Boolean),
             "datetime" => Ok(Self::DateTime),
