@@ -11,10 +11,10 @@
 
 **Purpose**: Prepare feature folders, fixtures, and baseline wiring points.
 
-- [X] T001 Create architecture validation feature module folders in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/
-- [X] T002 [P] Create integration fixture folder for check command in src/nfw/tests/integration/nframework-nfw/features/architecture_check/
-- [X] T003 [P] Create unit test folder for architecture validation services in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/
-- [X] T004 [P] Create CLI runtime test folder for check command routing in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/
+- [x] T001 Create architecture validation feature module folders in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/
+- [x] T002 [P] Create integration fixture folder for check command in src/nfw/tests/integration/nframework-nfw/features/architecture_check/
+- [x] T003 [P] Create unit test folder for architecture validation services in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/
+- [x] T004 [P] Create CLI runtime test folder for check command routing in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/
 
 ---
 
@@ -24,13 +24,13 @@
 
 **⚠️ CRITICAL**: No user story work starts until this phase is complete.
 
-- [X] T005 Define architecture validation domain models in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/models/mod.rs
-- [X] T006 [P] Define validation error types in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/models/errors/mod.rs
-- [X] T007 Define validation service abstractions in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/abstractions/mod.rs
-- [X] T008 [P] Add check command request/result models in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/models/check_command_request.rs
-- [X] T009 Implement check command handler skeleton in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/commands/check/check_command_handler.rs
-- [X] T010 Register architecture validation feature exports in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs
-- [X] T011 Wire concrete check command handler dependency in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_types.rs
+- [x] T005 Define architecture validation domain models in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/models/mod.rs
+- [x] T006 [P] Define validation error types in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/models/errors/mod.rs
+- [x] T007 Define validation service abstractions in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/abstractions/mod.rs
+- [x] T008 [P] Add check command request/result models in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/models/check_command_request.rs
+- [x] T009 Implement check command handler skeleton in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/commands/check/check_command_handler.rs
+- [x] T010 Register architecture validation feature exports in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs
+- [x] T011 Wire concrete check command handler dependency in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_types.rs
 
 **Checkpoint**: Foundational contracts and feature wiring are ready.
 
@@ -44,21 +44,21 @@
 
 ### Tests for User Story 1
 
-- [X] T012 [P] [US1] Add valid fixture integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/valid_workspace_check_test.rs
-- [X] T013 [P] [US1] Add forbidden project reference fixture test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/forbidden_project_reference_test.rs
-- [X] T014 [P] [US1] Add forbidden namespace fixture test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/forbidden_namespace_usage_test.rs
-- [X] T015 [P] [US1] Add forbidden direct package fixture test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/forbidden_package_usage_test.rs
-- [X] T016 [P] [US1] Add shared fixture support utilities in src/nfw/tests/integration/nframework-nfw/features/architecture_check/support.rs
+- [x] T012 [P] [US1] Add valid fixture integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/valid_workspace_check_test.rs
+- [x] T013 [P] [US1] Add forbidden project reference fixture test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/forbidden_project_reference_test.rs
+- [x] T014 [P] [US1] Add forbidden namespace fixture test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/forbidden_namespace_usage_test.rs
+- [x] T015 [P] [US1] Add forbidden direct package fixture test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/forbidden_package_usage_test.rs
+- [x] T016 [P] [US1] Add shared fixture support utilities in src/nfw/tests/integration/nframework-nfw/features/architecture_check/support.rs
 
 ### Implementation for User Story 1
 
-- [X] T017 [P] [US1] Implement workspace rule-set loader service in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/rule_set_loader.rs
-- [X] T018 [P] [US1] Implement project reference validator in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/project_reference_validator.rs
-- [X] T019 [P] [US1] Implement namespace usage validator in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/namespace_usage_validator.rs
-- [X] T020 [P] [US1] Implement direct package usage validator in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/package_usage_validator.rs
-- [X] T021 [US1] Implement finding deduplication and summary aggregation in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/finding_aggregation_service.rs
-- [X] T022 [US1] Complete check command handler orchestration across validators in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/commands/check/check_command_handler.rs
-- [X] T023 [US1] Add architecture validation service unit tests in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/validation_services.tests.rs
+- [x] T017 [P] [US1] Implement workspace rule-set loader service in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/rule_set_loader.rs
+- [x] T018 [P] [US1] Implement project reference validator in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/project_reference_validator.rs
+- [x] T019 [P] [US1] Implement namespace usage validator in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/namespace_usage_validator.rs
+- [x] T020 [P] [US1] Implement direct package usage validator in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/package_usage_validator.rs
+- [x] T021 [US1] Implement finding deduplication and summary aggregation in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/finding_aggregation_service.rs
+- [x] T022 [US1] Complete check command handler orchestration across validators in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/commands/check/check_command_handler.rs
+- [x] T023 [US1] Add architecture validation service unit tests in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/validation_services.tests.rs
 
 **Checkpoint**: User Story 1 delivers full detection behavior with valid/invalid fixtures.
 
@@ -72,20 +72,20 @@
 
 ### Tests for User Story 2
 
-- [X] T024 [P] [US2] Add runtime routing and execution test for check command in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_routing.tests.rs
-- [X] T025 [P] [US2] Add exit code mapping tests for check command results in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes.tests.rs
-- [X] T026 [P] [US2] Add unreadable artifact failure integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/unreadable_artifact_test.rs
-- [X] T027 [P] [US2] Add deterministic repeat-run integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/deterministic_repeatability_test.rs
-- [X] T028 [P] [US2] Add stdout vs stderr contract test for check command in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_stdio.tests.rs
+- [x] T024 [P] [US2] Add runtime routing and execution test for check command in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_routing.tests.rs
+- [x] T025 [P] [US2] Add exit code mapping tests for check command results in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/cli/exit_codes.tests.rs
+- [x] T026 [P] [US2] Add unreadable artifact failure integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/unreadable_artifact_test.rs
+- [x] T027 [P] [US2] Add deterministic repeat-run integration test in src/nfw/tests/integration/nframework-nfw/features/architecture_check/deterministic_repeatability_test.rs
+- [x] T028 [P] [US2] Add stdout vs stderr contract test for check command in src/nfw/tests/unit/nframework-nfw/presentation/n-framework-nfw-cli/runtime/check_command_stdio.tests.rs
 
 ### Implementation for User Story 2
 
-- [X] T029 [US2] Add `check` command spec and options in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs
-- [X] T030 [US2] Implement check CLI command executor in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/run_check.rs
-- [X] T031 [US2] Register check command module export in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/mod.rs
-- [X] T032 [US2] Wire check command handler into service collection in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs
-- [X] T033 [US2] Add check command handler type to service collection in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_types.rs
-- [X] T034 [US2] Extend exit-code mapping for check command failures and interruptions in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs
+- [x] T029 [US2] Add `check` command spec and options in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs
+- [x] T030 [US2] Implement check CLI command executor in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/run_check.rs
+- [x] T031 [US2] Register check command module export in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/mod.rs
+- [x] T032 [US2] Wire check command handler into service collection in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs
+- [x] T033 [US2] Add check command handler type to service collection in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_types.rs
+- [x] T034 [US2] Extend exit-code mapping for check command failures and interruptions in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs
 
 **Checkpoint**: User Story 2 provides CI-safe deterministic command outcomes.
 
@@ -99,16 +99,16 @@
 
 ### Tests for User Story 3
 
-- [X] T035 [P] [US3] Add integration test for actionable finding output format in src/nfw/tests/integration/nframework-nfw/features/architecture_check/actionable_output_test.rs
-- [X] T036 [P] [US3] Add integration test for multi-finding aggregate output in src/nfw/tests/integration/nframework-nfw/features/architecture_check/multi_violation_reporting_test.rs
-- [X] T037 [P] [US3] Add unit tests for remediation hint resolution in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/remediation_hint.tests.rs
+- [x] T035 [P] [US3] Add integration test for actionable finding output format in src/nfw/tests/integration/nframework-nfw/features/architecture_check/actionable_output_test.rs
+- [x] T036 [P] [US3] Add integration test for multi-finding aggregate output in src/nfw/tests/integration/nframework-nfw/features/architecture_check/multi_violation_reporting_test.rs
+- [x] T037 [P] [US3] Add unit tests for remediation hint resolution in src/nfw/tests/unit/nframework-nfw/core/nframework-nfw-application/features/architecture_validation/remediation_hint.tests.rs
 
 ### Implementation for User Story 3
 
-- [X] T038 [US3] Implement finding-to-message formatter with location and remediation fields in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/check_output_formatter.rs
-- [X] T039 [US3] Integrate formatted output into check CLI command execution in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/run_check.rs
-- [X] T040 [US3] Implement remediation hint policy mapping by rule type in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/remediation_hint_service.rs
-- [X] T041 [US3] Add success summary output path for zero-finding runs in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/check_output_formatter.rs
+- [x] T038 [US3] Implement finding-to-message formatter with location and remediation fields in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/check_output_formatter.rs
+- [x] T039 [US3] Integrate formatted output into check CLI command execution in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/run_check.rs
+- [x] T040 [US3] Implement remediation hint policy mapping by rule type in src/nfw/src/nframework-nfw/core/nframework-nfw-application/src/features/architecture_validation/services/remediation_hint_service.rs
+- [x] T041 [US3] Add success summary output path for zero-finding runs in src/nfw/src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/check/check_output_formatter.rs
 
 **Checkpoint**: User Story 3 provides actionable and human-friendly diagnostics.
 
@@ -118,10 +118,10 @@
 
 **Purpose**: Final consistency, docs, and verification across all stories.
 
-- [X] T042 [P] Add architecture check feature module documentation in src/nfw/docs/architecture-check.md
-- [X] T043 Update quickstart commands and expected output examples in src/nfw/specs/004-nfw-check-validation/quickstart.md
-- [X] T044 [P] Run architecture_check feature test subset in src/nfw/tests/integration/nframework-nfw/features/architecture_check/
-- [X] T045 Run full module validation (`make -C src/nfw build && make -C src/nfw test && make -C src/nfw lint`) using src/nfw/Makefile
+- [x] T042 [P] Add architecture check feature module documentation in src/nfw/docs/architecture-check.md
+- [x] T043 Update quickstart commands and expected output examples in src/nfw/specs/004-nfw-check-validation/quickstart.md
+- [x] T044 [P] Run architecture_check feature test subset in src/nfw/tests/integration/nframework-nfw/features/architecture_check/
+- [x] T045 Run full module validation (`make -C src/nfw build && make -C src/nfw test && make -C src/nfw lint`) using src/nfw/Makefile
 
 ---
 

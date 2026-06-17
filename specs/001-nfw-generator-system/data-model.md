@@ -62,13 +62,13 @@ pub struct GeneratorMetadata {
 
 #### Validation Rules
 
-| Field         | Rule                                       | Error Message                            |
-| ------------- | ------------------------------------------ | ---------------------------------------- |
+| Field         | Rule                                       | Error Message                             |
+| ------------- | ------------------------------------------ | ----------------------------------------- |
 | `id`          | Matches `^[a-z][a-z0-9-]*$`                | "Generator ID must be kebab-case: {id}"   |
 | `name`        | Not empty, max 100 chars                   | "Generator name required (max 100 chars)" |
-| `description` | Not empty, max 200 chars                   | "Description required (max 200 chars)"   |
-| `version`     | Valid semver (parsed by VersionComparator) | "Invalid semantic version: {version}"    |
-| `language`    | One of: `dotnet`, `go`, `rust`             | "Unsupported language: {language}"       |
+| `description` | Not empty, max 200 chars                   | "Description required (max 200 chars)"    |
+| `version`     | Valid semver (parsed by VersionComparator) | "Invalid semantic version: {version}"     |
+| `language`    | One of: `dotnet`, `go`, `rust`             | "Unsupported language: {language}"        |
 
 ---
 
@@ -374,8 +374,7 @@ impl GeneratorsService {
 
 ## Relationships
 
-```text
-GeneratorSource (1) ──────┬── (0..*) CachedGenerator
+```GeneratorSource (1) ──────┬── (0..*) CachedGenerator
                           │
                           ├── GeneratorMetadata (core, no deps)
                           ├── cache_path: PathBuf
@@ -400,8 +399,7 @@ GeneratorsService (1) ─────┬── (0..*) GeneratorSource
 
 ### Generator Source Lifecycle
 
-```text
-[Unregistered] ──add──> [Registered & Enabled]
+```[Unregistered] ──add──> [Registered & Enabled]
                         │
                         │ disable
                         ▼
@@ -414,8 +412,7 @@ GeneratorsService (1) ─────┬── (0..*) GeneratorSource
 
 ### Cache Lifecycle
 
-```text
-[Empty] ──clone──> [Cached] ──refresh──> [Cached (updated)]
+```[Empty] ──clone──> [Cached] ──refresh──> [Cached (updated)]
    │                              │
    │                              │
    │ corrupt/error                │
@@ -515,8 +512,7 @@ impl YamlParser for SerdeYamlParser {
 
 ## Dependency Graph
 
-```text
-[nfw internal versioning module] (NO external dependencies)
+```[nfw internal versioning module] (NO external dependencies)
     │
     └── src/features/
         └── versioning/ (Version value objects, VersionComparator trait)
@@ -548,8 +544,7 @@ impl YamlParser for SerdeYamlParser {
 
 ## Package Dependencies
 
-```text
-nfw
+```nfw
   ↓ + ↓ + ↓ + ↓
 core-cli-rust + core-generator-rust + nfw internal git/versioning modules
 ```

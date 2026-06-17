@@ -104,8 +104,7 @@ src/nfw/
 
 ### CI Integration
 
-```text
-.github/workflows/
+```.github/workflows/
 ├── smoke-tests.yml       # Runs on every PR and merge to main
 └── benchmarks.yml        # Runs on merge to main only (baseline hardware)
 ```

@@ -7,13 +7,13 @@
 ### Positional Arguments
 
 | Argument | Type | Required | Description |
-|----------|------|----------|-------------|
+| ---------- | ------ | ---------- | ------------- |
 | `<NAME>` | string | Yes | Entity name in PascalCase (e.g., Product, Customer, Order) |
 
 ### Options
 
 | Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
+| -------- | ------ | ---------- | --------- | ------------- |
 | `--props <DEFINITIONS>` | string | Yes* | - | Comma-separated property definitions: `Name:Type,Price:decimal` |
 | `--service <NAME>` | string | No | Auto-select | Target service name |
 | `--id-type <TYPE>` | string | No | integer | ID type: integer, uuid, string |
@@ -31,12 +31,12 @@
 
 ```text
 PropertyName[:Type][?]
-```
+```text
 
 ### Components
 
 | Component | Description | Examples |
-|-----------|-------------|----------|
+| ----------- | ------------- | ---------- |
 | PropertyName | PascalCase identifier | Name, Email, Price |
 | Type | C# primitive type | string, int, decimal, DateTime |
 | ? | Nullable modifier | Makes property optional |
@@ -44,7 +44,7 @@ PropertyName[:Type][?]
 ### Supported Types
 
 | Type | Nullable Syntax | Description |
-|------|----------------|-------------|
+| ------ | ---------------- | ------------- |
 | string | string? | Text data |
 | int | int? | 32-bit integer |
 | long | long? | 64-bit integer |
@@ -71,7 +71,7 @@ PropertyName[:Type][?]
 
 # Mixed nullable
 --props Name:string,Email:string?,PhoneNumber:string?
-```
+```text
 
 ## Command Modes
 
@@ -81,7 +81,7 @@ Generate entity code directly from CLI arguments.
 
 ```bash
 nfw gen entity Product --props Name:string,Price:decimal --no-input
-```
+```text
 
 **Behavior**:
 
@@ -97,7 +97,7 @@ Create schema file without generating code.
 
 ```bash
 nfw gen entity Product --props Name:string,Price:decimal --schema-only --no-input
-```
+```text
 
 **Behavior**:
 
@@ -114,7 +114,7 @@ Generate entity code from existing schema file.
 
 ```bash
 nfw gen entity Product --from-schema --no-input
-```
+```text
 
 **Behavior**:
 
@@ -128,7 +128,7 @@ nfw gen entity Product --from-schema --no-input
 ## Exit Codes
 
 | Code | Meaning | Example Trigger |
-|------|---------|-----------------|
+| ------ | --------- | ----------------- |
 | 0 | Success | Entity generated successfully |
 | 1 | General Error | Invalid input, missing dependencies |
 | 130 | Interrupted | User pressed Ctrl+C |
@@ -146,7 +146,7 @@ nfw gen entity Product --from-schema --no-input
 [INFO] Rendering entity generator...
 [INFO] Generated: src/MyService.Domain/Entities/Product.g.cs
 ✓ Entity generated successfully
-```
+```text
 
 ### Error Output (stderr)
 
@@ -155,7 +155,7 @@ nfw gen entity Product --from-schema --no-input
 
 hint: Add the persistence module to the service:
     nfw add persistence --service MyService
-```
+```text
 
 ## Interactive Mode
 
@@ -176,7 +176,7 @@ nfw gen entity Product --props Name:string,Price:decimal
   > int
     long
     Guid
-```
+```text
 
 ## Validation Rules
 
@@ -227,7 +227,7 @@ properties:
   - name: Price
     type: decimal
     nullable: false
-```
+```text
 
 ## Edge Cases
 
@@ -237,7 +237,7 @@ properties:
 $ nfw gen entity Product --props Name:string
 [ERROR] No .NET services found in workspace
 hint: Add a service first or create a new .NET service
-```
+```text
 
 ### Missing Persistence Module
 
@@ -247,7 +247,7 @@ $ nfw gen entity Product --props Name:string --service MyService
 
 hint: Add the persistence module to the service:
     nfw add persistence --service MyService
-```
+```text
 
 ### Invalid Property Type
 
@@ -257,7 +257,7 @@ $ nfw gen entity Product --props Name:InvalidType
 
 Valid types: string, int, long, decimal, double, float, bool,
             DateTime, DateTimeOffset, Guid, byte[]
-```
+```text
 
 ### Entity Already Exists
 
@@ -266,7 +266,7 @@ $ nfw gen entity Product --props Name:string
 [ERROR] Entity already exists: src/MyService.Domain/Entities/Product.g.cs
 
 hint: Use a different entity name or remove the existing file
-```
+```text
 
 ## Performance
 

@@ -89,8 +89,8 @@ The CLI reads `nfw.yaml` for:
 
 ## CLI Command Structure
 
-```text
-nfw gen repository <ENTITY> [--feature <FEATURE>]
+```nfw gen repository <ENTITY> [--feature <FEATURE>]
+
 ```
 
 ### CLI Argument Parsing (using `clap`)

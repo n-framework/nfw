@@ -99,7 +99,7 @@ Define the generator metadata schema (YAML-based), generator repository structur
 | **II. CLI I/O And Exit Codes**           | Pass   | CLI output to stdout, errors to stderr; documented exit codes  |
 | **III. No Suppression**                  | Pass   | No warning suppression, no test skipping                       |
 | **IV. Deterministic Tests**              | Pass   | Core unit tests use mocks; adapter tests explicitly labeled    |
-| **V. Documentation Is Part Of Delivery** | Pass   | Quickstart will be generated for generator authors              |
+| **V. Documentation Is Part Of Delivery** | Pass   | Quickstart will be generated for generator authors             |
 
 ## Project Structure
 
@@ -129,8 +129,7 @@ github.com/n-framework/
 
 **Dependency Flow:**
 
-```text
-nfw (CLI commands)
+```nfw (CLI commands)
   ↓ depends on
 core-generator-rust + core-cli-rust + nfw internal git/versioning modules
 ```
@@ -375,7 +374,7 @@ impl GitRepository for CliGitRepository {
         let output = Command::new(&self.git_path)
             .args(["clone", url, dest.to_str().unwrap()])
             .output()
-            .map_err(|e| GitError::CloneFailed(e.to_string()))?;
+            .map_err( | e | GitError::CloneFailed(e.to_string()))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -390,7 +389,7 @@ impl GitRepository for CliGitRepository {
             .args(["fetch"])
             .current_dir(path)
             .output()
-            .map_err(|e| GitError::FetchFailed(e.to_string()))?;
+            .map_err( | e | GitError::FetchFailed(e.to_string()))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -404,7 +403,7 @@ impl GitRepository for CliGitRepository {
             .args(["rev-parse", "--abbrev-ref", "HEAD"])
             .current_dir(path)
             .output()
-            .map_err(|e| GitError::CommandFailed(e.to_string()))?;
+            .map_err( | e | GitError::CommandFailed(e.to_string()))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -412,7 +411,7 @@ impl GitRepository for CliGitRepository {
         }
 
         let branch = String::from_utf8(output.stdout)
-            .map_err(|e| GitError::CommandFailed(e.to_string()))?;
+            .map_err( | e | GitError::CommandFailed(e.to_string()))?;
         Ok(branch.trim().to_string())
     }
 
@@ -421,7 +420,7 @@ impl GitRepository for CliGitRepository {
             .args(["rev-parse", "--git-dir"])
             .current_dir(path)
             .output()
-            .map(|o| o.status.success())
+            .map( | o | o.status.success())
             .unwrap_or(false)
     }
 }
@@ -545,7 +544,7 @@ NFW provides the CLI commands that use the core packages:
 | core-cli-rust                  | Unit tests (CLI abstractions)           | tests/unit/        |
 | nfw internal git module        | Unit tests (mock git CLI)               | tests/unit/        |
 | nfw internal versioning module | Unit tests (Version, VersionComparator) | tests/unit/        |
-| core-generator-rust             | Unit tests (PlaceholderRenderer)        | tests/unit/        |
+| core-generator-rust            | Unit tests (PlaceholderRenderer)        | tests/unit/        |
 | nfw domain                     | Unit tests (entities, value objects)    | tests/unit/        |
 | nfw application                | Unit tests (services with mocks)        | tests/unit/        |
 | nfw infrastructure             | Unit tests (adapters in isolation)      | tests/unit/        |
@@ -553,14 +552,14 @@ NFW provides the CLI commands that use the core packages:
 
 ## Success Criteria Validation
 
-| Criterion                                   | Validation Method                                                                           |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| SC-001: < 50ms metadata validation          | Benchmark test with 100 valid metadata files (using real adapter)                           |
-| SC-002: Generator authoring without guidance | Quickstart walkthrough test                                                                 |
+| Criterion                                    | Validation Method                                                                            |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| SC-001: < 50ms metadata validation           | Benchmark test with 100 valid metadata files (using real adapter)                            |
+| SC-002: Generator authoring without guidance | Quickstart walkthrough test                                                                  |
 | SC-003: < 500ms listing for 50 generators    | Benchmark test with cached 50-generator catalog (using real adapter)                         |
-| SC-004: Fresh + cached installations work   | Integration test for both scenarios (using real adapters)                                   |
-| SC-005: Version resolution correctness      | Unit tests for all version constraint scenarios (using mock adapter)                        |
-| SC-006: Reproducible output                 | Integration test comparing two generations from same generator/version (using real adapters) |
+| SC-004: Fresh + cached installations work    | Integration test for both scenarios (using real adapters)                                    |
+| SC-005: Version resolution correctness       | Unit tests for all version constraint scenarios (using mock adapter)                         |
+| SC-006: Reproducible output                  | Integration test comparing two generations from same generator/version (using real adapters) |
 
 **Additional Validation**: Core module compiles with zero external dependencies.
 

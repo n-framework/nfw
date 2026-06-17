@@ -38,8 +38,7 @@ cargo build --workspace --release
 
 **Expected Output**:
 
-```text
-   Compiling n-framework-nfw-core-domain v0.1.0
+```Compiling n-framework-nfw-core-domain v0.1.0
    Compiling n-framework-nfw-core-application v0.1.0
    Compiling n-framework-nfw-cli v0.1.0
     Finished dev [unoptimized + debuginfo] target(s) in X.XXs
@@ -77,8 +76,7 @@ cargo test --workspace -- --nocapture
 
 **Expected Output**:
 
-```text
-   Compiling n-framework-nfw-cli v0.1.0
+```Compiling n-framework-nfw-cli v0.1.0
     Finished test [unoptimized + debuginfo] target(s)
      Running unittests src/...
 
@@ -246,7 +244,7 @@ cargo clippy --workspace -- -D warnings
 ### Binary
 
 ```text
-src/nfw/target/debug/n-framework-nfw-cli          # Debug build
+src/nfw/target/debug/n-framework-nfw-cli # Debug build
 src/nfw/target/release/n-framework-nfw-cli         # Release build
 ```
 
@@ -254,6 +252,7 @@ src/nfw/target/release/n-framework-nfw-cli         # Release build
 
 ```text
 src/nfw/target/debug/deps/libn_framework_nfw_cli-*.rlib
+
 ```
 
 ## Common Issues

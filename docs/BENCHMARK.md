@@ -17,7 +17,7 @@ See [Spec 005-build-test-workflows](../specs/005-build-test-workflows/) for deta
 The benchmark harness will:
 
 1. Measure `nfw new` (workspace creation) timing
-2. Measure `nfw add service` (service creation) timing  
+2. Measure `nfw add service` (service creation) timing
 3. Run combined benchmark validating SC-001 target (total < 1 second)
 4. Report statistics (median, p95, min, max, mean)
 5. Output JSON results with environment metadata
@@ -40,7 +40,7 @@ make benchmark
 
 # Specific test scenarios
 ./scripts/benchmark/run_benchmark.sh --test workspace_creation
-./scripts/benchmark/run_benchmark.sh --test service_creation  
+./scripts/benchmark/run_benchmark.sh --test service_creation
 ./scripts/benchmark/run_benchmark.sh --test combined
 ```
 

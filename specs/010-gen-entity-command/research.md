@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD024 -->
+
 # Research: nfw gen entity Command
 
 **Feature**: Generate domain entity classes with schema-first approach
@@ -13,19 +14,19 @@ CLI arguments accept C#-like primitive type syntax for developer familiarity. Th
 
 ### Type Mapping Table
 
-| CLI Input Syntax | General Type (Schema) | Description |
-|-----------------|----------------------|-------------|
-| `string` | `string` | Text data |
-| `int` | `integer` | 32-bit integer |
-| `long` | `integer` | 64-bit integer |
-| `decimal` | `decimal` | High-precision decimal |
-| `double` | `decimal` | Floating-point number |
-| `float` | `decimal` | Single-precision float |
-| `bool` | `boolean` | True/false |
-| `DateTime` | `datetime` | Date and time |
-| `DateTimeOffset` | `datetime` | Date and time with offset |
-| `Guid` | `uuid` | Globally unique identifier |
-| `byte[]` | `bytes` | Binary data |
+| CLI Input Syntax | General Type (Schema) | Description                |
+| ---------------- | --------------------- | -------------------------- |
+| `string`         | `string`              | Text data                  |
+| `int`            | `integer`             | 32-bit integer             |
+| `long`           | `integer`             | 64-bit integer             |
+| `decimal`        | `decimal`             | High-precision decimal     |
+| `double`         | `decimal`             | Floating-point number      |
+| `float`          | `decimal`             | Single-precision float     |
+| `bool`           | `boolean`             | True/false                 |
+| `DateTime`       | `datetime`            | Date and time              |
+| `DateTimeOffset` | `datetime`            | Date and time with offset  |
+| `Guid`           | `uuid`                | Globally unique identifier |
+| `byte[]`         | `bytes`               | Binary data                |
 
 ### Rationale
 
@@ -48,13 +49,13 @@ Schema files use YAML format with a flat structure containing entity metadata an
 ### Schema Structure
 
 ```yaml
-entity: Product              # Entity name (PascalCase)
-idType: uuid                 # General type for ID (uuid, integer, etc.)
-entityType: entity            # Entity type: entity, auditable-entity, or soft-deletable-entity
-properties:                  # List of property definitions
-  - name: Name               # Property name (PascalCase)
-    type: string             # General type (string, integer, decimal, etc.)
-    nullable: false          # Whether property is optional
+entity: Product # Entity name (PascalCase)
+idType: uuid # General type for ID (uuid, integer, etc.)
+entityType: entity # Entity type: entity, auditable-entity, or soft-deletable-entity
+properties: # List of property definitions
+  - name: Name # Property name (PascalCase)
+    type: string # General type (string, integer, decimal, etc.)
+    nullable: false # Whether property is optional
   - name: Price
     type: decimal
     nullable: false
@@ -159,8 +160,7 @@ fn validate_persistence_module(service: &ServiceInfo) -> Result<(), EntityGenera
 
 ### Error Message
 
-```text
-error: Entity generation requires the persistence module
+```error: Entity generation requires the persistence module
 
 hint: Add the persistence module to the service:
     nfw add persistence --service MyService

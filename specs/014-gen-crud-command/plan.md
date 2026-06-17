@@ -30,7 +30,7 @@ Implement the `nfw gen crud <ENTITY_NAME>` CLI command in Rust to orchestrate th
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Clean Architecture First**: Passes. Generated artifacts are placed into correct layers (Domain, Application, Presentation) without cross-layer dependency violations.
 - **II. CLI Interface Standard**: Passes. Exposes `nfw gen crud` with consistent POSIX flags and supports both interactive and non-interactive modes.
@@ -48,9 +48,9 @@ Implement the `nfw gen crud <ENTITY_NAME>` CLI command in Rust to orchestrate th
 src/nfw/specs/014-gen-crud-command/
 ├── spec.md              # Feature specification
 ├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output 
-├── data-model.md        # Phase 1 output 
-├── quickstart.md        # Phase 1 output 
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
 ├── contracts/           # Phase 1 output (cli.md)
 ```
 
@@ -75,4 +75,4 @@ src/nfw/
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-*No violations detected. Standard CLI sub-command expansion.*
+_No violations detected. Standard CLI sub-command expansion._

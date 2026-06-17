@@ -21,7 +21,7 @@ Implement the `nfw add webapi` command within the Rust CLI to scaffold the Minim
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - [x] **I. Single-Step Build And Test**: Can be verified via `cd src/nfw && make build` and `cd src/nfw && make test`.
 - [x] **II. CLI I/O And Exit Codes**: Standard `nfw` exit codes will be used (0 for success, non-zero for failures, stderr for diagnostics).
@@ -35,14 +35,14 @@ Implement the `nfw add webapi` command within the Rust CLI to scaffold the Minim
 
 ```text
 src/nfw/specs/012-add-webapi-cmd/
-├── spec.md              
-├── plan.md              
-├── research.md          
-├── data-model.md        
-├── quickstart.md        
-├── contracts/           
-│   └── cli-interface.md 
-└── tasks.md             
+├── spec.md
+├── plan.md
+├── research.md
+├── data-model.md
+├── quickstart.md
+├── contracts/
+│   └── cli-interface.md
+└── tasks.md
 ```
 
 ### Source Code (repository root)
@@ -55,9 +55,9 @@ src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/g
     └── mod.rs
 
 src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/
-├── webapi/                 
+├── webapi/
 │   ├── handler.rs          # Presentation layer: Prompts for service selection, handles spinners/logging, delegates to AddWebApiCommandHandler
-│   ├── mod.rs              
+│   ├── mod.rs
 │   └── registration.rs     # Command registration (CLI arguments: --service, --no-input)
 ├── registration.rs         # Update to include webapi_register()
 └── mod.rs                  # Update to include `pub mod webapi;`
@@ -77,5 +77,5 @@ src/nfw-generators/src/dotnet-service/
 ## Complexity Tracking
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| None | N/A | N/A |
+| --------- | ---------- | ------------------------------------ |
+| None      | N/A        | N/A                                  |

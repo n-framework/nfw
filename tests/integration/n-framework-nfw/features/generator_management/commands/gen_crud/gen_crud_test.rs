@@ -112,11 +112,8 @@ steps:
             .join(feature)
             .join("Entities");
         fs::create_dir_all(&entities_dir).expect("failed to create entities dir");
-        fs::write(
-            entities_dir.join("Product.cs"),
-            "public class Product {}",
-        )
-        .expect("failed to write entity file");
+        fs::write(entities_dir.join("Product.cs"), "public class Product {}")
+            .expect("failed to write entity file");
 
         // Entity schema
         let schema_dir = sandbox.join("src/TestService/.nfw/entities");
@@ -136,8 +133,7 @@ properties:
         )
         .expect("failed to write entity schema");
     } else {
-        let features_root =
-            sandbox.join("src/TestService/src/core/TestApp.Core.Domain/Features");
+        let features_root = sandbox.join("src/TestService/src/core/TestApp.Core.Domain/Features");
         fs::create_dir_all(&features_root).expect("failed to create features root");
     }
 }
@@ -167,57 +163,52 @@ where
 
 #[test]
 fn generates_crud_successfully_with_valid_entity() {
-    run_test_in_sandbox(
-        "gen-crud-success",
-        true,
-        "Products",
-        |sandbox, start| {
-            let result =
-                gen_support::execute_non_interactive_gen_crud(sandbox, "Product", "Products", None);
-            let duration = start.elapsed();
+    run_test_in_sandbox("gen-crud-success", true, "Products", |sandbox, start| {
+        let result =
+            gen_support::execute_non_interactive_gen_crud(sandbox, "Product", "Products", None);
+        let duration = start.elapsed();
 
-            if let Err(e) = result {
-                return Err(format!("gen crud failed: {:?}", e));
-            }
+        if let Err(e) = result {
+            return Err(format!("gen crud failed: {:?}", e));
+        }
 
-            if duration.as_secs_f64() >= 2.0 {
-                return Err(format!(
-                    "Command took too long: {:.2}s (must be < 2s)",
-                    duration.as_secs_f64()
-                ));
-            }
+        if duration.as_secs_f64() >= 2.0 {
+            return Err(format!(
+                "Command took too long: {:.2}s (must be < 2s)",
+                duration.as_secs_f64()
+            ));
+        }
 
-            let service_dir = sandbox.join("src/TestService");
+        let service_dir = sandbox.join("src/TestService");
 
-            let create_cmd = service_dir.join(
+        let create_cmd = service_dir.join(
                 "src/core/TestService.Core.Application/Features/Products/Commands/CreateProduct/CreateProductCommand.cs",
             );
-            if !create_cmd.exists() {
-                return Err("CreateProductCommand.cs was not generated".to_string());
-            }
+        if !create_cmd.exists() {
+            return Err("CreateProductCommand.cs was not generated".to_string());
+        }
 
-            let query = service_dir.join(
+        let query = service_dir.join(
                 "src/core/TestService.Core.Application/Features/Products/Queries/GetProductById/GetProductByIdQuery.cs",
             );
-            if !query.exists() {
-                return Err("GetProductByIdQuery.cs was not generated".to_string());
-            }
+        if !query.exists() {
+            return Err("GetProductByIdQuery.cs was not generated".to_string());
+        }
 
-            let repo = service_dir.join(
-                "src/core/TestService.Core.Application/Contracts/Persistence/IProductRepository.cs",
-            );
-            if !repo.exists() {
-                return Err("IProductRepository.cs was not generated".to_string());
-            }
+        let repo = service_dir.join(
+            "src/core/TestService.Core.Application/Contracts/Persistence/IProductRepository.cs",
+        );
+        if !repo.exists() {
+            return Err("IProductRepository.cs was not generated".to_string());
+        }
 
-            let repo_content = fs::read_to_string(repo).unwrap();
-            if !repo_content.contains("IProductRepository") {
-                return Err("Repository content mismatch".to_string());
-            }
+        let repo_content = fs::read_to_string(repo).unwrap();
+        if !repo_content.contains("IProductRepository") {
+            return Err("Repository content mismatch".to_string());
+        }
 
-            Ok(())
-        },
-    );
+        Ok(())
+    });
 }
 
 // Entity missing validation is enforced at CLI handler level (GenCrudCliCommand),
@@ -274,7 +265,9 @@ generator_sources:
     assert!(result.is_err(), "Expected error for missing modules");
     let err_str = format!("{:?}", result.err().unwrap());
     assert!(
-        err_str.contains("module") || err_str.contains("mediator") || err_str.contains("persistence"),
+        err_str.contains("module")
+            || err_str.contains("mediator")
+            || err_str.contains("persistence"),
         "Error should mention missing modules: {}",
         err_str
     );

@@ -17,8 +17,7 @@ nfw gen crud Product
 
 If you haven't specified any flags, the CLI will interactively ask you a few questions:
 
-```text
-? Generate API Endpoints? Yes
+```? Generate API Endpoints? Yes
 ? Include caching markers? No
 ? Include security markers? Yes
 ```

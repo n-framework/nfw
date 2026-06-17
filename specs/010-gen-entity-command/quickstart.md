@@ -111,19 +111,19 @@ nfw gen entity Product --props Name:string,Price:decimal
 
 ## Supported Property Types
 
-| Type | Description | Example |
-|------|-------------|---------|
-| string | Text | `Name:string` |
-| int | 32-bit integer | `Count:int` |
-| long | 64-bit integer | `Population:long` |
-| decimal | Decimal number | `Price:decimal` |
-| double | Double precision | `Score:double` |
-| float | Single precision | `Rating:float` |
-| bool | Boolean | `IsActive:bool` |
-| DateTime | Date and time | `CreatedAt:DateTime` |
+| Type           | Description           | Example                    |
+| -------------- | --------------------- | -------------------------- |
+| string         | Text                  | `Name:string`              |
+| int            | 32-bit integer        | `Count:int`                |
+| long           | 64-bit integer        | `Population:long`          |
+| decimal        | Decimal number        | `Price:decimal`            |
+| double         | Double precision      | `Score:double`             |
+| float          | Single precision      | `Rating:float`             |
+| bool           | Boolean               | `IsActive:bool`            |
+| DateTime       | Date and time         | `CreatedAt:DateTime`       |
 | DateTimeOffset | Date/time with offset | `Timestamp:DateTimeOffset` |
-| Guid | Unique identifier | `CategoryId:Guid` |
-| byte[] | Binary data | `Thumbnail:byte[]` |
+| Guid           | Unique identifier     | `CategoryId:Guid`          |
+| byte[]         | Binary data           | `Thumbnail:byte[]`         |
 
 ### Nullable Properties
 

@@ -17,10 +17,10 @@
 
 **Purpose**: Prepare service-generation feature skeleton across clean-architecture crates.
 
-- [X] T001 Create service management domain module skeleton in `src/nframework-nfw/core/nframework-nfw-domain/src/features/service_management/` and export it from `src/nframework-nfw/core/nframework-nfw-domain/src/features/mod.rs`
-- [X] T002 Create service management application module skeleton in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/` and export it from `src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs`
-- [X] T003 [P] Create filesystem service management module skeleton in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/` and export it from `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/mod.rs`
-- [X] T004 [P] Create CLI add-service command module skeleton in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/service/` and export it from `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/mod.rs`
+- [x] T001 Create service management domain module skeleton in `src/nframework-nfw/core/nframework-nfw-domain/src/features/service_management/` and export it from `src/nframework-nfw/core/nframework-nfw-domain/src/features/mod.rs`
+- [x] T002 Create service management application module skeleton in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/` and export it from `src/nframework-nfw/core/nframework-nfw-application/src/features/mod.rs`
+- [x] T003 [P] Create filesystem service management module skeleton in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/` and export it from `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/mod.rs`
+- [x] T004 [P] Create CLI add-service command module skeleton in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/service/` and export it from `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/mod.rs`
 
 ---
 
@@ -30,13 +30,13 @@
 
 **⚠️ CRITICAL**: No user story work begins before this phase completes.
 
-- [X] T005 Define `AddServiceCommandRequest` and validation model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/add_service_command_request.rs`
-- [X] T006 [P] Define `ServiceGeneratorResolution` model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/service_generator_resolution.rs`
-- [X] T007 [P] Define `ServiceGenerationPlan` model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/service_generation_plan.rs`
-- [X] T008 [P] Remove language-specific layer-dependency enforcement from `nfw add service` scope and keep CLI language-agnostic
-- [X] T009 Define service-generation abstraction interfaces in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/abstractions/service_generator_selector.rs`, `service_generator_renderer.rs`, and `service_provenance_store.rs`
-- [X] T010 Define service-generation error model and exit-code mapping in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/errors/add_service_error.rs` and update `src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs`
-- [X] T011 Wire service-management services into CLI dependency registration in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs`
+- [x] T005 Define `AddServiceCommandRequest` and validation model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/add_service_command_request.rs`
+- [x] T006 [P] Define `ServiceGeneratorResolution` model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/service_generator_resolution.rs`
+- [x] T007 [P] Define `ServiceGenerationPlan` model in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/service_generation_plan.rs`
+- [x] T008 [P] Remove language-specific layer-dependency enforcement from `nfw add service` scope and keep CLI language-agnostic
+- [x] T009 Define service-generation abstraction interfaces in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/abstractions/service_generator_selector.rs`, `service_generator_renderer.rs`, and `service_provenance_store.rs`
+- [x] T010 Define service-generation error model and exit-code mapping in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/models/errors/add_service_error.rs` and update `src/nframework-nfw/core/nframework-nfw-application/src/features/cli/exit_codes.rs`
+- [x] T011 Wire service-management services into CLI dependency registration in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/startup/cli_service_collection_factory.rs`
 
 **Checkpoint**: Foundation ready; user stories can proceed.
 
@@ -50,22 +50,22 @@
 
 ### Tests for User Story 1
 
-- [X] T012 [P] [US1] Add request validation tests for service name and non-interactive generator requirement in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/add_service_request_validation.tests.rs`
-- [X] T013 [P] [US1] Add integration test for generated service output path and structure in `tests/integration/nframework-nfw/features/service_add/service_generation_layout_test.rs`
-- [X] T040 [P] [US1] Add integration test for workspace-context failure outside `nfw.yaml` workspace in `tests/integration/nframework-nfw/features/service_add/service_workspace_context_validation_test.rs`
-- [X] T041 [P] [US1] Add integration smoke test for first-build success of generated service in `tests/integration/nframework-nfw/features/service_add/service_first_build_smoke_test.rs`
-- [X] T042 [P] [US1] Add integration tests for rollback cleanup on render failure and SIGINT interruption in `tests/integration/nframework-nfw/features/service_add/service_generation_cleanup_test.rs`
+- [x] T012 [P] [US1] Add request validation tests for service name and non-interactive generator requirement in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/add_service_request_validation.tests.rs`
+- [x] T013 [P] [US1] Add integration test for generated service output path and structure in `tests/integration/nframework-nfw/features/service_add/service_generation_layout_test.rs`
+- [x] T040 [P] [US1] Add integration test for workspace-context failure outside `nfw.yaml` workspace in `tests/integration/nframework-nfw/features/service_add/service_workspace_context_validation_test.rs`
+- [x] T041 [P] [US1] Add integration smoke test for first-build success of generated service in `tests/integration/nframework-nfw/features/service_add/service_first_build_smoke_test.rs`
+- [x] T042 [P] [US1] Add integration tests for rollback cleanup on render failure and SIGINT interruption in `tests/integration/nframework-nfw/features/service_add/service_generation_cleanup_test.rs`
 
 ### Implementation for User Story 1
 
-- [X] T014 [P] [US1] Implement add-service request validator in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_request_validator.rs`
-- [X] T015 [P] [US1] Implement generation-plan builder for `src/<ServiceName>/` output in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generation_plan_builder.rs`
-- [X] T016 [US1] Implement filesystem generator rendering and write operations in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/file_system_service_generator_renderer.rs`
-- [X] T017 [US1] Implement add-service command handler in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/commands/add_service/add_service_command_handler.rs`
-- [X] T018 [US1] Implement CLI command handler for `nfw add service` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/service/add_service.rs`
-- [X] T019 [US1] Register `add service` command routing and options in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
-- [X] T043 [US1] Implement explicit workspace-context guard (`nfw.yaml` discovery) in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_workspace_context_guard.rs`
-- [X] T044 [US1] Implement partial-output cleanup coordinator for failure/SIGINT paths in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/service_generation_cleanup.rs` and integrate it in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/file_system_service_generator_renderer.rs`
+- [x] T014 [P] [US1] Implement add-service request validator in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_request_validator.rs`
+- [x] T015 [P] [US1] Implement generation-plan builder for `src/<ServiceName>/` output in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generation_plan_builder.rs`
+- [x] T016 [US1] Implement filesystem generator rendering and write operations in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/file_system_service_generator_renderer.rs`
+- [x] T017 [US1] Implement add-service command handler in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/commands/add_service/add_service_command_handler.rs`
+- [x] T018 [US1] Implement CLI command handler for `nfw add service` in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/commands/service/add_service.rs`
+- [x] T019 [US1] Register `add service` command routing and options in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/nfw_cli_runtime.rs`
+- [x] T043 [US1] Implement explicit workspace-context guard (`nfw.yaml` discovery) in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_workspace_context_guard.rs`
+- [x] T044 [US1] Implement partial-output cleanup coordinator for failure/SIGINT paths in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/service_generation_cleanup.rs` and integrate it in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-filesystem/src/features/service_management/services/file_system_service_generator_renderer.rs`
 
 **Checkpoint**: US1 is independently functional and testable.
 
@@ -79,15 +79,15 @@
 
 ### Tests for User Story 4
 
-- [X] T020 [P] [US4] Add unit tests for generator eligibility and version resolution behavior in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_generator_selection.tests.rs`
-- [X] T021 [P] [US4] Add integration test for invalid generator ID and wrong generator type failures in `tests/integration/nframework-nfw/features/service_add/service_generator_validation_test.rs`
+- [x] T020 [P] [US4] Add unit tests for generator eligibility and version resolution behavior in `tests/unit/nframework-nfw/core/nframework-nfw-application/features/service_management/service_generator_selection.tests.rs`
+- [x] T021 [P] [US4] Add integration test for invalid generator ID and wrong generator type failures in `tests/integration/nframework-nfw/features/service_add/service_generator_validation_test.rs`
 
 ### Implementation for User Story 4
 
-- [X] T022 [P] [US4] Implement service-generator selection adapter using existing generator-management services in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generator_selection_service.rs`
-- [X] T023 [US4] Implement interactive generator prompt adapter for add-service flow in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/interactive_service_generator_prompt.rs`
-- [X] T024 [US4] Integrate interactive/non-interactive generator selection policy in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_input_resolution_service.rs`
-- [X] T025 [US4] Enforce generator metadata `type=service` check before render in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generator_selection_service.rs`
+- [x] T022 [P] [US4] Implement service-generator selection adapter using existing generator-management services in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generator_selection_service.rs`
+- [x] T023 [US4] Implement interactive generator prompt adapter for add-service flow in `src/nframework-nfw/presentation/n-framework-nfw-cli/src/runtime/interactive_service_generator_prompt.rs`
+- [x] T024 [US4] Integrate interactive/non-interactive generator selection policy in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/add_service_input_resolution_service.rs`
+- [x] T025 [US4] Enforce generator metadata `type=service` check before render in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generator_selection_service.rs`
 
 **Checkpoint**: US4 reuses generator infrastructure with strict eligibility and deterministic selection.
 
@@ -97,11 +97,11 @@
 
 **Purpose**: Persist provenance, align docs/contracts, and run end-to-end acceptance validation.
 
-- [X] T035 [P] Implement generator provenance persistence in workspace YAML writer in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-yaml/src/features/workspace_management/services/workspace_metadata_writer.rs`
-- [X] T036 Implement provenance write flow for add-service in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generator_provenance_service.rs`
-- [X] T037 [P] Add integration test for provenance persistence in `nfw.yaml` under service entry in `tests/integration/nframework-nfw/features/service_add/service_generator_provenance_persistence_test.rs`
-- [X] T038 Align command docs and quickstart examples for generator-first add-service flow in `src/nfw/docs/` and `src/nfw/specs/003-add-service-dotnet-generator-based/quickstart.md`
-- [X] T039 Run and record acceptance verification command set from repository root in `src/nfw/specs/003-add-service-dotnet-generator-based/quickstart.md`
+- [x] T035 [P] Implement generator provenance persistence in workspace YAML writer in `src/nframework-nfw/infrastructure/nframework-nfw-infrastructure-yaml/src/features/workspace_management/services/workspace_metadata_writer.rs`
+- [x] T036 Implement provenance write flow for add-service in `src/nframework-nfw/core/nframework-nfw-application/src/features/service_management/services/service_generator_provenance_service.rs`
+- [x] T037 [P] Add integration test for provenance persistence in `nfw.yaml` under service entry in `tests/integration/nframework-nfw/features/service_add/service_generator_provenance_persistence_test.rs`
+- [x] T038 Align command docs and quickstart examples for generator-first add-service flow in `src/nfw/docs/` and `src/nfw/specs/003-add-service-dotnet-generator-based/quickstart.md`
+- [x] T039 Run and record acceptance verification command set from repository root in `src/nfw/specs/003-add-service-dotnet-generator-based/quickstart.md`
 
 ---
 

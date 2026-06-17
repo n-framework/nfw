@@ -72,6 +72,7 @@ Issues discovered and fixed during end-to-end smoke testing:
 ## Status: ✅ Complete
 
 All tasks implemented. Gen CRUD command is fully functional with:
+
 - Interactive and non-interactive modes
 - Entity creation orchestration when entity is missing
 - Integration tests with performance assertions

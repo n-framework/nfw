@@ -9,19 +9,19 @@ Implement `nfw check` as a non-interactive architecture audit command that scans
 
 ## Technical Context
 
-**Language/Version**: Rust 1.85+ (2024 edition)  
-**Primary Dependencies**: clap (CLI command wiring), serde/serde_yaml (workspace/rule config parsing), regex (namespace/package pattern checks)  
-**Storage**: File system workspace artifacts and project/source files  
-**Testing**: cargo test (workspace/unit+integration in `src/nfw`)  
-**Target Platform**: Cross-platform CLI (Linux/macOS/Windows terminals; CI runners)  
-**Project Type**: CLI application (module: `src/nfw`)  
-**Performance Goals**: Complete validation in non-interactive mode with deterministic results across repeated runs on the same workspace inputs  
-**Constraints**: Non-interactive execution, stable exit behavior, actionable stderr diagnostics, deterministic fixture results  
+**Language/Version**: Rust 1.85+ (2024 edition)
+**Primary Dependencies**: clap (CLI command wiring), serde/serde_yaml (workspace/rule config parsing), regex (namespace/package pattern checks)
+**Storage**: File system workspace artifacts and project/source files
+**Testing**: cargo test (workspace/unit+integration in `src/nfw`)
+**Target Platform**: Cross-platform CLI (Linux/macOS/Windows terminals; CI runners)
+**Project Type**: CLI application (module: `src/nfw`)
+**Performance Goals**: Complete validation in non-interactive mode with deterministic results across repeated runs on the same workspace inputs
+**Constraints**: Non-interactive execution, stable exit behavior, actionable stderr diagnostics, deterministic fixture results
 **Scale/Scope**: Validate architecture rules across all projects in one workspace; support multi-violation reporting in a single run
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - Single-step build/test: PASS (`make build`/`make test` at module level already defined)
 - CLI I/O and exit codes: PASS (plan enforces stable 0/non-zero and SIGINT behavior)

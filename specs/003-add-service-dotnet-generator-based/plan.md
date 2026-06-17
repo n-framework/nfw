@@ -21,15 +21,15 @@ Implement `nfw add service <name>` as a generator-first workflow that requires g
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-| --- | --- | --- |
-| I. Single-Step Build And Test | Pass | Quickstart includes one-command verification and keeps root build/test workflows intact. |
-| II. CLI I/O And Exit Codes | Pass | Command contract defines deterministic success/error exits and keeps SIGINT behavior explicit. |
-| III. No Suppression | Pass | Plan requires explicit validation failures and surfaced actionable errors. |
-| IV. Deterministic Tests | Pass | Unit tests avoid network; integration tests rely on local fixtures/generator cache only. |
-| V. Documentation Is Part Of Delivery | Pass | Plan includes quickstart and contracts for CLI behavior and dependency rules. |
+| Principle                            | Status | Notes                                                                                          |
+| ------------------------------------ | ------ | ---------------------------------------------------------------------------------------------- |
+| I. Single-Step Build And Test        | Pass   | Quickstart includes one-command verification and keeps root build/test workflows intact.       |
+| II. CLI I/O And Exit Codes           | Pass   | Command contract defines deterministic success/error exits and keeps SIGINT behavior explicit. |
+| III. No Suppression                  | Pass   | Plan requires explicit validation failures and surfaced actionable errors.                     |
+| IV. Deterministic Tests              | Pass   | Unit tests avoid network; integration tests rely on local fixtures/generator cache only.       |
+| V. Documentation Is Part Of Delivery | Pass   | Plan includes quickstart and contracts for CLI behavior and dependency rules.                  |
 
 No constitutional violations identified before Phase 0.
 

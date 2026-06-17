@@ -9,19 +9,19 @@ Implement `nfw gen endpoint` command to generate an HTTP Minimal API endpoint fo
 
 ## Technical Context
 
-**Language/Version**: Rust 1.85+ (2024 edition)  
-**Primary Dependencies**: clap (CLI), serde/serde_yaml (generators), NFramework generators store  
-**Storage**: File system (generators and generated C# code)  
-**Testing**: cargo test (unit, integration)  
-**Target Platform**: CLI binary (Linux/macOS/Windows)  
-**Project Type**: CLI Tool  
-**Performance Goals**: < 3 seconds execution time per endpoint generation  
-**Constraints**: Must validate C# Application layer structure before generation  
-**Scale/Scope**: Generates single C# file in Api layer per invocation  
+**Language/Version**: Rust 1.85+ (2024 edition)
+**Primary Dependencies**: clap (CLI), serde/serde_yaml (generators), NFramework generators store
+**Storage**: File system (generators and generated C# code)
+**Testing**: cargo test (unit, integration)
+**Target Platform**: CLI binary (Linux/macOS/Windows)
+**Project Type**: CLI Tool
+**Performance Goals**: < 3 seconds execution time per endpoint generation
+**Constraints**: Must validate C# Application layer structure before generation
+**Scale/Scope**: Generates single C# file in Api layer per invocation
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Library-First (N/A)**: Command implementation is an extension of existing CLI application codebase
 - **II. CLI Interface (PASS)**: Built entirely as a CLI command via `clap`, reading args format mapping
@@ -33,8 +33,7 @@ Implement `nfw gen endpoint` command to generate an HTTP Minimal API endpoint fo
 
 ### Documentation (this feature)
 
-```text
-specs/013-gen-endpoint-command/
+```specs/013-gen-endpoint-command/
 ├── spec.md              # Feature specification
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output

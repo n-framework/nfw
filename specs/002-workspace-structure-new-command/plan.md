@@ -21,15 +21,15 @@ Implement deterministic workspace bootstrapping through `nfw new` with a layered
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-| --- | --- | --- |
-| I. Single-Step Build And Test | Pass | Generated workspace quickstart mandates one build command and one test command. |
-| II. CLI I/O And Exit Codes | Pass | Plan requires deterministic success/failure outcomes and actionable CLI diagnostics. |
-| III. No Suppression | Pass | Validation and runtime errors are surfaced; no warning/test suppression introduced. |
-| IV. Deterministic Tests | Pass | Unit tests use isolated inputs; integration tests avoid uncontrolled external dependencies. |
-| V. Documentation Is Part Of Delivery | Pass | `quickstart.md` and contract artifacts are produced in this phase. |
+| Principle                            | Status | Notes                                                                                       |
+| ------------------------------------ | ------ | ------------------------------------------------------------------------------------------- |
+| I. Single-Step Build And Test        | Pass   | Generated workspace quickstart mandates one build command and one test command.             |
+| II. CLI I/O And Exit Codes           | Pass   | Plan requires deterministic success/failure outcomes and actionable CLI diagnostics.        |
+| III. No Suppression                  | Pass   | Validation and runtime errors are surfaced; no warning/test suppression introduced.         |
+| IV. Deterministic Tests              | Pass   | Unit tests use isolated inputs; integration tests avoid uncontrolled external dependencies. |
+| V. Documentation Is Part Of Delivery | Pass   | `quickstart.md` and contract artifacts are produced in this phase.                          |
 
 No constitutional violations identified before Phase 0.
 

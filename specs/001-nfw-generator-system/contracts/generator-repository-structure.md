@@ -17,7 +17,7 @@ generator-name/
 ├── content/               # REQUIRED: Generator file tree
 │   └── (files to generate)
 └── .nfwignore             # OPTIONAL: Exclusion patterns
-```
+```text
 
 ### Type B: Generator Catalog Repository
 
@@ -34,7 +34,7 @@ catalog-name/
 │   ├── nfw.generator.yaml
 │   └── content/
 └── README.md              # OPTIONAL: Catalog documentation
-```
+```text
 
 ## Required Files
 
@@ -93,7 +93,7 @@ docs/
 # Exclude IDE files
 .vscode/
 .idea/
-```
+```text
 
 **Behavior**:
 
@@ -142,7 +142,7 @@ content/
     └── __ServiceName__/        # Becomes: src/Orders/
         ├── __ServiceName__.cs  # Becomes: Orders.cs
         └── __ServiceName__Controller.cs
-```
+```text
 
 ## Repository Validation
 
@@ -189,4 +189,4 @@ nfw-generators/
 │   │   └── ...
 │   └── .nfwignore
 └── README.md                        # Catalog documentation
-```
+```text

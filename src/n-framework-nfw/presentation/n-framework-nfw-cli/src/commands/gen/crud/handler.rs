@@ -131,10 +131,8 @@ where
                 entity_name
             ));
 
-            let entity_cli = GenEntityCliCommand::new(
-                self.entity_handler.clone(),
-                self.prompt.clone(),
-            );
+            let entity_cli =
+                GenEntityCliCommand::new(self.entity_handler.clone(), self.prompt.clone());
             entity_cli.execute(GenEntityRequest {
                 name: Some(&entity_name),
                 feature: request.feature,

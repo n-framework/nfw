@@ -1,5 +1,5 @@
 ---
-description: "Task list for Generate Repository Command feature"
+description: 'Task list for Generate Repository Command feature'
 ---
 
 # Tasks: Generate Repository Command

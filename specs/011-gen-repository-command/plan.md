@@ -18,28 +18,28 @@ Implement `nfw gen repository <NAME> [--feature <FEATURE>]` CLI command in Rust 
 
 ## Technical Context
 
-**Language/Version**: Rust 1.85+ (2024 edition) for CLI  
-**Primary Dependencies**: `clap` (CLI parsing), `serde`/`serde_yaml` (generator config parsing)  
-**Storage**: N/A (CLI tool, reads generators from `src/nfw-generators`)  
-**Testing**: `cargo test --workspace` (Rust integration tests)  
-**Target Platform**: Linux/macOS/Windows (CLI tool)  
-**Project Type**: CLI tool (nfw CLI)  
-**Performance Goals**: <2 seconds command execution for valid inputs  
-**Constraints**: Must validate entity exists, persistence configured in `nfw.yaml`, generator config readable  
-**Scale/Scope**: Single entity repository generation per command invocation  
+**Language/Version**: Rust 1.85+ (2024 edition) for CLI
+**Primary Dependencies**: `clap` (CLI parsing), `serde`/`serde_yaml` (generator config parsing)
+**Storage**: N/A (CLI tool, reads generators from `src/nfw-generators`)
+**Testing**: `cargo test --workspace` (Rust integration tests)
+**Target Platform**: Linux/macOS/Windows (CLI tool)
+**Project Type**: CLI tool (nfw CLI)
+**Performance Goals**: <2 seconds command execution for valid inputs
+**Constraints**: Must validate entity exists, persistence configured in `nfw.yaml`, generator config readable
+**Scale/Scope**: Single entity repository generation per command invocation
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Constitution Article | Status | Notes |
-|---------------------|--------|-------|
-| I. Single-Step Build And Test | ✅ PASS | `cd src/nfw && make build` and `make test` |
-| II. CLI I/O And Exit Codes | ✅ PASS | stdout output, stderr errors, exit 0/non-zero/130 for SIGINT |
-| III. No Suppression | ✅ PASS | No warning suppression, no swallowing exceptions |
-| IV. Deterministic Tests | ✅ PASS | Integration tests use CLI test utilities, no real network |
-| V. Documentation Is Part Of Delivery | ✅ PASS | quickstart.md created |
-| Additional: Repository conventions | ✅ PASS | Generator config defines paths, CLI applies them |
+| Constitution Article                 | Status  | Notes                                                        |
+| ------------------------------------ | ------- | ------------------------------------------------------------ |
+| I. Single-Step Build And Test        | ✅ PASS | `cd src/nfw && make build` and `make test`                   |
+| II. CLI I/O And Exit Codes           | ✅ PASS | stdout output, stderr errors, exit 0/non-zero/130 for SIGINT |
+| III. No Suppression                  | ✅ PASS | No warning suppression, no swallowing exceptions             |
+| IV. Deterministic Tests              | ✅ PASS | Integration tests use CLI test utilities, no real network    |
+| V. Documentation Is Part Of Delivery | ✅ PASS | quickstart.md created                                        |
+| Additional: Repository conventions   | ✅ PASS | Generator config defines paths, CLI applies them             |
 
 **GATE RESULT**: ✅ ALL PASSED
 
@@ -93,8 +93,8 @@ src/nfw-generators/src/dotnet-service/
 > **No violations** - Constitution gates all passed.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| (None) | - | - |
+| --------- | ---------- | ------------------------------------ |
+| (None)    | -          | -                                    |
 
 ## Phase 0: Research
 
@@ -133,8 +133,8 @@ id: dotnet-service/repository
 name: Repository Generator
 steps:
   - action: render
-    source: "content/interface/IEntityRepository.cs.tera"
-    destination: "src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Repositories/I{{ Entity }}Repository.cs"
+    source: 'content/interface/IEntityRepository.cs.tera'
+    destination: 'src/core/{{ Service }}.Core.Application/Features/{{ Feature }}/Repositories/I{{ Entity }}Repository.cs'
   # ... more steps
 ```
 
@@ -146,7 +146,7 @@ steps:
 
 ### Contracts
 
-*Skip*: CLI tool with no external API. Command contract is defined by `clap` in Rust code.
+_Skip_: CLI tool with no external API. Command contract is defined by `clap` in Rust code.
 
 ### Agent Context Update
 
@@ -160,7 +160,7 @@ bash .specify/scripts/bash/update-agent-context.sh
 
 ## Phase 2: Implementation Tasks
 
-*Note: tasks.md is created by `/speckit.tasks` command, NOT by `/speckit.plan`.*
+_Note: tasks.md is created by `/speckit.tasks` command, NOT by `/speckit.plan`._
 
 Planned artifact: `tasks.md` (created in separate step)
 

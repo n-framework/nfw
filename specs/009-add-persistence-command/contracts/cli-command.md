@@ -7,7 +7,7 @@
 
 ```text
 nfw add persistence [--service <NAME>] [--no-input]
-```
+```text
 
 ## Command Specification
 
@@ -22,7 +22,7 @@ Add the Persistence module to an existing service, generating DbContext, reposit
 ### Options
 
 | Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
+| -------- | ------ | ---------- | --------- | ------------- |
 | `--service <NAME>` | string | No* | - | Name of the service to add persistence to |
 | `--no-input` | flag | No | false | Disable all interactive prompts |
 
@@ -77,7 +77,7 @@ None (all parameters passed via options)
     └── Render configuration files
 7. Update nfw.yaml (add "persistence" to service's modules array)
 8. Report success
-```
+```text
 
 ### Rollback Behavior
 
@@ -91,7 +91,7 @@ If generator execution fails:
 ## Exit Codes
 
 | Code | Condition |
-|------|-----------|
+| ------ | ----------- |
 | 0 | Success (persistence added or already present) |
 | 1 | Generic error |
 | 2 | Workspace error (no nfw.yaml, invalid structure) |
@@ -120,13 +120,13 @@ Next steps:
    1. Update connection string in appsettings.json
    2. Run 'dotnet ef migrations add InitialCreate' to create initial migration
    3. Run 'dotnet ef database update' to apply migrations
-```
+```text
 
 **Already Present**:
 
 ```text
 ℹ Persistence module is already present in 'MyService'
-```
+```text
 
 ### Error Output (stderr)
 
@@ -138,7 +138,7 @@ Error: Service 'NonExistent' not found in workspace.
 Available services:
    - MyService
    - AnotherService
-```
+```text
 
 **Generator not found**:
 
@@ -146,7 +146,7 @@ Available services:
 Error: Generator not found: Could not resolve generator 'dotnet-service/persistence'
 
 Ensure the persistence generator is available in your configured generator sources.
-```
+```text
 
 **Permission error**:
 
@@ -154,7 +154,7 @@ Ensure the persistence generator is available in your configured generator sourc
 Error: Permission denied: cannot write to /path/to/nfw.yaml
 
 Check file permissions and try again.
-```
+```text
 
 ## Examples
 
@@ -168,7 +168,7 @@ $ nfw add persistence
 
 ✓ Adding persistence module to 'MyService'...
 Successfully added Persistence module to 'MyService'
-```
+```text
 
 ### Specify service explicitly
 
@@ -176,7 +176,7 @@ Successfully added Persistence module to 'MyService'
 $ nfw add persistence --service MyService
 ✓ Adding persistence module to 'MyService'...
 Successfully added Persistence module to 'MyService'
-```
+```text
 
 ### Automated mode
 
@@ -184,7 +184,7 @@ Successfully added Persistence module to 'MyService'
 $ nfw add persistence --service MyService --no-input
 # No prompts, executes directly
 # Exit code 0 on success, non-zero on failure
-```
+```text
 
 ### Single service (auto-select)
 
@@ -192,7 +192,7 @@ $ nfw add persistence --service MyService --no-input
 $ nfw add persistence --no-input
 # Auto-selects the only service
 # No prompts needed
-```
+```text
 
 ### Error cases
 
@@ -204,7 +204,7 @@ Error: Service 'NotFound' not found in workspace
 # Multiple services without --service in --no-input mode
 $ nfw add persistence --no-input
 Error: Multiple services found. Please specify --service or run without --no-input
-```
+```text
 
 ## Preconditions
 

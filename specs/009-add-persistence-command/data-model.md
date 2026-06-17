@@ -11,9 +11,9 @@
 
 **Fields**:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `service_info` | `ServiceInfo` | Target service information |
+| Field               | Type               | Description                       |
+| ------------------- | ------------------ | --------------------------------- |
+| `service_info`      | `ServiceInfo`      | Target service information        |
 | `workspace_context` | `WorkspaceContext` | Workspace configuration and state |
 
 **Lifecycle**:
@@ -43,11 +43,11 @@
 
 **Key Operations**:
 
-| Method | Input | Output | Description |
-|--------|-------|--------|-------------|
-| `handle()` | `AddPersistenceCommand` | `Result<(), AddArtifactError>` | Executes the add persistence workflow |
-| `get_workspace_context()` | - | `Result<WorkspaceContext, AddArtifactError>` | Loads workspace configuration |
-| `extract_services()` | `WorkspaceContext` | `Result<Vec<ServiceInfo>, AddArtifactError>` | Lists available services |
+| Method                    | Input                   | Output                                       | Description                           |
+| ------------------------- | ----------------------- | -------------------------------------------- | ------------------------------------- |
+| `handle()`                | `AddPersistenceCommand` | `Result<(), AddArtifactError>`               | Executes the add persistence workflow |
+| `get_workspace_context()` | -                       | `Result<WorkspaceContext, AddArtifactError>` | Loads workspace configuration         |
+| `extract_services()`      | `WorkspaceContext`      | `Result<Vec<ServiceInfo>, AddArtifactError>` | Lists available services              |
 
 **Error Handling**:
 
@@ -107,10 +107,10 @@ pub struct AddPersistenceRequest<'a> {
 
 **Fields**:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | `String` | Service identifier |
-| `path` | `String` | Relative path from workspace root |
+| Field          | Type     | Description                                   |
+| -------------- | -------- | --------------------------------------------- |
+| `name`         | `String` | Service identifier                            |
+| `path`         | `String` | Relative path from workspace root             |
 | `generator_id` | `String` | Generator identifier (e.g., "dotnet-service") |
 
 **Source**: Parsed from `nfw.yaml` services mapping.
@@ -125,11 +125,11 @@ pub struct AddPersistenceRequest<'a> {
 
 **Fields**:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `workspace_root` | `PathBuf` | Absolute path to workspace root |
-| `nfw_yaml` | `YamlValue` | Parsed workspace configuration |
-| `preserved_comments` | `PreservedComments` | YAML comment metadata |
+| Field                | Type                | Description                     |
+| -------------------- | ------------------- | ------------------------------- |
+| `workspace_root`     | `PathBuf`           | Absolute path to workspace root |
+| `nfw_yaml`           | `YamlValue`         | Parsed workspace configuration  |
+| `preserved_comments` | `PreservedComments` | YAML comment metadata           |
 
 **Lifecycle**:
 
@@ -151,15 +151,15 @@ pub struct AddPersistenceRequest<'a> {
 
 **Fields**:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `workspace_root` | `PathBuf` | Workspace root path |
-| `nfw_yaml` | `YamlValue` | Workspace configuration |
-| `preserved_comments` | `PreservedComments` | YAML comment metadata |
-| `generator_root` | `PathBuf` | Path to persistence generator directory |
-| `config` | `GeneratorConfig` | Parsed generator.yaml |
-| `service_name` | `String` | Target service name |
-| `service_path` | `PathBuf` | Service directory path |
+| Field                | Type                | Description                             |
+| -------------------- | ------------------- | --------------------------------------- |
+| `workspace_root`     | `PathBuf`           | Workspace root path                     |
+| `nfw_yaml`           | `YamlValue`         | Workspace configuration                 |
+| `preserved_comments` | `PreservedComments` | YAML comment metadata                   |
+| `generator_root`     | `PathBuf`           | Path to persistence generator directory |
+| `config`             | `GeneratorConfig`   | Parsed generator.yaml                   |
+| `service_name`       | `String`            | Target service name                     |
+| `service_path`       | `PathBuf`           | Service directory path                  |
 
 **Creation**: Built by `ArtifactGenerationService::load_generator_context()`.
 
@@ -173,11 +173,11 @@ pub struct AddPersistenceRequest<'a> {
 
 **Standard Parameters** (always included):
 
-| Parameter | Type | Source |
-|-----------|------|--------|
-| `Name` | String | Service name |
+| Parameter   | Type   | Source              |
+| ----------- | ------ | ------------------- |
+| `Name`      | String | Service name        |
 | `Namespace` | String | Workspace namespace |
-| `Service` | String | Service name |
+| `Service`   | String | Service name        |
 
 **Optional Parameters** (via `--params` or generator config):
 
@@ -198,8 +198,7 @@ GeneratorParameters::new()
 
 ### Service Lifecycle
 
-```text
-┌─────────────────┐
+```┌─────────────────┐
 │  Service exists │
 │  without        │
 │  persistence    │
@@ -221,8 +220,7 @@ GeneratorParameters::new()
 
 ### YAML Update Lifecycle
 
-```text
-┌──────────────────┐
+```┌──────────────────┐
 │ Load nfw.yaml     │
 │ + parse           │
 │ + extract comments│
@@ -253,8 +251,7 @@ GeneratorParameters::new()
 
 ## Error Hierarchy
 
-```text
-AddArtifactError
+```AddArtifactError
 ├── InvalidIdentifier          // Name validation failures
 ├── WorkspaceError             // Workspace-level issues
 ├── ConfigError                // Configuration problems
@@ -278,8 +275,7 @@ AddArtifactError
 
 ## Relationships
 
-```text
-AddPersistenceCliCommand (presentation)
+```AddPersistenceCliCommand (presentation)
          │
          │ creates
          ▼
@@ -339,8 +335,7 @@ ArtifactGenerationService (infrastructure)
 
 ## Data Flow
 
-```text
-User Input (CLI args)
+```User Input (CLI args)
          │
          ▼
 AddPersistenceRequest
@@ -419,8 +414,7 @@ AddPersistenceCommandHandler::handle()
 
 **Sandbox Workspace**:
 
-```text
-{sandbox}/
+```{sandbox}/
 ├── nfw.yaml           # Fake workspace config
 ├── generators/         # Fake generator sources
 │   └── dotnet-service/

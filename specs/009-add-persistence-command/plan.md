@@ -46,7 +46,7 @@ Implement the `nfw add persistence` CLI command that enables developers to add t
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### I. Single-Step Build And Test
 

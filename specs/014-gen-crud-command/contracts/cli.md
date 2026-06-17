@@ -6,7 +6,7 @@ This contract defines the CLI interface for the `nfw gen crud` command, parsing 
 
 ```bash
 nfw gen crud <ENTITY_NAME> [OPTIONS]
-```
+```text
 
 ## Arguments
 
@@ -42,11 +42,11 @@ If run in a TTY environment without `--no-input`:
 ✓ Created Presentation.WebApi/Endpoints/Product/CreateProductEndpoint.cs
 ...
 Generated CRUD for Product successfully in 1.42s.
-```
+```text
 
 **Error (stderr)**:
 
 ```text
 Error: Entity 'Product' not found.
 Run `nfw add entity Product` first, or run without --no-input to be prompted.
-```
+```text

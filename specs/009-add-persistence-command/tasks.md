@@ -1,6 +1,5 @@
 ---
-
-description: "Task list for nfw add persistence command implementation"
+description: 'Task list for nfw add persistence command implementation'
 ---
 
 # Tasks: nfw add persistence Command
@@ -31,8 +30,8 @@ description: "Task list for nfw add persistence command implementation"
 
 **Purpose**: Create the basic module structure for the add persistence command
 
-- [X] T001 Create add_persistence command module in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/mod.rs
-- [X] T002 Create add_persistence command module in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/mod.rs
+- [x] T001 Create add_persistence command module in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/mod.rs
+- [x] T002 Create add_persistence command module in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/mod.rs
 
 ---
 
@@ -42,8 +41,8 @@ description: "Task list for nfw add persistence command implementation"
 
 **⚠️ CRITICAL**: Command must be registered before implementation can be tested
 
-- [X] T003 Create CliCommandSpec registration in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/registration.rs with command name "persistence", --service option, and --no-input flag
-- [X] T004 Register add persistence command in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/mod.rs to expose the persistence subcommand
+- [x] T003 Create CliCommandSpec registration in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/registration.rs with command name "persistence", --service option, and --no-input flag
+- [x] T004 Register add persistence command in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/mod.rs to expose the persistence subcommand
 
 **Checkpoint**: Command is registered and appears in CLI help
 
@@ -59,41 +58,41 @@ description: "Task list for nfw add persistence command implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [X] T005 [P] [US1] Create test support module in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs with sandbox workspace setup utilities
-- [X] T006 [P] [US1] Write test_add_persistence_updates_nfw_yaml_and_renders_generator in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying successful addition
-- [X] T007 [P] [US1] Write test_add_persistence_rolls_back_yaml_if_generator_execution_fails in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying atomic rollback
-- [X] T008 [P] [US1] Write test_add_persistence_fails_if_service_not_found in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying error handling
-- [X] T009 [P] [US1] Write test_add_persistence_preserves_comments_in_nfw_yaml in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying comment preservation
-- [X] T010 [P] [US1] Write test_add_persistence_detects_existing_persistence_module in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying duplicate detection
+- [x] T005 [P] [US1] Create test support module in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs with sandbox workspace setup utilities
+- [x] T006 [P] [US1] Write test_add_persistence_updates_nfw_yaml_and_renders_generator in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying successful addition
+- [x] T007 [P] [US1] Write test_add_persistence_rolls_back_yaml_if_generator_execution_fails in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying atomic rollback
+- [x] T008 [P] [US1] Write test_add_persistence_fails_if_service_not_found in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying error handling
+- [x] T009 [P] [US1] Write test_add_persistence_preserves_comments_in_nfw_yaml in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying comment preservation
+- [x] T010 [P] [US1] Write test_add_persistence_detects_existing_persistence_module in tests/integration/n-framework-nfw/features/module/persistence_add_test.rs verifying duplicate detection
 
 ### Application Layer Implementation
 
-- [X] T011 [US1] Create AddPersistenceCommand in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/add_persistence_command.rs with service_info and workspace_context fields
-- [X] T012 [US1] Create AddPersistenceCommandHandler in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/add_persistence_command_handler.rs with ArtifactGenerationService dependency and handle() method
-- [X] T013 [US1] Implement get_workspace_context() method in AddPersistenceCommandHandler delegating to ArtifactGenerationService
-- [X] T014 [US1] Implement extract_services() method in AddPersistenceCommandHandler delegating to ArtifactGenerationService
-- [X] T015 [US1] Implement handle() method in AddPersistenceCommandHandler to load generator context, execute generators generating Infrastructure/Persistence layer with DbContext and repository base classes including dependency injection setup (without duplicate detection - added in T016)
-- [X] T016 [US1] Add duplicate module detection check in AddPersistenceCommandHandler.handle() BEFORE generator execution to check for existing "persistence" module and return early if present
+- [x] T011 [US1] Create AddPersistenceCommand in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/add_persistence_command.rs with service_info and workspace_context fields
+- [x] T012 [US1] Create AddPersistenceCommandHandler in src/nfw/src/n-framework-nfw/core/n-framework-nfw-core-application/src/features/generator_management/commands/add_persistence/add_persistence_command_handler.rs with ArtifactGenerationService dependency and handle() method
+- [x] T013 [US1] Implement get_workspace_context() method in AddPersistenceCommandHandler delegating to ArtifactGenerationService
+- [x] T014 [US1] Implement extract_services() method in AddPersistenceCommandHandler delegating to ArtifactGenerationService
+- [x] T015 [US1] Implement handle() method in AddPersistenceCommandHandler to load generator context, execute generators generating Infrastructure/Persistence layer with DbContext and repository base classes including dependency injection setup (without duplicate detection - added in T016)
+- [x] T016 [US1] Add duplicate module detection check in AddPersistenceCommandHandler.handle() BEFORE generator execution to check for existing "persistence" module and return early if present
 
 ### Presentation Layer Implementation
 
-- [X] T017 [P] [US1] Create AddPersistenceRequest struct in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/handler.rs with no_input, is_interactive_terminal, and service_name fields
-- [X] T018 [US1] Create AddPersistenceCliCommand in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/handler.rs with generic parameters W, R, E, P
-- [X] T019 [US1] Implement execute() method in AddPersistenceCliCommand with intro, service selection logic, spinner progress, and success/error reporting
-- [X] T020 [US1] Implement handle() static method in AddPersistenceCliCommand to parse Command options and invoke execute()
-- [X] T021 [US1] Add service selection logic in execute() for interactive mode (multiple services) using InteractivePrompt::select()
-- [X] T022 [US1] Add auto-selection logic in execute() for single service with --no-input flag
-- [X] T023 [US1] Add service name validation in execute() to check service exists before proceeding
-- [X] T024 [US1] Add duplicate persistence module detection in execute() and report info message if already present
-- [X] T025 [US1] Integrate AddPersistenceCommandHandler in AddPersistenceCliCommand with CliServiceCollectionFactory
-- [X] T026 [US1] Export AddPersistenceCliCommand in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/mod.rs
+- [x] T017 [P] [US1] Create AddPersistenceRequest struct in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/handler.rs with no_input, is_interactive_terminal, and service_name fields
+- [x] T018 [US1] Create AddPersistenceCliCommand in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/handler.rs with generic parameters W, R, E, P
+- [x] T019 [US1] Implement execute() method in AddPersistenceCliCommand with intro, service selection logic, spinner progress, and success/error reporting
+- [x] T020 [US1] Implement handle() static method in AddPersistenceCliCommand to parse Command options and invoke execute()
+- [x] T021 [US1] Add service selection logic in execute() for interactive mode (multiple services) using InteractivePrompt::select()
+- [x] T022 [US1] Add auto-selection logic in execute() for single service with --no-input flag
+- [x] T023 [US1] Add service name validation in execute() to check service exists before proceeding
+- [x] T024 [US1] Add duplicate persistence module detection in execute() and report info message if already present
+- [x] T025 [US1] Integrate AddPersistenceCommandHandler in AddPersistenceCliCommand with CliServiceCollectionFactory
+- [x] T026 [US1] Export AddPersistenceCliCommand in src/nfw/src/n-framework-nfw/presentation/n-framework-nfw-cli/src/commands/add/persistence/mod.rs
 
 ### Error Handling and Exit Codes
 
-- [X] T027 [US1] Map AddArtifactError variants to ExitCodes via ExitCodes::from_add_artifact_error() in execute() method covering: InvalidIdentifier→4, WorkspaceError→2, ConfigError→2, GeneratorNotFound→3, ExecutionFailed→3, NfwYamlReadError/ParseError/WriteError→2; ensure permission errors map to exit code 5
-- [X] T028 [US1] Add error message formatting for workspace errors (no services, service not found) with actionable guidance
-- [X] T029 [US1] Add error message formatting for generator errors (generator not found, execution failed) with specific failure details
-- [X] T030 [US1] Ensure rollback behavior on generator execution failure by catching errors before nfw.yaml modification
+- [x] T027 [US1] Map AddArtifactError variants to ExitCodes via ExitCodes::from_add_artifact_error() in execute() method covering: InvalidIdentifier→4, WorkspaceError→2, ConfigError→2, GeneratorNotFound→3, ExecutionFailed→3, NfwYamlReadError/ParseError/WriteError→2; ensure permission errors map to exit code 5
+- [x] T028 [US1] Add error message formatting for workspace errors (no services, service not found) with actionable guidance
+- [x] T029 [US1] Add error message formatting for generator errors (generator not found, execution failed) with specific failure details
+- [x] T030 [US1] Ensure rollback behavior on generator execution failure by catching errors before nfw.yaml modification
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - developers can run `nfw add persistence` to add the persistence module to services with generator rendering and atomic rollback.
 
@@ -103,17 +102,17 @@ description: "Task list for nfw add persistence command implementation"
 
 **Purpose**: Final validation, documentation, and quality assurance
 
-- [X] T031 [P] Run `cargo clippy --workspace -- -D warnings` from src/nfw/ and fix all warnings
-- [X] T032 [P] Run `cargo fmt --all` from src/nfw/ to ensure consistent formatting
-- [X] T033 [P] Run `cargo test --workspace persistence_add` from src/nfw/ and verify all tests pass
-- [X] T034 [P] Run `cargo build --workspace` from src/nfw/ and verify compilation succeeds
-- [X] T035 Validate quickstart.md commands are executable and produce expected results
-- [X] T036 Verify integration tests achieve 90% code path coverage per SC-005
-- [X] T037 Manual test: Create test workspace and run `nfw add persistence --service TestService --no-input` to verify end-to-end flow
-- [X] T038 Manual test: Verify YAML comment preservation by checking nfw.yaml before and after command execution
-- [X] T039 Performance test: Verify command completes in <5 seconds for typical workspaces (per SC-003)
-- [X] T040 Performance test: Verify rollback completes in <1 second when generator execution fails (per SC-004)
-- [X] T041 Concurrency test: Verify concurrent command execution handles nfw.yaml conflicts safely (no corruption) per SC-007
+- [x] T031 [P] Run `cargo clippy --workspace -- -D warnings` from src/nfw/ and fix all warnings
+- [x] T032 [P] Run `cargo fmt --all` from src/nfw/ to ensure consistent formatting
+- [x] T033 [P] Run `cargo test --workspace persistence_add` from src/nfw/ and verify all tests pass
+- [x] T034 [P] Run `cargo build --workspace` from src/nfw/ and verify compilation succeeds
+- [x] T035 Validate quickstart.md commands are executable and produce expected results
+- [x] T036 Verify integration tests achieve 90% code path coverage per SC-005
+- [x] T037 Manual test: Create test workspace and run `nfw add persistence --service TestService --no-input` to verify end-to-end flow
+- [x] T038 Manual test: Verify YAML comment preservation by checking nfw.yaml before and after command execution
+- [x] T039 Performance test: Verify command completes in <5 seconds for typical workspaces (per SC-003)
+- [x] T040 Performance test: Verify rollback completes in <1 second when generator execution fails (per SC-004)
+- [x] T041 Concurrency test: Verify concurrent command execution handles nfw.yaml conflicts safely (no corruption) per SC-007
 
 ---
 
@@ -148,8 +147,7 @@ description: "Task list for nfw add persistence command implementation"
 
 Based on the research.md analysis, the implementation follows this dependency chain:
 
-```text
-AddPersistenceCommand (T011)
+```AddPersistenceCommand (T011)
     ↓
 AddPersistenceCommandHandler (T012)
     ↓

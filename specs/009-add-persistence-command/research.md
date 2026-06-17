@@ -22,8 +22,7 @@ The `nfw add persistence` command follows the established architectural pattern 
 
 **Implementation Components**:
 
-```text
-Application Layer:
+```Application Layer:
 ├── commands/add_persistence/
 │   ├── add_persistence_command.rs         # Command DTO (ServiceInfo + WorkspaceContext)
 │   └── add_persistence_command_handler.rs # Handler using ArtifactGenerationService
@@ -118,8 +117,7 @@ pub fn register() -> CliCommandSpec {
 
 **Expected Generator Structure** (to be created separately):
 
-```text
-persistence/
+```persistence/
 ├── generator.yaml     # Generator configuration with steps
 ├── DbContext.cs.tera  # DbContext generation generator
 ├── RepositoryBase.cs.tera  # Repository base class generator

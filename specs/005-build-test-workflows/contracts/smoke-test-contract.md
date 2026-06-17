@@ -48,7 +48,7 @@ Smoke Test Suite: Build & Test Workflows
 [PASS] Service scaffolding
 =========================================
 3/3 tests passed
-```
+```text
 
 **Failure output (stderr)**:
 
@@ -63,7 +63,7 @@ Smoke Test Suite: Build & Test Workflows
 [PASS] Service scaffolding
 =========================================
 2/3 tests passed, 1 failed
-```
+```text
 
 ## Test Scenarios
 
